@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Eye, EyeOff, Users, Shield, Key } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -17,13 +17,21 @@ import {
   assignUserToGroup,
   removeUserFromGroup
 } from '../../utils/groupRBAC';
-import { Group, CreateGroupRequest, UpdateGroupRequest } from '../../types/groups';
+import { Group, CreateGroupRequest, UpdateGroupRequest, Permission, GroupUser } from '../../types/groups';
+
+// Define Department interface based on database schema
+interface Department {
+  id: string;
+  name: string;
+  order_index: number;
+  is_active: boolean;
+}
 
 
 const UserGroupManager = () => {
   const [userGroups, setUserGroups] = useState<Group[]>([]);
-  const [groupPermissions, setGroupPermissions] = useState<Record<string, any[]>>({});
-  const [groupUsers, setGroupUsers] = useState<Record<string, any[]>>({});
+  const [groupPermissions, setGroupPermissions] = useState<Record<string, Permission[]>>({});
+  const [groupUsers, setGroupUsers] = useState<Record<string, GroupUser[]>>({});
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string; email?: string } | null>(null);
@@ -53,7 +61,7 @@ const UserGroupManager = () => {
     user_id: '',
     department_id: ''
   });
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const { showToast } = useToast();
 
   // Get current user and check permissions
@@ -108,35 +116,29 @@ const UserGroupManager = () => {
     initializePermissions();
   }, [currentUser]);
 
-  // Fetch user groups data - must be after permission initialization
-  useEffect(() => {
-    if (!isInitializing && canManageGroups) {
-      fetchUserGroups();
-      fetchDepartments();
+  const fetchDepartments = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('departments')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index');
+
+      if (error) throw error;
+      setDepartments(data || []);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
     }
-  }, [isInitializing, canManageGroups]);
+  }, []);
 
-  const colors = [
-    { value: '#059669', label: 'Green' },
-    { value: '#2563eb', label: 'Blue' },
-    { value: '#dc2626', label: 'Red' },
-    { value: '#7c3aed', label: 'Purple' },
-    { value: '#ea580c', label: 'Orange' },
-    { value: '#0891b2', label: 'Cyan' },
-    { value: '#65a30d', label: 'Lime' },
-    { value: '#c2410c', label: 'Orange Red' }
-  ];
-
-
-
-  const fetchUserGroups = async () => {
+  const fetchUserGroups = useCallback(async () => {
     try {
       const groups = await getGroups();
       setUserGroups(groups);
 
       // Fetch permissions and users for each group
-      const permissionsMap: Record<string, any[]> = {};
-      const usersMap: Record<string, any[]> = {};
+      const permissionsMap: Record<string, Permission[]> = {};
+      const usersMap: Record<string, GroupUser[]> = {};
 
       await Promise.all(
         groups.map(async (group) => {
@@ -162,22 +164,29 @@ const UserGroupManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  const fetchDepartments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('departments')
-        .select('*')
-        .eq('is_active', true)
-        .order('order_index');
-
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
+  // Fetch user groups data - must be after permission initialization
+  useEffect(() => {
+    if (!isInitializing && canManageGroups) {
+      fetchUserGroups();
+      fetchDepartments();
     }
-  };
+  }, [isInitializing, canManageGroups, fetchUserGroups, fetchDepartments]);
+
+  const colors = [
+    { value: '#059669', label: 'Green' },
+    { value: '#2563eb', label: 'Blue' },
+    { value: '#dc2626', label: 'Red' },
+    { value: '#7c3aed', label: 'Purple' },
+    { value: '#ea580c', label: 'Orange' },
+    { value: '#0891b2', label: 'Cyan' },
+    { value: '#65a30d', label: 'Lime' },
+    { value: '#c2410c', label: 'Orange Red' }
+  ];
+
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -874,23 +883,23 @@ const UserGroupManager = () => {
               </h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {groupUsers[selectedGroupForUsers]?.length > 0 ? (
-                  groupUsers[selectedGroupForUsers].map((groupUser: any) => (
+                  groupUsers[selectedGroupForUsers].map((groupUser: GroupUser) => (
                     <div key={groupUser.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
                       <div className="flex items-center">
                         <Users className="w-4 h-4 mr-3 text-gray-400" />
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            User ID: {groupUser.user_id}
+                            User ID: {groupUser.userId}
                           </div>
                           <div className="text-sm text-gray-500">
-                            Added: {new Date(groupUser.assigned_at).toLocaleDateString()}
+                            Added: {new Date(groupUser.assignedAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveUser(selectedGroupForUsers, groupUser.user_id)}
+                        onClick={() => handleRemoveUser(selectedGroupForUsers, groupUser.userId)}
                         className="text-red-600 hover:text-red-900"
                       >
                         <Trash2 className="w-4 h-4" />

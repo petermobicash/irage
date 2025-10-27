@@ -17,7 +17,7 @@ export interface Notification {
   created_at: string;
   action_url?: string;
   action_label?: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export interface UseNotificationsOptions {
@@ -35,6 +35,28 @@ export interface UseNotificationsResult {
   markAsRead: (notificationId: string) => Promise<boolean>;
   markAllAsRead: () => Promise<boolean>;
   refresh: () => Promise<void>;
+}
+
+interface PendingTask {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  author_id: string;
+  assigned_to?: string;
+  priority?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface NotificationPreference {
+  id: string;
+  user_id: string;
+  notification_type: string;
+  is_enabled: boolean;
+  channels: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 /**
@@ -192,7 +214,7 @@ export const useWorkflowNotifications = (userId?: string) => {
  * Hook for pending tasks (content ready for publishing)
  */
 export const usePendingTasks = (userId?: string) => {
-  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
+  const [pendingTasks, setPendingTasks] = useState<PendingTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -242,7 +264,7 @@ export const usePendingTasks = (userId?: string) => {
 
   useEffect(() => {
     loadPendingTasks();
-  }, []); // Only run once on mount since loadPendingTasks has no external dependencies
+  }, [loadPendingTasks]);
 
   return {
     pendingTasks,
@@ -256,7 +278,7 @@ export const usePendingTasks = (userId?: string) => {
  * Hook for notification preferences
  */
 export const useNotificationPreferences = (userId?: string) => {
-  const [preferences, setPreferences] = useState<any[]>([]);
+  const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -16,7 +16,7 @@ const ChatDemo = () => {
   const [selectedRoomId] = useState('general-discussion');
   const [currentUserId] = useState('demo-user-1');
 
-  const demoTabs: Array<{ id: 'comments' | 'chat' | 'notifications' | 'suggestions' | 'admin' | 'reports'; name: string; icon: any; description: string }> = [
+  const demoTabs: Array<{ id: 'comments' | 'chat' | 'notifications' | 'suggestions' | 'admin' | 'reports'; name: string; icon: React.ComponentType<{ className?: string }>; description: string }> = [
     { id: 'comments', name: 'Comments System', icon: MessageSquare, description: 'Threaded commenting with reactions' },
     { id: 'chat', name: 'Real-time Chat', icon: Users, description: 'Live chat rooms with participants' },
     { id: 'notifications', name: 'Notifications', icon: MessageSquare, description: 'Real-time notification center' },

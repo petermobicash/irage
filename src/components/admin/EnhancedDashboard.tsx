@@ -15,7 +15,7 @@ import Button from '../ui/Button';
 import jsPDF from 'jspdf';
 
 // Helper function to export application data to CSV
-const exportApplicationToCSV = (data: any, type: string, filename?: string) => {
+const exportApplicationToCSV = (data: Record<string, unknown>, type: string, filename?: string) => {
   const headers = Object.keys(data).filter(key => !key.includes('_url') && !key.includes('_filename'));
   const csvContent = [
     headers.join(','),
@@ -32,7 +32,7 @@ const exportApplicationToCSV = (data: any, type: string, filename?: string) => {
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
-  link.setAttribute('download', filename || `${type}_application_${data.id}.csv`);
+  link.setAttribute('download', filename || `${type}_application_${(data as Record<string, unknown>).id as string}.csv`);
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
@@ -41,7 +41,7 @@ const exportApplicationToCSV = (data: any, type: string, filename?: string) => {
 };
 
 // Helper function to export application data to PDF
-const exportApplicationToPDF = (data: any, type: string, filename?: string) => {
+const exportApplicationToPDF = (data: Record<string, unknown>, type: string, filename?: string) => {
   const doc = new jsPDF();
   const headers = Object.keys(data).filter(key => !key.includes('_url') && !key.includes('_filename'));
 
@@ -76,7 +76,7 @@ const exportApplicationToPDF = (data: any, type: string, filename?: string) => {
     }
   });
 
-  doc.save(filename || `${type}_application_${data.id}.pdf`);
+  doc.save(filename || `${type}_application_${(data as Record<string, unknown>).id as string}.pdf`);
 };
 
 interface EnhancedDashboardProps {
@@ -154,10 +154,10 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'applications' | 'activity'>('overview');
   const [selectedApplication, setSelectedApplication] = useState<RecentApplication | null>(null);
-  const [fullApplicationData, setFullApplicationData] = useState<any>(null);
+  const [fullApplicationData, setFullApplicationData] = useState<Record<string, unknown> | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState<any>({});
+  const [editFormData, setEditFormData] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -284,11 +284,11 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
       render: (value, item) => (
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${
-            item.type === 'membership' ? 'bg-blue-500' :
-            item.type === 'volunteer' ? 'bg-green-500' :
-            item.type === 'contact' ? 'bg-purple-500' : 'bg-gray-500'
+            (item as RecentApplication).type === 'membership' ? 'bg-blue-500' :
+            (item as RecentApplication).type === 'volunteer' ? 'bg-green-500' :
+            (item as RecentApplication).type === 'contact' ? 'bg-purple-500' : 'bg-gray-500'
           }`} />
-          <span className="font-medium">{value}</span>
+          <span className="font-medium">{value as string}</span>
         </div>
       )
     },
@@ -308,7 +308,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
           value === 'contact' ? 'bg-purple-100 text-purple-800' :
           'bg-gray-100 text-gray-800'
         }`}>
-          {value.charAt(0).toUpperCase() + value.slice(1)}
+          {(value as string).charAt(0).toUpperCase() + (value as string).slice(1)}
         </span>
       )
     },
@@ -323,7 +323,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
           value === 'rejected' ? 'bg-red-100 text-red-800' :
           'bg-gray-100 text-gray-800'
         }`}>
-          {value.charAt(0).toUpperCase() + value.slice(1)}
+          {(value as string).charAt(0).toUpperCase() + (value as string).slice(1)}
         </span>
       )
     },
@@ -331,7 +331,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
       key: 'submission_date',
       header: 'Date',
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString()
+      render: (value) => new Date(value as string).toLocaleDateString()
     }
   ];
 
@@ -434,7 +434,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'overview' | 'analytics' | 'applications' | 'activity')}
                   className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
@@ -571,8 +571,8 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
 
           {activeTab === 'applications' && (
             <DataTable
-              data={recentApplications}
-              columns={applicationColumns}
+              data={recentApplications as unknown as Record<string, unknown>[]}
+              columns={applicationColumns as unknown as Column<Record<string, unknown>>[]}
               searchable={true}
               searchPlaceholder="Search applications..."
               sortable={true}
@@ -582,13 +582,13 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   label: 'View',
                   icon: Eye,
                   onClick: async (item) => {
-                    setSelectedApplication(item);
-                    const table = item.type === 'membership' ? 'membership_applications' :
-                                  item.type === 'volunteer' ? 'volunteer_applications' :
-                                  item.type === 'contact' ? 'contact_submissions' :
+                    setSelectedApplication(item as unknown as RecentApplication);
+                    const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
+                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
                                   'partnership_applications';
-                    const { data } = await supabase.from(table).select('*').eq('id', item.id).single();
-                    setFullApplicationData(data);
+                    const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
+                    setFullApplicationData(data as Record<string, unknown>);
                     setIsViewModalOpen(true);
                   },
                   variant: 'primary'
@@ -597,13 +597,13 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   label: 'Download CSV',
                   icon: Download,
                   onClick: async (item) => {
-                    const table = item.type === 'membership' ? 'membership_applications' :
-                                  item.type === 'volunteer' ? 'volunteer_applications' :
-                                  item.type === 'contact' ? 'contact_submissions' :
+                    const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
+                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
                                   'partnership_applications';
-                    const { data } = await supabase.from(table).select('*').eq('id', item.id).single();
+                    const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
                     if (data) {
-                      exportApplicationToCSV(data, item.type, `${item.type}_application_${item.id}.csv`);
+                      exportApplicationToCSV(data as Record<string, unknown>, (item as unknown as RecentApplication).type, `${(item as unknown as RecentApplication).type}_application_${(item as unknown as RecentApplication).id}.csv`);
                     }
                   },
                   variant: 'secondary'
@@ -612,13 +612,13 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   label: 'Download PDF',
                   icon: Download,
                   onClick: async (item) => {
-                    const table = item.type === 'membership' ? 'membership_applications' :
-                                  item.type === 'volunteer' ? 'volunteer_applications' :
-                                  item.type === 'contact' ? 'contact_submissions' :
+                    const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
+                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
                                   'partnership_applications';
-                    const { data } = await supabase.from(table).select('*').eq('id', item.id).single();
+                    const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
                     if (data) {
-                      exportApplicationToPDF(data, item.type, `${item.type}_application_${item.id}.pdf`);
+                      exportApplicationToPDF(data as Record<string, unknown>, (item as unknown as RecentApplication).type, `${(item as unknown as RecentApplication).type}_application_${(item as unknown as RecentApplication).id}.pdf`);
                     }
                   },
                   variant: 'secondary'
@@ -627,14 +627,14 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   label: 'Edit',
                   icon: FileText,
                   onClick: async (item) => {
-                    setSelectedApplication(item);
-                    const table = item.type === 'membership' ? 'membership_applications' :
-                                  item.type === 'volunteer' ? 'volunteer_applications' :
-                                  item.type === 'contact' ? 'contact_submissions' :
+                    setSelectedApplication(item as unknown as RecentApplication);
+                    const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
+                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
                                   'partnership_applications';
-                    const { data } = await supabase.from(table).select('*').eq('id', item.id).single();
-                    setFullApplicationData(data);
-                    setEditFormData(data);
+                    const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
+                    setFullApplicationData(data as Record<string, unknown>);
+                    setEditFormData(data as Record<string, unknown>);
                     setIsEditModalOpen(true);
                   },
                   variant: 'secondary'
@@ -644,28 +644,28 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                 {
                   label: 'Approve',
                   icon: Check,
-                  onClick: (items) => console.log('Approve', items),
+                  onClick: (items) => console.log('Approve', items as unknown as RecentApplication[]),
                   variant: 'primary'
                 },
                 {
                   label: 'Reject',
                   icon: X,
-                  onClick: (items) => console.log('Reject', items),
+                  onClick: (items) => console.log('Reject', items as unknown as RecentApplication[]),
                   variant: 'danger'
                 },
                 {
                   label: 'Download Selected (CSV & PDF)',
                   icon: Download,
                   onClick: async (items) => {
-                    for (const item of items) {
+                    for (const item of items as unknown as RecentApplication[]) {
                       const table = item.type === 'membership' ? 'membership_applications' :
                                     item.type === 'volunteer' ? 'volunteer_applications' :
                                     item.type === 'contact' ? 'contact_submissions' :
                                     'partnership_applications';
                       const { data } = await supabase.from(table).select('*').eq('id', item.id).single();
                       if (data) {
-                        exportApplicationToCSV(data, item.type, `${item.type}_application_${item.id}.csv`);
-                        exportApplicationToPDF(data, item.type, `${item.type}_application_${item.id}.pdf`);
+                        exportApplicationToCSV(data as Record<string, unknown>, item.type, `${item.type}_application_${item.id}.csv`);
+                        exportApplicationToPDF(data as Record<string, unknown>, item.type, `${item.type}_application_${item.id}.pdf`);
                       }
                     }
                   },
@@ -747,7 +747,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                                   </span>
                                 ) : isJson || isArray ? (
                                   <pre className="text-sm text-gray-600 whitespace-pre-wrap">
-                                    {isArray ? value.join(', ') : JSON.stringify(value, null, 2)}
+                                    {isArray ? (value as unknown[]).join(', ') : JSON.stringify(value as Record<string, unknown>, null, 2)}
                                   </pre>
                                 ) : (
                                   <span className="text-gray-900">{String(value || 'N/A')}</span>
@@ -816,13 +816,13 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                               {isBoolean ? (
                                 <input
                                   type="checkbox"
-                                  checked={value || false}
+                                  checked={Boolean(value)}
                                   onChange={(e) => setEditFormData({ ...editFormData, [field]: e.target.checked })}
                                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
                               ) : isJson || isArray ? (
                                 <textarea
-                                  value={isArray ? value.join(', ') : JSON.stringify(value, null, 2)}
+                                  value={isArray ? (value as unknown[]).join(', ') : JSON.stringify(value as Record<string, unknown>, null, 2)}
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     let parsed;
@@ -840,7 +840,7 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                               ) : (
                                 <input
                                   type={inputType}
-                                  value={value || ''}
+                                  value={String(value || '')}
                                   onChange={(e) => setEditFormData({ ...editFormData, [field]: e.target.value })}
                                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 />

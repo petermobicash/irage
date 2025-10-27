@@ -387,7 +387,7 @@ export const getWorkflowState = async (contentId: string): Promise<WorkflowState
         return {
           id: '',
           contentId: contentId,
-          status: content.status as any,
+          status: content.status as WorkflowState['status'],
           workflowStage: mapStatusToWorkflowStage(content.status),
           initiatedBy: content.initiated_by || undefined,
           initiatedById: content.initiated_by_id || undefined,
@@ -412,8 +412,8 @@ export const getWorkflowState = async (contentId: string): Promise<WorkflowState
     return {
       id: data.id,
       contentId: data.content_id,
-      status: data.status as any,
-      workflowStage: data.workflow_stage as any,
+      status: data.status as WorkflowState['status'],
+      workflowStage: data.workflow_stage as WorkflowState['workflowStage'],
       initiatedBy: data.initiated_by || undefined,
       initiatedById: data.initiated_by_id || undefined,
       initiatedAt: data.initiated_at || undefined,
@@ -431,7 +431,7 @@ export const getWorkflowState = async (contentId: string): Promise<WorkflowState
       assignedTo: data.assigned_to || undefined,
       assignedToId: data.assigned_to || undefined,
       assignedToName: data.assigned_to_name || undefined,
-      priority: (data.priority as any) || 'normal',
+      priority: (data.priority as WorkflowState['priority']) || 'normal',
       dueDate: data.due_date || undefined
     };
   } catch (error) {
@@ -443,7 +443,7 @@ export const getWorkflowState = async (contentId: string): Promise<WorkflowState
 /**
  * Get all workflow items for dashboard
  */
-export const getWorkflowItems = async (): Promise<any[]> => {
+export const getWorkflowItems = async (): Promise<unknown[]> => {
   try {
     const { data, error } = await supabase
       .from('workflow_dashboard')
@@ -461,7 +461,7 @@ export const getWorkflowItems = async (): Promise<any[]> => {
 /**
  * Get workflow items by status
  */
-export const getWorkflowItemsByStatus = async (status: string): Promise<any[]> => {
+export const getWorkflowItemsByStatus = async (status: string): Promise<unknown[]> => {
   try {
     const { data, error } = await supabase
       .from('workflow_dashboard')
@@ -480,7 +480,7 @@ export const getWorkflowItemsByStatus = async (status: string): Promise<any[]> =
 /**
  * Get workflow items assigned to current user
  */
-export const getMyWorkflowItems = async (): Promise<any[]> => {
+export const getMyWorkflowItems = async (): Promise<unknown[]> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
@@ -572,34 +572,38 @@ export const canUserPerformAction = async (
 
     // Check permissions based on action
     switch (action) {
-      case 'submit_for_review':
+      case 'submit_for_review': {
         const canSubmit = await checkCurrentUserPermission(CONTENT_PERMISSIONS.CONTENT_SUBMIT_REVIEW);
         return {
           canPerform: canSubmit && (content.author_id === user.id || await checkCurrentUserPermission(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL)),
           reason: !canSubmit ? 'You do not have permission to submit content for review' : 'You can only submit your own content for review'
         };
+      }
 
       case 'approve':
-      case 'reject':
+      case 'reject': {
         const canApprove = await checkCurrentUserPermission(CONTENT_PERMISSIONS.CONTENT_APPROVE_REVIEW);
         return {
           canPerform: canApprove && content.status === 'pending_review',
           reason: !canApprove ? 'You do not have permission to approve/reject content' : 'Content must be pending review'
         };
+      }
 
-      case 'publish':
+      case 'publish': {
         const canPublish = await checkCurrentUserPermission(CONTENT_PERMISSIONS.CONTENT_PUBLISH);
         return {
           canPerform: canPublish && content.status === 'reviewed',
           reason: !canPublish ? 'You do not have permission to publish content' : 'Content must be approved first'
         };
+      }
 
-      case 'unpublish':
+      case 'unpublish': {
         const canUnpublish = await checkCurrentUserPermission(CONTENT_PERMISSIONS.CONTENT_UNPUBLISH);
         return {
           canPerform: canUnpublish && content.status === 'published',
           reason: !canUnpublish ? 'You do not have permission to unpublish content' : 'Content must be published first'
         };
+      }
 
       default:
         return { canPerform: false, reason: 'Invalid action' };

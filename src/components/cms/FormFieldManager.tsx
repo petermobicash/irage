@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Eye, EyeOff, Settings } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
@@ -13,7 +13,7 @@ interface FormFieldData {
   placeholder?: string;
   required: boolean;
   options: string[];
-  validation_rules: Record<string, any>;
+  validation_rules: Record<string, unknown>;
   order_index: number;
   is_active: boolean;
   status: string;
@@ -63,11 +63,7 @@ const FormFieldManager = () => {
     { value: 'newsletter', label: 'Newsletter Signup' }
   ];
 
-  useEffect(() => {
-    fetchFormFields();
-  }, []);
-
-  const fetchFormFields = async () => {
+  const fetchFormFields = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('form_fields')
@@ -83,7 +79,11 @@ const FormFieldManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchFormFields();
+  }, [fetchFormFields]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,7 +231,7 @@ const FormFieldManager = () => {
                 label="Form Page"
                 type="select"
                 value={formData.page_id}
-                onChange={(e) => setFormData({ ...formData, page_id: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, page_id: value as string })}
                 required
                 options={pages}
               />
@@ -240,7 +240,7 @@ const FormFieldManager = () => {
                 label="Field Type"
                 type="select"
                 value={formData.field_type}
-                onChange={(e) => setFormData({ ...formData, field_type: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, field_type: value as string })}
                 required
                 options={fieldTypes}
               />
@@ -249,7 +249,7 @@ const FormFieldManager = () => {
                 label="Label"
                 type="text"
                 value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, label: value as string })}
                 required
               />
 
@@ -257,7 +257,7 @@ const FormFieldManager = () => {
                 label="Placeholder"
                 type="text"
                 value={formData.placeholder}
-                onChange={(e) => setFormData({ ...formData, placeholder: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, placeholder: value as string })}
                 placeholder="Optional placeholder text"
               />
 
@@ -265,7 +265,7 @@ const FormFieldManager = () => {
                 label="Order Index"
                 type="number"
                 value={formData.order_index}
-                onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) })}
+                onChange={(value) => setFormData({ ...formData, order_index: parseInt(value as string) || 0 })}
                 min="0"
               />
 
@@ -273,7 +273,7 @@ const FormFieldManager = () => {
                 label="Status"
                 type="select"
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, status: value as string })}
                 options={[
                   { value: 'published', label: 'Published' },
                   { value: 'draft', label: 'Draft' },
@@ -288,7 +288,7 @@ const FormFieldManager = () => {
                 label="Options (one per line)"
                 type="textarea"
                 value={formData.options.join('\n')}
-                onChange={(e) => handleOptionsChange(e.target.value)}
+                onChange={(value) => handleOptionsChange(value as string)}
                 rows={4}
                 placeholder="Option 1&#10;Option 2&#10;Option 3"
               />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Eye, EyeOff, Shield, User, Users, Search, Filter, Download, Activity } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -76,8 +76,8 @@ interface UserData {
   updated_at?: string;
   is_active: boolean;
   is_super_admin?: boolean;
-  profile_data?: Record<string, any>;
-  preferences?: Record<string, any>;
+  profile_data?: Record<string, unknown>;
+  preferences?: Record<string, unknown>;
   // Enhanced fields for unified management
   userGroups?: Array<{
     groupId: string;
@@ -92,6 +92,13 @@ interface UserData {
 
 interface UserManagerProps {
   currentUser?: SupabaseUser | null;
+}
+
+interface ActivityData {
+  action: string;
+  resource: string;
+  timestamp: string;
+  details?: string;
 }
 
 const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
@@ -114,7 +121,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
-  const [activityData, setActivityData] = useState<any[]>([]);
+  const [activityData, setActivityData] = useState<ActivityData[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'permissions'>('users');
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -213,16 +220,6 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
     initializePermissions();
   }, [currentUser]);
 
-  // Fetch users and groups data - must be after permission initialization
-  useEffect(() => {
-    if (!isInitializing && canManageUsers) {
-      fetchUsers();
-      fetchGroups();
-    } else if (!isInitializing && !canManageUsers) {
-      setUsers([]);
-      setGroups([]);
-    }
-  }, [isInitializing, canManageUsers]);
 
   // Fetch activity data when modal opens
   useEffect(() => {
@@ -245,43 +242,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
     }
   }, [showActivityModal, activityLoading, showToast]);
 
-  const roles = [
-    { value: 'super-admin', label: 'Super Admin' },
-    { value: 'content-manager', label: 'Content Manager' },
-    { value: 'editor', label: 'Editor' },
-    { value: 'contributor', label: 'Contributor' },
-    { value: 'viewer', label: 'Viewer' }
-  ];
-
-  // Show loading while initializing
-  if (isInitializing) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center justify-center p-8">
-          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-2 text-gray-600">Initializing...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if user has permission to manage users - only after hooks are initialized
-  if (!canManageUsers) {
-    return (
-      <Card className="text-center py-12">
-        <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-        <p className="text-gray-500 mb-4">
-          You don't have permission to manage users.
-        </p>
-        <p className="text-sm text-gray-400">
-          Contact admin@benirage.org for access.
-        </p>
-      </Card>
-    );
-  }
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       // First, let's check if we have admin access to view all profiles
@@ -291,7 +252,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
         return;
       }
 
-      let query = supabase.from('user_profiles').select('*');
+      const query = supabase.from('user_profiles').select('*');
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -332,9 +293,9 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     try {
       const groupsData = await getGroups();
       setGroups(groupsData);
@@ -342,7 +303,54 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
       console.error('Error fetching groups:', error);
       showToast('Failed to load groups', 'error');
     }
-  };
+  }, [showToast]);
+
+  // Fetch users and groups data - must be after permission initialization
+  useEffect(() => {
+    if (!isInitializing && canManageUsers) {
+      fetchUsers();
+      fetchGroups();
+    } else if (!isInitializing && !canManageUsers) {
+      setUsers([]);
+      setGroups([]);
+    }
+  }, [isInitializing, canManageUsers, fetchUsers, fetchGroups]);
+
+  const roles = [
+    { value: 'super-admin', label: 'Super Admin' },
+    { value: 'content-manager', label: 'Content Manager' },
+    { value: 'editor', label: 'Editor' },
+    { value: 'contributor', label: 'Contributor' },
+    { value: 'viewer', label: 'Viewer' }
+  ];
+
+  // Show loading while initializing
+  if (isInitializing) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center p-8">
+          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 text-gray-600">Initializing...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has permission to manage users - only after hooks are initialized
+  if (!canManageUsers) {
+    return (
+      <Card className="text-center py-12">
+        <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+        <p className="text-gray-500 mb-4">
+          You don't have permission to manage users.
+        </p>
+        <p className="text-sm text-gray-400">
+          Contact admin@benirage.org for access.
+        </p>
+      </Card>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -408,7 +416,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
         if (error) throw error;
 
         // Log user update with changes made
-        const changes: Record<string, any> = {};
+        const changes: Record<string, unknown> = {};
         const originalUser = users.find(u => u.id === editingId);
 
         if (originalUser) {
@@ -624,11 +632,12 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 setNewUserEmail(formData.email);
                 setShowOnboarding(true);
               }
-            } catch (adminError: any) {
+            } catch (adminError: unknown) {
               console.error('Admin user creation failed:', adminError);
 
               // Fallback: try to create profile for invite-based system
-              if (adminError.message?.includes('admin') || adminError.message?.includes('permission')) {
+              const errorMessage = adminError instanceof Error ? adminError.message : String(adminError);
+              if (errorMessage.includes('admin') || errorMessage.includes('permission')) {
                 showToast('🔄 Admin API not available, creating invitation instead...', 'info');
 
                 const { error } = await supabase
@@ -743,18 +752,19 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
 
             showToast('✅ User invitation created! The user will need to sign up with this email address to activate their account.', 'success');
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error in user creation process:', error);
 
           // Provide specific error messages based on the error type
-          if (error.message?.includes('admin') || error.message?.includes('permission')) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage.includes('admin') || errorMessage.includes('permission')) {
             showToast('❌ Admin privileges required. Please log in as admin@benirage.org or contact your administrator.', 'error');
-          } else if (error.message?.includes('RLS') || error.message?.includes('policy')) {
+          } else if (errorMessage.includes('RLS') || errorMessage.includes('policy')) {
             showToast('❌ Database policy error. Please run the RLS fix script in Supabase SQL Editor.', 'error');
-          } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+          } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
             showToast('❌ Network error. Please check your connection and try again.', 'error');
           } else {
-            showToast(`❌ Failed to create user: ${error.message || 'Unknown error occurred'}`, 'error');
+            showToast(`❌ Failed to create user: ${errorMessage}`, 'error');
           }
         }
       }
@@ -1291,7 +1301,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -1392,7 +1402,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Full Name"
                 type="text"
                 value={formData.name}
-                onChange={(value) => setFormData({ ...formData, name: value })}
+                onChange={(value) => setFormData({ ...formData, name: String(value) })}
                 required
               />
 
@@ -1400,7 +1410,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Email"
                 type="email"
                 value={formData.email}
-                onChange={(value) => setFormData({ ...formData, email: value })}
+                onChange={(value) => setFormData({ ...formData, email: String(value) })}
                 required
                 disabled={editingId !== 'new'}
               />
@@ -1409,7 +1419,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Role"
                 type="select"
                 value={formData.role}
-                onChange={(value) => setFormData({ ...formData, role: value })}
+                onChange={(value) => setFormData({ ...formData, role: String(value) })}
                 options={roles}
                 required
               />
@@ -1418,7 +1428,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Department"
                 type="text"
                 value={formData.department}
-                onChange={(value) => setFormData({ ...formData, department: value })}
+                onChange={(value) => setFormData({ ...formData, department: String(value) })}
                 placeholder="e.g., Content, Membership, Administration"
               />
 
@@ -1426,7 +1436,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Position"
                 type="text"
                 value={formData.position}
-                onChange={(value) => setFormData({ ...formData, position: value })}
+                onChange={(value) => setFormData({ ...formData, position: String(value) })}
                 placeholder="e.g., Manager, Coordinator, Specialist"
               />
 
@@ -1434,7 +1444,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(value) => setFormData({ ...formData, phone: value })}
+                onChange={(value) => setFormData({ ...formData, phone: String(value) })}
                 placeholder="+250 ..."
               />
 
@@ -1442,7 +1452,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Avatar URL"
                 type="text"
                 value={formData.avatar_url}
-                onChange={(value) => setFormData({ ...formData, avatar_url: value })}
+                onChange={(value) => setFormData({ ...formData, avatar_url: String(value) })}
                 placeholder="https://example.com/avatar.jpg"
               />
 
@@ -1450,7 +1460,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Location"
                 type="text"
                 value={formData.location}
-                onChange={(value) => setFormData({ ...formData, location: value })}
+                onChange={(value) => setFormData({ ...formData, location: String(value) })}
                 placeholder="City, Country"
               />
             </div>
@@ -1459,7 +1469,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
               label="Bio"
               type="textarea"
               value={formData.bio}
-              onChange={(value) => setFormData({ ...formData, bio: value })}
+              onChange={(value) => setFormData({ ...formData, bio: String(value) })}
               rows={3}
               placeholder="Brief description about the user..."
             />
@@ -1469,7 +1479,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Form Access Permissions (comma-separated)"
                 type="text"
                 value={formData.form_access_permissions.join(', ')}
-                onChange={(value) => handleArrayFieldChange('form_access_permissions', value)}
+                onChange={(value) => handleArrayFieldChange('form_access_permissions', String(value))}
                 placeholder="membership_applications, volunteer_applications, contact_submissions"
               />
 
@@ -1477,7 +1487,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Content Access Permissions (comma-separated)"
                 type="text"
                 value={formData.content_access_permissions.join(', ')}
-                onChange={(value) => handleArrayFieldChange('content_access_permissions', value)}
+                onChange={(value) => handleArrayFieldChange('content_access_permissions', String(value))}
                 placeholder="create, edit, publish, delete"
               />
 
@@ -1485,7 +1495,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Admin Access Permissions (comma-separated)"
                 type="text"
                 value={formData.admin_access_permissions.join(', ')}
-                onChange={(value) => handleArrayFieldChange('admin_access_permissions', value)}
+                onChange={(value) => handleArrayFieldChange('admin_access_permissions', String(value))}
                 placeholder="users, settings, analytics, reports"
               />
 
@@ -1493,7 +1503,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
                 label="Approval Level"
                 type="select"
                 value={formData.approval_level.toString()}
-                onChange={(value) => setFormData({ ...formData, approval_level: parseInt(value) })}
+                onChange={(value) => setFormData({ ...formData, approval_level: parseInt(String(value)) })}
                 options={[
                   { value: '0', label: '0 - No approval rights' },
                   { value: '1', label: '1 - Can initiate content' },

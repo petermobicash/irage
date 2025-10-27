@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Save, Settings, Globe, Mail, Shield, Database, Palette } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
@@ -28,7 +28,7 @@ const CMSSettings = () => {
     { id: 'appearance', label: 'Appearance', icon: Palette }
   ];
 
-  const defaultSettings = {
+  const defaultSettings = useMemo(() => ({
     // General
     site_name: 'BENIRAGE',
     site_tagline: 'Grounded • Home • Guided • Rooted',
@@ -37,7 +37,7 @@ const CMSSettings = () => {
     timezone: 'UTC',
     date_format: 'Y-m-d',
     time_format: 'H:i:s',
-    
+
     // Site Info
     site_url: 'https://benirage.org',
     contact_email: 'contact@benirage.org',
@@ -47,7 +47,7 @@ const CMSSettings = () => {
     social_twitter: 'https://twitter.com/benirage',
     social_instagram: 'https://instagram.com/benirage',
     social_youtube: 'https://youtube.com/benirage',
-    
+
     // Email
     smtp_host: 'smtp.gmail.com',
     smtp_port: '587',
@@ -56,7 +56,7 @@ const CMSSettings = () => {
     smtp_encryption: 'tls',
     from_email: 'noreply@benirage.org',
     from_name: 'BENIRAGE',
-    
+
     // Security
     enable_registration: 'true',
     require_email_verification: 'true',
@@ -64,13 +64,13 @@ const CMSSettings = () => {
     session_timeout: '3600',
     max_login_attempts: '5',
     enable_two_factor: 'false',
-    
+
     // Database
     backup_frequency: 'daily',
     backup_retention: '30',
     enable_query_logging: 'false',
     maintenance_mode: 'false',
-    
+
     // Appearance
     primary_color: '#2563eb',
     secondary_color: '#059669',
@@ -78,13 +78,9 @@ const CMSSettings = () => {
     font_family: 'Inter',
     logo_url: '/benirage.png',
     favicon_url: '/favicon.ico'
-  };
+  }), []);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('settings')
@@ -106,7 +102,11 @@ const CMSSettings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast, defaultSettings]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -134,8 +134,9 @@ const CMSSettings = () => {
     }
   };
 
-  const handleInputChange = (key: string, value: string) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const handleInputChange = (key: string, value: string | number | boolean) => {
+    const stringValue = typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value);
+    setSettings(prev => ({ ...prev, [key]: stringValue }));
   };
 
   const renderGeneralSettings = () => (
@@ -144,21 +145,21 @@ const CMSSettings = () => {
         label="Site Name"
         type="text"
         value={settings.site_name || ''}
-        onChange={(e) => handleInputChange('site_name', e.target.value)}
+        onChange={(value) => handleInputChange('site_name', value)}
       />
       
       <FormField
         label="Site Tagline"
         type="text"
         value={settings.site_tagline || ''}
-        onChange={(e) => handleInputChange('site_tagline', e.target.value)}
+        onChange={(value) => handleInputChange('site_tagline', value)}
       />
       
       <FormField
         label="Site Description"
         type="textarea"
         value={settings.site_description || ''}
-        onChange={(e) => handleInputChange('site_description', e.target.value)}
+        onChange={(value) => handleInputChange('site_description', value)}
         rows={3}
       />
       
@@ -167,14 +168,14 @@ const CMSSettings = () => {
           label="Admin Email"
           type="email"
           value={settings.admin_email || ''}
-          onChange={(e) => handleInputChange('admin_email', e.target.value)}
+          onChange={(value) => handleInputChange('admin_email', value)}
         />
         
         <FormField
           label="Timezone"
           type="select"
           value={settings.timezone || ''}
-          onChange={(e) => handleInputChange('timezone', e.target.value)}
+          onChange={(value) => handleInputChange('timezone', value)}
           options={[
             { value: 'UTC', label: 'UTC' },
             { value: 'America/New_York', label: 'Eastern Time' },
@@ -188,7 +189,7 @@ const CMSSettings = () => {
           label="Date Format"
           type="select"
           value={settings.date_format || ''}
-          onChange={(e) => handleInputChange('date_format', e.target.value)}
+          onChange={(value) => handleInputChange('date_format', value)}
           options={[
             { value: 'Y-m-d', label: '2024-01-15' },
             { value: 'm/d/Y', label: '01/15/2024' },
@@ -201,7 +202,7 @@ const CMSSettings = () => {
           label="Time Format"
           type="select"
           value={settings.time_format || ''}
-          onChange={(e) => handleInputChange('time_format', e.target.value)}
+          onChange={(value) => handleInputChange('time_format', value)}
           options={[
             { value: 'H:i:s', label: '24-hour (14:30:00)' },
             { value: 'g:i A', label: '12-hour (2:30 PM)' }
@@ -218,21 +219,21 @@ const CMSSettings = () => {
           label="Site URL"
           type="url"
           value={settings.site_url || ''}
-          onChange={(e) => handleInputChange('site_url', e.target.value)}
+          onChange={(value) => handleInputChange('site_url', value)}
         />
         
         <FormField
           label="Contact Email"
           type="email"
           value={settings.contact_email || ''}
-          onChange={(e) => handleInputChange('contact_email', e.target.value)}
+          onChange={(value) => handleInputChange('contact_email', value)}
         />
         
         <FormField
           label="Contact Phone"
           type="tel"
           value={settings.contact_phone || ''}
-          onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+          onChange={(value) => handleInputChange('contact_phone', value)}
         />
       </div>
       
@@ -240,7 +241,7 @@ const CMSSettings = () => {
         label="Contact Address"
         type="textarea"
         value={settings.contact_address || ''}
-        onChange={(e) => handleInputChange('contact_address', e.target.value)}
+        onChange={(value) => handleInputChange('contact_address', value)}
         rows={2}
       />
       
@@ -249,28 +250,28 @@ const CMSSettings = () => {
           label="Facebook URL"
           type="url"
           value={settings.social_facebook || ''}
-          onChange={(e) => handleInputChange('social_facebook', e.target.value)}
+          onChange={(value) => handleInputChange('social_facebook', value)}
         />
         
         <FormField
           label="Twitter URL"
           type="url"
           value={settings.social_twitter || ''}
-          onChange={(e) => handleInputChange('social_twitter', e.target.value)}
+          onChange={(value) => handleInputChange('social_twitter', value)}
         />
         
         <FormField
           label="Instagram URL"
           type="url"
           value={settings.social_instagram || ''}
-          onChange={(e) => handleInputChange('social_instagram', e.target.value)}
+          onChange={(value) => handleInputChange('social_instagram', value)}
         />
         
         <FormField
           label="YouTube URL"
           type="url"
           value={settings.social_youtube || ''}
-          onChange={(e) => handleInputChange('social_youtube', e.target.value)}
+          onChange={(value) => handleInputChange('social_youtube', value)}
         />
       </div>
     </div>
@@ -283,35 +284,35 @@ const CMSSettings = () => {
           label="SMTP Host"
           type="text"
           value={settings.smtp_host || ''}
-          onChange={(e) => handleInputChange('smtp_host', e.target.value)}
+          onChange={(value) => handleInputChange('smtp_host', value)}
         />
         
         <FormField
           label="SMTP Port"
           type="number"
           value={settings.smtp_port || ''}
-          onChange={(e) => handleInputChange('smtp_port', e.target.value)}
+          onChange={(value) => handleInputChange('smtp_port', value)}
         />
         
         <FormField
           label="SMTP Username"
           type="text"
           value={settings.smtp_username || ''}
-          onChange={(e) => handleInputChange('smtp_username', e.target.value)}
+          onChange={(value) => handleInputChange('smtp_username', value)}
         />
         
         <FormField
           label="SMTP Password"
           type="password"
           value={settings.smtp_password || ''}
-          onChange={(e) => handleInputChange('smtp_password', e.target.value)}
+          onChange={(value) => handleInputChange('smtp_password', value)}
         />
         
         <FormField
           label="Encryption"
           type="select"
           value={settings.smtp_encryption || ''}
-          onChange={(e) => handleInputChange('smtp_encryption', e.target.value)}
+          onChange={(value) => handleInputChange('smtp_encryption', value)}
           options={[
             { value: 'none', label: 'None' },
             { value: 'tls', label: 'TLS' },
@@ -323,14 +324,14 @@ const CMSSettings = () => {
           label="From Email"
           type="email"
           value={settings.from_email || ''}
-          onChange={(e) => handleInputChange('from_email', e.target.value)}
+          onChange={(value) => handleInputChange('from_email', value)}
         />
         
         <FormField
           label="From Name"
           type="text"
           value={settings.from_name || ''}
-          onChange={(e) => handleInputChange('from_name', e.target.value)}
+          onChange={(value) => handleInputChange('from_name', value)}
         />
       </div>
     </div>
@@ -369,7 +370,7 @@ const CMSSettings = () => {
           label="Minimum Password Length"
           type="number"
           value={settings.password_min_length || ''}
-          onChange={(e) => handleInputChange('password_min_length', e.target.value)}
+          onChange={(value) => handleInputChange('password_min_length', value)}
           min="6"
           max="50"
         />
@@ -378,14 +379,14 @@ const CMSSettings = () => {
           label="Session Timeout (seconds)"
           type="number"
           value={settings.session_timeout || ''}
-          onChange={(e) => handleInputChange('session_timeout', e.target.value)}
+          onChange={(value) => handleInputChange('session_timeout', value)}
         />
         
         <FormField
           label="Max Login Attempts"
           type="number"
           value={settings.max_login_attempts || ''}
-          onChange={(e) => handleInputChange('max_login_attempts', e.target.value)}
+          onChange={(value) => handleInputChange('max_login_attempts', value)}
           min="1"
           max="10"
         />
@@ -413,7 +414,7 @@ const CMSSettings = () => {
           label="Backup Frequency"
           type="select"
           value={settings.backup_frequency || ''}
-          onChange={(e) => handleInputChange('backup_frequency', e.target.value)}
+          onChange={(value) => handleInputChange('backup_frequency', value)}
           options={[
             { value: 'hourly', label: 'Hourly' },
             { value: 'daily', label: 'Daily' },
@@ -426,7 +427,7 @@ const CMSSettings = () => {
           label="Backup Retention (days)"
           type="number"
           value={settings.backup_retention || ''}
-          onChange={(e) => handleInputChange('backup_retention', e.target.value)}
+          onChange={(value) => handleInputChange('backup_retention', value)}
           min="1"
           max="365"
         />
@@ -467,28 +468,28 @@ const CMSSettings = () => {
           label="Primary Color"
           type="color"
           value={settings.primary_color || ''}
-          onChange={(e) => handleInputChange('primary_color', e.target.value)}
+          onChange={(value) => handleInputChange('primary_color', value)}
         />
         
         <FormField
           label="Secondary Color"
           type="color"
           value={settings.secondary_color || ''}
-          onChange={(e) => handleInputChange('secondary_color', e.target.value)}
+          onChange={(value) => handleInputChange('secondary_color', value)}
         />
         
         <FormField
           label="Accent Color"
           type="color"
           value={settings.accent_color || ''}
-          onChange={(e) => handleInputChange('accent_color', e.target.value)}
+          onChange={(value) => handleInputChange('accent_color', value)}
         />
         
         <FormField
           label="Font Family"
           type="select"
           value={settings.font_family || ''}
-          onChange={(e) => handleInputChange('font_family', e.target.value)}
+          onChange={(value) => handleInputChange('font_family', value)}
           options={[
             { value: 'Inter', label: 'Inter' },
             { value: 'Roboto', label: 'Roboto' },
@@ -502,14 +503,14 @@ const CMSSettings = () => {
           label="Logo URL"
           type="url"
           value={settings.logo_url || ''}
-          onChange={(e) => handleInputChange('logo_url', e.target.value)}
+          onChange={(value) => handleInputChange('logo_url', value)}
         />
         
         <FormField
           label="Favicon URL"
           type="url"
           value={settings.favicon_url || ''}
-          onChange={(e) => handleInputChange('favicon_url', e.target.value)}
+          onChange={(value) => handleInputChange('favicon_url', value)}
         />
       </div>
     </div>

@@ -21,7 +21,7 @@ interface Notification {
   created_at: string;
   action_url?: string;
   action_label?: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 interface PendingTask {

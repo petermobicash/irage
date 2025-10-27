@@ -27,9 +27,96 @@ const sanitizeInput = (input: string): string => {
     .slice(0, 1000); // Limit length
 };
 
+interface MembershipFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  fatherName: string;
+  motherName: string;
+  fatherPhotoUrl: string;
+  fatherPhotoFilename: string;
+  motherPhotoUrl: string;
+  motherPhotoFilename: string;
+  photoUrl: string;
+  photoFilename: string;
+  gender: string;
+  dateOfBirth: string;
+  country: string;
+  district: string;
+  sector: string;
+  cell: string;
+  village: string;
+  occupation: string;
+  education: string;
+  organization: string;
+  englishLevel: string;
+  frenchLevel: string;
+  kinyarwandaLevel: string;
+  skills: string[];
+  workExperience: string;
+  interests: string[];
+  whyJoin: string;
+  membershipCategory: string;
+  reference1Name: string;
+  reference1Contact: string;
+  reference1Relationship: string;
+  reference2Name: string;
+  reference2Contact: string;
+  reference2Relationship: string;
+  dataConsent: boolean;
+  termsAccepted: boolean;
+  codeOfConductAccepted: boolean;
+  communicationConsent: boolean;
+}
+
+interface MembershipApplicationData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  photo_url?: string | null;
+  photo_filename?: string | null;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  country?: string | null;
+  district?: string | null;
+  sector?: string | null;
+  cell?: string | null;
+  village?: string | null;
+  occupation?: string | null;
+  education?: string | null;
+  organization?: string | null;
+  english_level?: string | null;
+  french_level?: string | null;
+  kinyarwanda_level?: string | null;
+  skills: string[];
+  work_experience?: string | null;
+  interests: string[];
+  why_join: string;
+  membership_category?: string | null;
+  reference1_name?: string | null;
+  reference1_contact?: string | null;
+  reference1_relationship?: string | null;
+  reference2_name?: string | null;
+  reference2_contact?: string | null;
+  reference2_relationship?: string | null;
+  father_name?: string | null;
+  mother_name?: string | null;
+  father_photo_url?: string | null;
+  father_photo_filename?: string | null;
+  mother_photo_url?: string | null;
+  mother_photo_filename?: string | null;
+  data_consent: boolean;
+  terms_accepted: boolean;
+  code_of_conduct_accepted: boolean;
+  communication_consent: boolean;
+  status?: string;
+}
+
 const MembershipForm = () => {
   const [applicationId] = useState(() => crypto.randomUUID());
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MembershipFormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -74,7 +161,7 @@ const MembershipForm = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof MembershipFormData, string>>>({});
   const { success, error } = useToast();
 
   // Location state for cascading dropdowns
@@ -135,11 +222,11 @@ const MembershipForm = () => {
     setAvailableVillages(villages);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof MembershipFormData>(field: K, value: MembershipFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev: any) => ({ ...prev, [field]: null }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -232,7 +319,7 @@ const MembershipForm = () => {
         };
 
         // Build the application data object with proper typing
-        const applicationData: any = {
+        const applicationData: MembershipApplicationData = {
           first_name: sanitizedData.firstName,
           last_name: sanitizedData.lastName,
           email: sanitizedData.email,

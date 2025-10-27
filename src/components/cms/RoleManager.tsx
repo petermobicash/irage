@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Shield } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { User } from '@supabase/supabase-js';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import FormField from '../ui/FormField';
@@ -27,7 +28,7 @@ const RoleManager = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -40,6 +41,23 @@ const RoleManager = () => {
     is_system_role: false
   });
   const { showToast } = useToast();
+
+  const fetchRoles = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('*')
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      setRoles(data || []);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      showToast('Failed to load roles', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
 
   // Get current user and check permissions
   useEffect(() => {
@@ -62,7 +80,7 @@ const RoleManager = () => {
     if (permissions.canManageRoles) {
       fetchRoles();
     }
-  }, [permissions.canManageRoles]);
+  }, [permissions.canManageRoles, fetchRoles]);
 
   // Check if user has permission to manage roles
   if (!permissions.canManageRoles) {
@@ -112,22 +130,7 @@ const RoleManager = () => {
   ];
 
 
-  const fetchRoles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('roles')
-        .select('*')
-        .order('order_index', { ascending: true });
-
-      if (error) throw error;
-      setRoles(data || []);
-    } catch (error) {
-      console.error('Error fetching roles:', error);
-      showToast('Failed to load roles', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

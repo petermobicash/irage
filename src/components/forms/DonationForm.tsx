@@ -53,7 +53,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (field: keyof DonationFormData, value: any) => {
+  const handleInputChange = <K extends keyof DonationFormData>(field: K, value: DonationFormData[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, getContent, deleteContent } from '../../lib/supabase';
 import { Database } from '../../lib/supabase';
 import { FileText, Edit, Trash2, Plus, Search } from 'lucide-react';
@@ -18,11 +18,7 @@ const ContentList: React.FC<ContentListProps> = ({ contentType, onEdit, onCreate
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadContent();
-  }, [contentType]);
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     try {
       const result = await getContent(contentType, 'all', 100);
 
@@ -38,7 +34,11 @@ const ContentList: React.FC<ContentListProps> = ({ contentType, onEdit, onCreate
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentType]);
+
+  useEffect(() => {
+    loadContent();
+  }, [contentType, loadContent]);
 
   const deleteContentItem = async (id: string) => {
     if (!confirm('Are you sure you want to delete this content? This action cannot be undone.')) return;
@@ -63,9 +63,9 @@ const ContentList: React.FC<ContentListProps> = ({ contentType, onEdit, onCreate
         const errorMessage = typeof result.error === 'string' ? result.error : 'Unknown error occurred';
         alert(`Error deleting content: ${errorMessage}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting content:', error);
-      alert(`Error deleting content: ${error.message || 'Please try again'}`);
+      alert(`Error deleting content: ${error instanceof Error ? error.message : 'Please try again'}`);
     }
   };
 

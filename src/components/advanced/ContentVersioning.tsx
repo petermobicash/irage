@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { History, GitBranch, RotateCcw, Eye, Download } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -16,7 +16,7 @@ interface ContentRevision {
   author_name: string;
   created_at: string;
   is_current: boolean;
-  diff_data?: any;
+  diff_data?: unknown;
   word_count: number;
   reading_time: number;
   author_id?: string;
@@ -37,11 +37,7 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    loadRevisions();
-  }, [contentId]);
-
-  const loadRevisions = async () => {
+  const loadRevisions = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('content_revisions')
@@ -57,7 +53,11 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentId, showToast]);
+
+  useEffect(() => {
+    loadRevisions();
+  }, [loadRevisions]);
 
   const createRevision = async (changesSummary: string) => {
     try {

@@ -190,19 +190,15 @@ export const getProductionReadinessChecklist = (): ProductionChecklist[] => {
 
 export const calculateReadinessScore = (): number => {
   const checklist = getProductionReadinessChecklist();
-  let totalItems = 0;
-  let completedItems = 0;
   let weightedScore = 0;
   let totalWeight = 0;
 
   checklist.forEach(category => {
     category.items.forEach(item => {
-      totalItems++;
       const weight = item.priority === 'high' ? 3 : item.priority === 'medium' ? 2 : 1;
       totalWeight += weight;
-      
+
       if (item.status === 'complete') {
-        completedItems++;
         weightedScore += weight;
       }
     });
@@ -211,7 +207,7 @@ export const calculateReadinessScore = (): number => {
   // Check if Supabase is configured
   const hasSupabase = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
   const baseScore = Math.round((weightedScore / totalWeight) * 100);
-  
+
   // Bonus points for Supabase configuration
   return hasSupabase ? Math.min(baseScore + 5, 100) : baseScore;
 };

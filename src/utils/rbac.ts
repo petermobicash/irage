@@ -310,8 +310,7 @@ export const assignUserRole = async (
 
 export const addUserCustomPermission = async (
   userId: string,
-  permission: Permission,
-  _addedBy?: string
+  permission: Permission
 ): Promise<boolean> => {
   try {
     // Validate that userId is a valid UUID format
@@ -347,8 +346,7 @@ export const addUserCustomPermission = async (
 
 export const removeUserCustomPermission = async (
   userId: string,
-  permission: Permission,
-  _removedBy?: string
+  permission: Permission
 ): Promise<boolean> => {
   try {
     // Validate that userId is a valid UUID format
@@ -765,8 +763,7 @@ export const getPermissionsForJobDescription = (
 
 export const assignUserToCustomGroup = async (
   userId: string,
-  groupId: string,
-  _assignedBy?: string
+  groupId: string
 ): Promise<boolean> => {
   try {
     // Get the custom group details

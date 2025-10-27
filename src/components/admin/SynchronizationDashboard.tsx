@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, CheckCircle, AlertCircle, Clock, Activity, Database, Settings, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -38,20 +38,7 @@ const SynchronizationDashboard: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    loadDashboardData();
-
-    let interval: NodeJS.Timeout;
-    if (autoRefresh) {
-      interval = setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoRefresh]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -76,13 +63,26 @@ const SynchronizationDashboard: React.FC = () => {
       if (metricsError) throw metricsError;
       setPerformanceMetrics(metricsData || []);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading dashboard data:', error);
       showToast('Failed to load synchronization data', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadDashboardData();
+
+    let interval: NodeJS.Timeout;
+    if (autoRefresh) {
+      interval = setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [autoRefresh, loadDashboardData]);
 
   const processSyncQueue = async () => {
     try {
@@ -96,7 +96,7 @@ const SynchronizationDashboard: React.FC = () => {
       );
 
       await loadDashboardData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error processing sync queue:', error);
       showToast('Failed to process synchronization queue', 'error');
     }
@@ -110,7 +110,7 @@ const SynchronizationDashboard: React.FC = () => {
 
       showToast(`Cleaned up ${data} expired cache entries`, 'success');
       await loadDashboardData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cleaning cache:', error);
       showToast('Failed to cleanup cache', 'error');
     }

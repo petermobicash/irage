@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Globe, FileText, BarChart3, Plus, Edit2, Trash2, Zap, Target, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -62,6 +62,47 @@ const SeoManager = () => {
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
 
+  const loadPages = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('seo_pages')
+      .select('*')
+      .order('url');
+
+    if (error) throw error;
+    setPages(data || []);
+  }, []);
+
+  const loadSettings = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('seo_settings')
+      .select('*')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+
+    if (data) {
+      setSettings(data);
+    }
+  }, []);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (activeTab === 'pages') {
+        await loadPages();
+      } else if (activeTab === 'settings') {
+        await loadSettings();
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load data';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, showToast, loadPages, loadSettings]);
+
   const [pageForm, setPageForm] = useState<{
     url: string;
     title: string;
@@ -92,48 +133,11 @@ const SeoManager = () => {
 
   useEffect(() => {
     loadData();
-  }, [activeTab]);
+  }, [activeTab, loadData]);
 
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (activeTab === 'pages') {
-        await loadPages();
-      } else if (activeTab === 'settings') {
-        await loadSettings();
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load data';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
-  const loadPages = async () => {
-    const { data, error } = await supabase
-      .from('seo_pages')
-      .select('*')
-      .order('url');
-
-    if (error) throw error;
-    setPages(data || []);
-  };
-
-  const loadSettings = async () => {
-    const { data, error } = await supabase
-      .from('seo_settings')
-      .select('*')
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-
-    if (data) {
-      setSettings(data);
-    }
-  };
+  
 
   const handlePageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -404,7 +408,7 @@ Sitemap: ${window.location.origin}/sitemap.xml`;
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'pages' | 'settings' | 'sitemap' | 'analytics')}
               className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
@@ -469,7 +473,7 @@ Sitemap: ${window.location.origin}/sitemap.xml`;
                   <FormField
                     label="Priority (0.0 - 1.0)"
                     value={pageForm.priority}
-                    onChange={(value) => setPageForm(prev => ({ ...prev, priority: parseFloat(value) }))}
+                    onChange={(value) => setPageForm(prev => ({ ...prev, priority: parseFloat(String(value)) }))}
                     type="number"
                   />
                 </div>
@@ -478,7 +482,7 @@ Sitemap: ${window.location.origin}/sitemap.xml`;
                   <FormField
                     label="Change Frequency"
                     value={pageForm.change_frequency}
-                    onChange={(value) => setPageForm(prev => ({ ...prev, change_frequency: value as any }))}
+                    onChange={(value) => setPageForm(prev => ({ ...prev, change_frequency: value as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never' }))}
                     type="select"
                     options={['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never']}
                   />
@@ -691,7 +695,7 @@ Sitemap: ${window.location.origin}/sitemap.xml`;
                 value={settings.default_keywords.join(', ')}
                 onChange={(value) => setSettings(prev => ({
                   ...prev,
-                  default_keywords: value.split(',').map((k: string) => k.trim()).filter(Boolean)
+                  default_keywords: String(value).split(',').map((k: string) => k.trim()).filter(Boolean)
                 }))}
                 placeholder="default, keywords, here"
                 type="text"

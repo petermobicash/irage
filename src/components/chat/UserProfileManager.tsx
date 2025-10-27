@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Camera, Settings, Phone, Edit3 } from 'lucide-react';
 import { UserProfile } from '../../hooks/useRealTimeChat';
 import { supabase } from '../../lib/supabase';
@@ -24,11 +24,7 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({ userId, onClose
     show_status: true,
   });
 
-  useEffect(() => {
-    loadProfile();
-  }, [userId]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -74,7 +70,11 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({ userId, onClose
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [userId, loadProfile]);
 
   const handleSave = async () => {
     if (!profile) return;

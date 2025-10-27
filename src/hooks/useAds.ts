@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Ad, Advertiser, AdZone, CreateAdForm, UseAdsReturn } from '../types/ads';
+import { Ad, Advertiser, AdZone, CreateAdForm, UseAdsReturn, CreateAdvertiserForm, CreateAdZoneForm, AdAnalytics, AdImpression, AdClick } from '../types/ads';
 
 export const useAds = (): UseAdsReturn => {
   const [ads, setAds] = useState<Ad[]>([]);
@@ -175,7 +175,7 @@ export const useAdvertisers = () => {
     }
   };
 
-  const createAdvertiser = async (advertiserData: any): Promise<Advertiser> => {
+  const createAdvertiser = async (advertiserData: CreateAdvertiserForm): Promise<Advertiser> => {
     try {
       const { data, error } = await supabase
         .from('advertisers')
@@ -292,7 +292,7 @@ export const useAdZones = () => {
     }
   };
 
-  const createZone = async (zoneData: any): Promise<AdZone> => {
+  const createZone = async (zoneData: CreateAdZoneForm): Promise<AdZone> => {
     try {
       const { data, error } = await supabase
         .from('ad_zones')
@@ -395,7 +395,7 @@ export const useAdZones = () => {
 };
 
 export const useAdAnalytics = () => {
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<AdAnalytics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -407,14 +407,22 @@ export const useAdAnalytics = () => {
       // TODO: Implement analytics calculation
       // This would aggregate data from ad_impressions and ad_clicks tables
 
-      const mockAnalytics = {
+      const mockAnalytics: AdAnalytics = {
         ad_id: adId,
         total_impressions: 0,
         total_clicks: 0,
+        unique_impressions: 0,
+        unique_clicks: 0,
         ctr: 0,
         total_spent: 0,
         date_range: { start: startDate, end: endDate },
-        daily_stats: []
+        daily_stats: [],
+        device_breakdown: {
+          desktop: { impressions: 0, clicks: 0, ctr: 0 },
+          tablet: { impressions: 0, clicks: 0, ctr: 0 },
+          mobile: { impressions: 0, clicks: 0, ctr: 0 }
+        },
+        geographic_breakdown: []
       };
 
       setAnalytics(mockAnalytics);
@@ -428,7 +436,7 @@ export const useAdAnalytics = () => {
     }
   };
 
-  const trackImpression = async (impression: any) => {
+  const trackImpression = async (impression: Omit<AdImpression, 'id' | 'timestamp'>) => {
     try {
       const { error } = await supabase
         .from('ad_impressions')
@@ -444,7 +452,7 @@ export const useAdAnalytics = () => {
     }
   };
 
-  const trackClick = async (click: any) => {
+  const trackClick = async (click: Omit<AdClick, 'id' | 'timestamp'>) => {
     try {
       const { error } = await supabase
         .from('ad_clicks')

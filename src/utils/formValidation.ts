@@ -7,7 +7,7 @@ export interface ValidationRule {
   pattern?: RegExp;
   email?: boolean;
   phone?: boolean;
-  custom?: (value: any) => string | null;
+  custom?: (value: unknown, formData?: Record<string, unknown>) => string | null;
 }
 
 export interface ValidationError {
@@ -15,7 +15,7 @@ export interface ValidationError {
   message: string;
 }
 
-export const validateField = (value: any, rules: ValidationRule, fieldName: string): string | null => {
+export const validateField = (value: unknown, rules: ValidationRule, fieldName: string): string | null => {
   // Required validation
   if (rules.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
     return `${fieldName} is required`;
@@ -48,8 +48,8 @@ export const validateField = (value: any, rules: ValidationRule, fieldName: stri
 
     // Phone validation
     if (rules.phone) {
-      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-      if (!phoneRegex.test(value.replace(/[\s\-\(\)]/g, ''))) {
+      const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+      if (!phoneRegex.test(value.replace(/[\s-()]/g, ''))) {
         return `${fieldName} must be a valid phone number`;
       }
     }
@@ -68,7 +68,7 @@ export const validateField = (value: any, rules: ValidationRule, fieldName: stri
   return null;
 };
 
-export const validateForm = (formData: Record<string, any>, validationRules: Record<string, ValidationRule>): ValidationError[] => {
+export const validateForm = (formData: Record<string, unknown>, validationRules: Record<string, ValidationRule>): ValidationError[] => {
   const errors: ValidationError[] = [];
 
   Object.entries(validationRules).forEach(([field, rules]) => {
@@ -93,8 +93,9 @@ export const membershipValidationRules: Record<string, ValidationRule> = {
   membershipCategory: { required: true },
   interests: {
     required: true,
-    custom: (value: string[]) => {
-      if (!Array.isArray(value) || value.length === 0) {
+    custom: (value: unknown) => {
+      const arr = value as string[];
+      if (!Array.isArray(arr) || arr.length === 0) {
         return 'Please select at least one area of interest';
       }
       return null;
@@ -102,11 +103,12 @@ export const membershipValidationRules: Record<string, ValidationRule> = {
   },
   reference1Name: { minLength: 2, maxLength: 100 },
   reference1Contact: {
-    custom: (value: string, formData?: any) => {
-      if (formData?.reference1Name && (!value || value.trim() === '')) {
+    custom: (value: unknown, formData?: Record<string, unknown>) => {
+      const strValue = value as string;
+      if (formData?.reference1Name && (!strValue || strValue.trim() === '')) {
         return 'Contact information is required when providing a reference';
       }
-      if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''))) {
+      if (strValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(strValue) && !/^[+\]?[1-9][\d]{0,15}$/.test(strValue.replace(/[\s-()]/g, ''))) {
         return 'Please provide a valid email or phone number';
       }
       return null;
@@ -115,11 +117,12 @@ export const membershipValidationRules: Record<string, ValidationRule> = {
   reference1Relationship: { minLength: 2, maxLength: 100 },
   reference2Name: { minLength: 2, maxLength: 100 },
   reference2Contact: {
-    custom: (value: string, formData?: any) => {
-      if (formData?.reference2Name && (!value || value.trim() === '')) {
+    custom: (value: unknown, formData?: Record<string, unknown>) => {
+      const strValue = value as string;
+      if (formData?.reference2Name && (!strValue || strValue.trim() === '')) {
         return 'Contact information is required when providing a reference';
       }
-      if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''))) {
+      if (strValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(strValue) && !/^[+\]?[1-9][\d]{0,15}$/.test(strValue.replace(/[\s-()]/g, ''))) {
         return 'Please provide a valid email or phone number';
       }
       return null;
@@ -151,10 +154,11 @@ export const contactValidationRules: Record<string, ValidationRule> = {
 export const donationValidationRules: Record<string, ValidationRule> = {
   donorName: { required: true, minLength: 2, maxLength: 100 },
   donorEmail: { required: true, email: true },
-  amount: { 
-    required: true, 
-    custom: (value) => {
-      const num = parseFloat(value);
+  amount: {
+    required: true,
+    custom: (value: unknown) => {
+      const strValue = value as string;
+      const num = parseFloat(strValue);
       if (isNaN(num) || num <= 0) return 'Amount must be a positive number';
       if (num < 1) return 'Minimum donation amount is $1';
       if (num > 100000) return 'Maximum donation amount is $100,000';

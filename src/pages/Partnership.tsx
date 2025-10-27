@@ -81,7 +81,7 @@ const Partnership = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

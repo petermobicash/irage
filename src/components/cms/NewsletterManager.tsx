@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Mail, Send, Users, BarChart3, Plus, Edit2, Trash2, Eye, Copy } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -68,11 +68,7 @@ const NewsletterManager = () => {
     content: ''
   });
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'campaigns') {
@@ -87,7 +83,11 @@ const NewsletterManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const loadCampaigns = async () => {
     const { data, error } = await supabase
@@ -330,7 +330,7 @@ const NewsletterManager = () => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'campaigns' | 'subscribers' | 'templates' | 'analytics')}
               className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'

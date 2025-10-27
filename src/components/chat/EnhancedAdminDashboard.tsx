@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Users, Settings, BarChart3, Shield, AlertTriangle, Mail, Activity, Eye, UserCheck, Clock } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
 import { supabase, getCurrentUser } from '../../lib/supabase';
 import { ChatRoom, ActivityLog, ModerationLog } from '../../types/chat';
 import Card from '../ui/Card';
@@ -43,14 +44,10 @@ const EnhancedAdminDashboard = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuthentication();
-  }, []);
-
-  const checkAuthentication = async () => {
+  const checkAuthentication = useCallback(async () => {
     try {
       setAuthLoading(true);
       const user = await getCurrentUser();
@@ -64,7 +61,11 @@ const EnhancedAdminDashboard = () => {
     } finally {
       setAuthLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuthentication();
+  }, [checkAuthentication]);
 
   const loadDashboardData = async () => {
     try {
@@ -179,7 +180,10 @@ const EnhancedAdminDashboard = () => {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>
+        <div className="flex items-center justify-center p-8">
+          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
       </div>
     );
   }

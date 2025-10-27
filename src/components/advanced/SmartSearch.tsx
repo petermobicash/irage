@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Tag, Calendar, User, TrendingUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -40,17 +40,7 @@ const SmartSearch: React.FC<SmartSearchProps> = ({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
 
-  useEffect(() => {
-    if (query.length > 2) {
-      performSearch();
-      generateSuggestions();
-    } else {
-      setResults([]);
-      setShowResults(false);
-    }
-  }, [query, filters]);
-
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setLoading(true);
     
     try {
@@ -158,9 +148,9 @@ const SmartSearch: React.FC<SmartSearchProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [query, filters]);
 
-  const generateSuggestions = () => {
+  const generateSuggestions = useCallback(() => {
     const commonSearches = [
       'spiritual practices',
       'meditation guide',
@@ -177,7 +167,17 @@ const SmartSearch: React.FC<SmartSearchProps> = ({
     );
 
     setSuggestions(filtered.slice(0, 5));
-  };
+  }, [query]);
+
+  useEffect(() => {
+    if (query.length > 2) {
+      performSearch();
+      generateSuggestions();
+    } else {
+      setResults([]);
+      setShowResults(false);
+    }
+  }, [query, filters, performSearch, generateSuggestions]);
 
   const highlightText = (text: string, query: string) => {
     if (!query) return text;

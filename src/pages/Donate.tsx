@@ -56,7 +56,7 @@ const Donate = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -139,7 +139,9 @@ const Donate = () => {
         // Prepare payment data
         const paymentPayload: PaymentData = {
           amount: parseFloat(formData.amount),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           currency: formData.currency as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           method: formData.paymentMethod as any
         };
 

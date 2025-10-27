@@ -46,14 +46,15 @@ export default defineConfig(({ mode }) => ({
         target: 'http://127.0.0.1:54321',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/rest/, '/rest'),
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
+        configure: (proxy, options) => {
+          console.log('Proxy configured with options:', options);
+          proxy.on('error', (err, req, res) => {
+            console.log('proxy error', err, req.url, res.statusCode);
           });
-          proxy.on('proxyReq', (_proxyReq, req, _res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Sending Request to the Target:', req.method, req.url, res.statusCode);
           });
-          proxy.on('proxyRes', (proxyRes, req, _res) => {
+          proxy.on('proxyRes', (proxyRes, req) => {
             console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
           });
         },

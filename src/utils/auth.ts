@@ -1,6 +1,21 @@
 import { supabase, signInWithEmail, signOut, getCurrentUser, refreshSession } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
+// Types
+type UserProfileInsert = {
+  user_id: string;
+  username: string;
+  display_name: string;
+  created_at: string;
+  updated_at: string;
+};
+
+interface AuthError {
+  message?: string;
+  status?: number;
+  code?: string;
+}
+
 // Authentication state management
 let currentUser: User | null = null;
 
@@ -21,6 +36,7 @@ export const login = async (email: string, password: string) => {
     }
     return { success: false, error: result.error };
   } catch (error) {
+    console.error('Login error:', error);
     return { success: false, error: 'Login failed' };
   }
 };
@@ -31,6 +47,7 @@ export const logout = async () => {
     currentUser = null;
     return { success: true };
   } catch (error) {
+    console.error('Logout error:', error);
     return { success: false, error: 'Logout failed' };
   }
 };
@@ -60,12 +77,13 @@ export const initializeAuth = async () => {
     currentUser = user;
     console.log('Auth initialized for user:', user?.id || 'none');
     return user;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle anonymous users gracefully
-    if (error?.message?.includes('Invalid Refresh Token') ||
-        error?.message?.includes('Refresh Token Not Found') ||
-        error?.message?.includes('Auth session missing') ||
-        error.status === 403) {
+    const authError = error as { message?: string; status?: number };
+    if (authError?.message?.includes('Invalid Refresh Token') ||
+        authError?.message?.includes('Refresh Token Not Found') ||
+        authError?.message?.includes('Auth session missing') ||
+        authError.status === 403) {
       // Expected for anonymous users - return null silently
       console.log('Anonymous user detected');
       currentUser = null;
@@ -103,7 +121,7 @@ export const ensureUserProfile = async (user: User | null) => {
     console.log('Attempting to create/update profile for user:', user.id);
 
     // Start with minimal required fields
-    const profileData: any = {
+    const profileData: UserProfileInsert = {
       user_id: user.id,
       username: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
       display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
@@ -189,11 +207,12 @@ export const ensureUserProfile = async (user: User | null) => {
     console.log('Successfully created/updated profile for user:', user.id);
     return newProfile;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error ensuring user profile:', error);
 
     // Provide graceful fallback for various issues
-    if (error?.code === '42501' || error?.message?.includes('row-level security policy')) {
+    const authError = error as AuthError;
+    if (authError?.code === '42501' || authError?.message?.includes('row-level security policy')) {
       console.error('RLS Policy Violation - returning minimal profile object');
       return {
         user_id: user.id,
@@ -204,8 +223,8 @@ export const ensureUserProfile = async (user: User | null) => {
     }
 
     // Handle schema cache errors for missing columns
-    if (error?.message?.includes("Could not find") && error?.message?.includes("column") && error?.message?.includes("schema cache")) {
-      console.error('Schema cache error - missing columns in user_profiles table:', error.message);
+    if (authError?.message?.includes("Could not find") && authError?.message?.includes("column") && authError?.message?.includes("schema cache")) {
+      console.error('Schema cache error - missing columns in user_profiles table:', authError.message);
       return {
         user_id: user.id,
         username: user.email?.split('@')[0] || 'User',

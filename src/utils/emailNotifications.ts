@@ -1,5 +1,10 @@
 import { supabase } from '../lib/supabase';
 
+interface Message {
+  message_text: string;
+  sender_name: string;
+}
+
 interface EmailNotificationData {
   to: string;
   guestName: string;
@@ -139,7 +144,7 @@ If you didn't initiate this conversation, please ignore this email.
 
 // Hook to automatically send notifications when admins reply to guest users
 export const useAutoEmailNotifications = (roomId: string) => {
-  const sendNotificationForReply = async (message: any, guestEmail: string) => {
+  const sendNotificationForReply = async (message: Message, guestEmail: string) => {
     if (!message || !guestEmail) return;
 
     // Check if this is a reply to a guest user

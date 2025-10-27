@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Users, Settings, BarChart3, Shield, AlertTriangle } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
 import { supabase, getCurrentUser } from '../../lib/supabase';
 import { ChatRoom, ActivityLog, ModerationLog } from '../../types/chat';
 import Card from '../ui/Card';
@@ -21,14 +22,10 @@ const AdminChatPanel = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuthentication();
-  }, []);
-
-  const checkAuthentication = async () => {
+  const checkAuthentication = useCallback(async () => {
     try {
       setAuthLoading(true);
       const user = await getCurrentUser();
@@ -42,7 +39,11 @@ const AdminChatPanel = () => {
     } finally {
       setAuthLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuthentication();
+  }, [checkAuthentication]);
 
   const loadDashboardData = async () => {
     try {

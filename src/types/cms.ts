@@ -135,7 +135,7 @@ export interface FormField {
 export interface FormSubmission {
   id: string;
   pageId: string;
-  data: Record<string, any>;
+  data: Record<string, string | number | boolean | null | undefined>;
   submittedAt: string;
   status: 'new' | 'reviewed' | 'responded' | 'archived';
   reviewedBy?: string;
@@ -147,7 +147,7 @@ export interface FormSubmission {
   id: string;
   formId: string;
   pageId: string;
-  data: Record<string, any>;
+  data: Record<string, string | number | boolean | null | undefined>;
   submittedAt: string;
   status: 'new' | 'reviewed' | 'responded' | 'archived';
   reviewedBy?: string;

@@ -13,7 +13,7 @@ interface Story {
   status: string;
   story_type: string;
   featured_image?: string;
-  multimedia_content?: any;
+  multimedia_content?: unknown;
   tags?: string[];
   published_at?: string;
   created_at: string;
@@ -152,7 +152,7 @@ const StoriesManager: React.FC = () => {
                   )}
                 </div>
 
-                {story.multimedia_content && (
+                {typeof story.multimedia_content !== 'undefined' && (
                   <div className="mb-3">
                     <span className="text-sm text-gray-600">
                       Has multimedia content

@@ -4,7 +4,7 @@
  * with three interactive tabs: System Structure, Admin Workflow, and Database Schema
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Shield, Database, Settings, Plus, Eye, CheckCircle, Info } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -41,11 +41,7 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
 
   const { showToast } = useToast();
 
-  useEffect(() => {
-    loadSystemData();
-  }, []);
-
-  const loadSystemData = async () => {
+  const loadSystemData = useCallback(async () => {
     setLoading(true);
     try {
       const [groupsData, permissionsData] = await Promise.all([
@@ -62,8 +58,8 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
         totalGroups: groupsData.length,
         totalPermissions: permissionsData.length,
         totalUsers: usersData.length,
-        activeGroups: groupsData.filter((g: GroupWithDetails) => g.isActive).length,
-        systemGroups: groupsData.filter((g: GroupWithDetails) => g.isSystemGroup).length
+        activeGroups: groupsData.filter((g: GroupWithDetails) => g.is_active).length,
+        systemGroups: groupsData.filter((g: GroupWithDetails) => g.is_system_group).length
       };
 
       setSystemData({
@@ -72,13 +68,17 @@ export const UserManagementDashboard: React.FC<UserManagementDashboardProps> = (
         users: usersData,
         stats
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading system data:', error);
       showToast('Failed to load system data', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadSystemData();
+  }, [loadSystemData]);
 
   const tabs = [
     {

@@ -149,14 +149,16 @@ export const exportToCSV = (data: MembershipFormData[], filename: string = 'beni
 };
 
 // Helper function to check if error is quota exceeded
-const isQuotaExceededError = (error: any): boolean => {
-  return error && (
-    error.code === 22 || // DOMException.QUOTA_EXCEEDED_ERR
-    error.code === 1014 || // NS_ERROR_DOM_QUOTA_REACHED
-    error.name === 'QuotaExceededError' ||
-    error.message?.includes('quota') ||
-    error.message?.includes('storage') ||
-    error.message?.includes('QuotaExceededError')
+const isQuotaExceededError = (error: unknown): boolean => {
+  if (!error) return false;
+  const err = error as { code?: number; name?: string; message?: string };
+  return !!(
+    err.code === 22 || // DOMException.QUOTA_EXCEEDED_ERR
+    err.code === 1014 || // NS_ERROR_DOM_QUOTA_REACHED
+    err.name === 'QuotaExceededError' ||
+    err.message?.includes('quota') ||
+    err.message?.includes('storage') ||
+    err.message?.includes('QuotaExceededError')
   );
 };
 

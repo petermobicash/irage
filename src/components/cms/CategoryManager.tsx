@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Tag, Folder } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
@@ -50,11 +50,7 @@ const CategoryManager = () => {
     '🌱', '🎪', '🎭', '🎵', '📚', '🔬', '🏆', '🎲', '🎪', '🎨'
   ];
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -69,7 +65,11 @@ const CategoryManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const generateSlug = (name: string) => {
     return name
@@ -209,12 +209,12 @@ const CategoryManager = () => {
                 label="Category Name"
                 type="text"
                 value={formData.name || ''}
-                onChange={(e) => {
-                  const name = e.target.value;
+                onChange={(value) => {
+                  const nameValue = String(value);
                   setFormData({
                     ...formData,
-                    name,
-                    slug: generateSlug(name)
+                    name: nameValue,
+                    slug: generateSlug(nameValue)
                   });
                 }}
                 required
@@ -224,7 +224,7 @@ const CategoryManager = () => {
                 label="Slug"
                 type="text"
                 value={formData.slug || ''}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, slug: String(value) })}
                 placeholder="auto-generated-from-name"
               />
 
@@ -232,7 +232,7 @@ const CategoryManager = () => {
                 label="Color"
                 type="select"
                 value={formData.color || ''}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, color: String(value) })}
                 options={colors}
               />
 
@@ -240,7 +240,7 @@ const CategoryManager = () => {
                 label="Icon"
                 type="select"
                 value={formData.icon || ''}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, icon: String(value) })}
                 options={icons.map(icon => ({ value: icon, label: `${icon} ${icon}` }))}
               />
 
@@ -248,7 +248,7 @@ const CategoryManager = () => {
                 label="Parent Category"
                 type="select"
                 value={formData.parent_id || ''}
-                onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, parent_id: String(value) })}
                 options={[
                   { value: '', label: 'No Parent (Top Level)' },
                   ...categories
@@ -261,7 +261,7 @@ const CategoryManager = () => {
                 label="Order Index"
                 type="number"
                 value={formData.order_index || 0}
-                onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) || 0 })}
+                onChange={(value) => setFormData({ ...formData, order_index: parseInt(String(value)) || 0 })}
                 min="0"
               />
             </div>
@@ -270,7 +270,7 @@ const CategoryManager = () => {
               label="Description"
               type="textarea"
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(value) => setFormData({ ...formData, description: String(value) })}
               rows={3}
               placeholder="Brief description of the category..."
             />

@@ -9,7 +9,7 @@
  * - Monitor system health
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   verifySuperAdminAccess,
   createUser,
@@ -98,11 +98,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [selectedPermissions, setSelectedPermissions] = useState<Permission[]>([]);
   const [permissionAction, setPermissionAction] = useState<'add' | 'remove' | 'replace'>('add');
 
-  useEffect(() => {
-    checkSuperAdminAccess();
-  }, []);
-
-  const checkSuperAdminAccess = async () => {
+  const checkSuperAdminAccess = useCallback(async () => {
     try {
       const result = await verifySuperAdminAccess();
       if (result.success) {
@@ -111,12 +107,16 @@ export const SuperAdminDashboard: React.FC = () => {
       } else {
         setError(result.error || 'Access denied');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkSuperAdminAccess();
+  }, [checkSuperAdminAccess]);
 
   const loadDashboardData = async () => {
     try {
@@ -143,8 +143,8 @@ export const SuperAdminDashboard: React.FC = () => {
       if (permissionsResult.success && permissionsResult.data) {
         setPermissions(permissionsResult.data.permissions);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -167,8 +167,8 @@ export const SuperAdminDashboard: React.FC = () => {
       } else {
         setError(result.error || 'Failed to create user');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -189,8 +189,8 @@ export const SuperAdminDashboard: React.FC = () => {
       } else {
         setError(result.error || 'Failed to create group');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -204,8 +204,8 @@ export const SuperAdminDashboard: React.FC = () => {
       } else {
         setError(result.error || 'Failed to delete user');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -219,8 +219,8 @@ export const SuperAdminDashboard: React.FC = () => {
       } else {
         setError(result.error || 'Failed to delete group');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -269,8 +269,8 @@ export const SuperAdminDashboard: React.FC = () => {
       } else {
         setError(result.error || 'Failed to assign permissions');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 

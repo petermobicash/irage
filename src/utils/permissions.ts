@@ -43,7 +43,7 @@ export const checkUserPermission = async (userId: string, permission: string): P
       if (roleData?.permissions?.includes(permission) || roleData?.permissions?.includes('*')) {
         return true;
       }
-    } catch (roleError) {
+    } catch {
       // Fallback to basic role checking if roles table doesn't exist
       if (profile.role === 'super-admin' || profile.role === 'content-manager') {
         return true;
@@ -75,7 +75,7 @@ export interface UserPermissions {
   canAssignPermissions: boolean;
 }
 
-export const getUserPermissions = (user: any): UserPermissions => {
+export const getUserPermissions = (user: unknown): UserPermissions => {
    if (!user) {
      return {
        canCreateContent: false,
@@ -97,10 +97,11 @@ export const getUserPermissions = (user: any): UserPermissions => {
    }
 
    // Get user profile data for enhanced permissions
-   const profile = user.profile || user;
+   const userData = user as Record<string, unknown>;
+   const profile = (userData.profile || userData) as Record<string, unknown>;
 
    // Super admin has all permissions
-   if (user.email === 'admin@benirage.org' || profile.role === 'super-admin' || profile.is_super_admin) {
+   if (userData.email === 'admin@benirage.org' || (profile as Record<string, unknown>).role === 'super-admin' || (profile as Record<string, unknown>).is_super_admin) {
     return {
       canCreateContent: true,
       canEditContent: true,
@@ -121,21 +122,21 @@ export const getUserPermissions = (user: any): UserPermissions => {
   }
 
   // Check form access permissions from profile
-  const formPermissions = profile.form_access_permissions || [];
-  const contentPermissions = profile.content_access_permissions || [];
-  const adminPermissions = profile.admin_access_permissions || [];
-  
+  const formPermissions = (profile as Record<string, unknown>).form_access_permissions || [];
+  const contentPermissions = (profile as Record<string, unknown>).content_access_permissions || [];
+  const adminPermissions = (profile as Record<string, unknown>).admin_access_permissions || [];
+
   // Helper function to check if user has specific permission
-  const hasFormPermission = (permission: string) => 
-    formPermissions.includes(permission) || formPermissions.includes('all_forms');
-  
-  const hasContentPermission = (permission: string) => 
-    contentPermissions.includes(permission) || contentPermissions.includes('*');
-  
-  const hasAdminPermission = (permission: string) => 
-    adminPermissions.includes(permission) || adminPermissions.includes('*');
+  const hasFormPermission = (permission: string) =>
+    (formPermissions as string[]).includes(permission) || (formPermissions as string[]).includes('all_forms');
+
+  const hasContentPermission = (permission: string) =>
+    (contentPermissions as string[]).includes(permission) || (contentPermissions as string[]).includes('*');
+
+  const hasAdminPermission = (permission: string) =>
+    (adminPermissions as string[]).includes(permission) || (adminPermissions as string[]).includes('*');
   // Content Initiator permissions
-  if (user.email === 'initiator@benirage.org' || profile.role === 'content-initiator') {
+  if (userData.email === 'initiator@benirage.org' || (profile as Record<string, unknown>).role === 'content-initiator') {
     return {
       canCreateContent: hasContentPermission('create'),
       canEditContent: hasContentPermission('edit'),
@@ -156,7 +157,7 @@ export const getUserPermissions = (user: any): UserPermissions => {
   }
 
   // Content Reviewer permissions
-  if (user.email === 'reviewer@benirage.org' || profile.role === 'content-reviewer') {
+  if (userData.email === 'reviewer@benirage.org' || (profile as Record<string, unknown>).role === 'content-reviewer') {
     return {
       canCreateContent: false,
       canEditContent: hasContentPermission('review'),
@@ -177,7 +178,7 @@ export const getUserPermissions = (user: any): UserPermissions => {
   }
 
   // Content Publisher permissions
-  if (user.email === 'publisher@benirage.org' || profile.role === 'content-publisher') {
+  if (userData.email === 'publisher@benirage.org' || (profile as Record<string, unknown>).role === 'content-publisher') {
     return {
       canCreateContent: false,
       canEditContent: false,
@@ -198,7 +199,7 @@ export const getUserPermissions = (user: any): UserPermissions => {
   }
 
   // Membership Manager permissions
-  if (user.email === 'membership@benirage.org' || profile.role === 'membership-manager') {
+  if (userData.email === 'membership@benirage.org' || (profile as Record<string, unknown>).role === 'membership-manager') {
     return {
       canCreateContent: false,
       canEditContent: false,
@@ -219,7 +220,7 @@ export const getUserPermissions = (user: any): UserPermissions => {
   }
 
   // Content Manager permissions
-  if (user.email === 'content@benirage.org' || profile.role === 'content-manager') {
+  if (userData.email === 'content@benirage.org' || (profile as Record<string, unknown>).role === 'content-manager') {
     return {
       canCreateContent: hasContentPermission('create'),
       canEditContent: hasContentPermission('edit'),
@@ -260,9 +261,9 @@ export const getUserPermissions = (user: any): UserPermissions => {
 
   // For development purposes, give permissions to any authenticated user
   // This makes the system more usable during development
-  if (user && user.email) {
+  if (userData && userData.email) {
     // Check if it's an admin email
-    if (user.email === 'admin@benirage.org' || user.email.includes('admin')) {
+    if (userData.email === 'admin@benirage.org' || (userData.email as string).includes('admin')) {
       return {
         canCreateContent: true,
         canEditContent: true,
@@ -305,25 +306,28 @@ export const getUserPermissions = (user: any): UserPermissions => {
   return defaultPermissions;
 };
 
-export const hasPermission = (user: any, permission: keyof UserPermissions): boolean => {
+export const hasPermission = (user: unknown, permission: keyof UserPermissions): boolean => {
   const permissions = getUserPermissions(user);
   return permissions[permission];
 };
 
-export const getUserRole = (user: any): string => {
+export const getUserRole = (user: unknown): string => {
   if (!user) return 'guest';
-  
+
+  const userData = user as Record<string, unknown>;
+
   // Check email-based roles first
-  if (user.email === 'admin@benirage.org') return 'Super Administrator';
-  if (user.email === 'membership@benirage.org') return 'Membership Manager';
-  if (user.email === 'content@benirage.org') return 'Content Manager';
-  if (user.email === 'initiator@benirage.org') return 'Content Initiator';
-  if (user.email === 'reviewer@benirage.org') return 'Content Reviewer';
-  if (user.email === 'publisher@benirage.org') return 'Content Publisher';
-  
+  if (userData.email === 'admin@benirage.org') return 'Super Administrator';
+  if (userData.email === 'membership@benirage.org') return 'Membership Manager';
+  if (userData.email === 'content@benirage.org') return 'Content Manager';
+  if (userData.email === 'initiator@benirage.org') return 'Content Initiator';
+  if (userData.email === 'reviewer@benirage.org') return 'Content Reviewer';
+  if (userData.email === 'publisher@benirage.org') return 'Content Publisher';
+
   // Check database role if available
-  if (user.role) {
-    switch (user.role) {
+  if (userData.role) {
+    const role = userData.role as string;
+    switch (role) {
       case 'super-admin': return 'Super Administrator';
       case 'membership-manager': return 'Membership Manager';
       case 'content-manager': return 'Content Manager';
@@ -333,14 +337,14 @@ export const getUserRole = (user: any): string => {
       case 'editor': return 'Editor';
       case 'contributor': return 'Contributor';
       case 'viewer': return 'Viewer';
-      default: return user.role.charAt(0).toUpperCase() + user.role.slice(1);
+      default: return role.charAt(0).toUpperCase() + role.slice(1);
     }
   }
-  
+
   return 'Member';
 };
 
-export const getAvailablePages = (user: any): string[] => {
+export const getAvailablePages = (user: unknown): string[] => {
   const permissions = getUserPermissions(user);
   const pages: string[] = ['dashboard'];
 

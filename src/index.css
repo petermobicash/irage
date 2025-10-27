@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* @tailwind directives are processed by PostCSS, not ESLint */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

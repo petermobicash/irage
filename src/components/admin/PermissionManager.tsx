@@ -3,9 +3,10 @@
  * Provides advanced permission management with visual tools
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Shield, Key } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import type { User } from '@supabase/supabase-js';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import FormField from '../ui/FormField';
@@ -38,7 +39,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
   const [editingGroup, setEditingGroup] = useState<string | null>(null);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [canManagePermissions, setCanManagePermissions] = useState(false);
   const { showToast } = useToast();
 
@@ -63,12 +64,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
     orderIndex: 0
   });
 
-  useEffect(() => {
-    initializePermissions();
-    loadData();
-  }, []);
-
-  const initializePermissions = async () => {
+  const initializePermissions = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -91,9 +87,9 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
     } catch (error) {
       console.error('Error initializing permissions:', error);
     }
-  };
+  }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [groupsData, permissionsData] = await Promise.all([
@@ -124,7 +120,12 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    initializePermissions();
+    loadData();
+  }, [initializePermissions, loadData]);
 
   const handleCreateGroup = async () => {
     if (!currentUser || !groupFormData.name.trim()) return;
@@ -303,20 +304,20 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                 label="Group Name"
                 type="text"
                 value={groupFormData.name}
-                onChange={(value) => setGroupFormData({ ...groupFormData, name: value })}
+                onChange={(value) => setGroupFormData({ ...groupFormData, name: String(value) })}
                 required
               />
               <FormField
                 label="Color"
                 type="color"
                 value={groupFormData.color}
-                onChange={(value) => setGroupFormData({ ...groupFormData, color: value })}
+                onChange={(value) => setGroupFormData({ ...groupFormData, color: String(value) })}
               />
               <FormField
                 label="Icon"
                 type="text"
                 value={groupFormData.icon}
-                onChange={(value) => setGroupFormData({ ...groupFormData, icon: value })}
+                onChange={(value) => setGroupFormData({ ...groupFormData, icon: String(value) })}
                 placeholder="users, shield, key, etc."
               />
               <div className="flex items-center space-x-2">
@@ -336,7 +337,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                   label="Description"
                   type="textarea"
                   value={groupFormData.description}
-                  onChange={(value) => setGroupFormData({ ...groupFormData, description: value })}
+                  onChange={(value) => setGroupFormData({ ...groupFormData, description: String(value) })}
                   rows={3}
                   placeholder="Brief description of the group..."
                 />
@@ -376,9 +377,9 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    group.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    group.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
-                    {group.isActive ? 'Active' : 'Inactive'}
+                    {group.is_active ? 'Active' : 'Inactive'}
                   </span>
                   <Button
                     size="sm"
@@ -390,7 +391,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                         description: group.description || '',
                         color: group.color,
                         icon: group.icon,
-                        isActive: group.isActive
+                        isActive: group.is_active
                       });
                     }}
                   >
@@ -415,20 +416,20 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                       label="Name"
                       type="text"
                       value={groupFormData.name}
-                      onChange={(value) => setGroupFormData({ ...groupFormData, name: value })}
+                      onChange={(value) => setGroupFormData({ ...groupFormData, name: String(value) })}
                     />
                     <FormField
                       label="Color"
                       type="color"
                       value={groupFormData.color}
-                      onChange={(value) => setGroupFormData({ ...groupFormData, color: value })}
+                      onChange={(value) => setGroupFormData({ ...groupFormData, color: String(value) })}
                     />
                   </div>
                   <FormField
                     label="Description"
                     type="textarea"
                     value={groupFormData.description}
-                    onChange={(value) => setGroupFormData({ ...groupFormData, description: value })}
+                    onChange={(value) => setGroupFormData({ ...groupFormData, description: String(value) })}
                     rows={2}
                   />
                   <div className="flex justify-end space-x-2 mt-2">
@@ -565,8 +566,8 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                 value={permissionFormData.name}
                 onChange={(value) => setPermissionFormData({
                   ...permissionFormData,
-                  name: value,
-                  slug: generateSlug(value)
+                  name: String(value),
+                  slug: generateSlug(String(value))
                 })}
                 required
                 placeholder="e.g., Manage Users"
@@ -577,7 +578,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                   label="Module"
                   type="select"
                   value={permissionFormData.module}
-                  onChange={(value) => setPermissionFormData({ ...permissionFormData, module: value })}
+                  onChange={(value) => setPermissionFormData({ ...permissionFormData, module: String(value) })}
                   options={[
                     { value: 'system', label: 'System' },
                     { value: 'content', label: 'Content' },
@@ -592,7 +593,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                   label="Action"
                   type="select"
                   value={permissionFormData.action}
-                  onChange={(value) => setPermissionFormData({ ...permissionFormData, action: value })}
+                  onChange={(value) => setPermissionFormData({ ...permissionFormData, action: String(value) })}
                   options={[
                     { value: 'create', label: 'Create' },
                     { value: 'read', label: 'Read' },
@@ -608,7 +609,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                 label="Resource"
                 type="text"
                 value={permissionFormData.resource}
-                onChange={(value) => setPermissionFormData({ ...permissionFormData, resource: value })}
+                onChange={(value) => setPermissionFormData({ ...permissionFormData, resource: String(value) })}
                 placeholder="e.g., users, content, settings"
               />
 
@@ -616,7 +617,7 @@ const PermissionManager: React.FC<PermissionManagerProps> = ({
                 label="Description"
                 type="textarea"
                 value={permissionFormData.description}
-                onChange={(value) => setPermissionFormData({ ...permissionFormData, description: value })}
+                onChange={(value) => setPermissionFormData({ ...permissionFormData, description: String(value) })}
                 rows={3}
                 placeholder="Brief description of the permission..."
               />

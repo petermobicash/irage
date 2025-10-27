@@ -24,11 +24,20 @@ interface PerformanceData {
   speedIndex: PerformanceMetric;
 }
 
+interface HistoricalData {
+  date: string;
+  pageLoad: number;
+  fcp: number;
+  lcp: number;
+  cls: number;
+  fid: number;
+}
+
 const PerformanceMonitor: React.FC = () => {
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [monitoring, setMonitoring] = useState(false);
-  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
 
   useEffect(() => {
     measurePerformance();

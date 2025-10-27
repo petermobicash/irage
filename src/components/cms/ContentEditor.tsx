@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, getContent, updateContent } from '../../lib/supabase';
 import { Database } from '../../lib/supabase';
 import { ArrowLeft, Image, X } from 'lucide-react';
@@ -12,10 +12,16 @@ import ContentVersioning from '../advanced/ContentVersioning';
 import { getThumbnailUrl } from '../../utils/cdn';
 import ImageUpload from '../ui/ImageUpload';
 
+interface User {
+  id: string;
+  email: string;
+  [key: string]: unknown;
+}
+
 interface ContentEditorProps {
   contentId?: string;
   contentType: string;
-  currentUser?: any;
+  currentUser?: User;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -87,13 +93,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   
   const permissions = getUserPermissions(currentUser);
 
-  useEffect(() => {
-    if (contentId) {
-      loadContent();
-    }
-    loadMediaItems();
-  }, [contentId]);
-
   const loadMediaItems = async () => {
     try {
       const { data, error } = await supabase
@@ -111,7 +110,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     }
   };
 
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     if (!contentId) return;
 
     setLoading(true);
@@ -174,7 +173,14 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentId, currentUser, contentType]);
+
+  useEffect(() => {
+    if (contentId) {
+      loadContent();
+    }
+    loadMediaItems();
+  }, [contentId, loadContent]);
 
   const generateSlug = (title: string) => {
     return title
@@ -185,15 +191,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
       .trim();
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean | string[] | null) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      
+
       // Auto-generate slug from title
-      if (field === 'title') {
+      if (field === 'title' && typeof value === 'string') {
         updated.slug = generateSlug(value);
       }
-      
+
       return updated;
     });
   };
@@ -298,7 +304,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         <div className="space-y-6">
           <RealTimeCollaboration
             contentId={contentId}
-            currentUser={currentUser}
+            currentUser={currentUser || { id: '', email: '', full_name: '' }}
             onContentChange={(content) => handleInputChange('content', content)}
           />
           

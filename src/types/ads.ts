@@ -69,8 +69,8 @@ export interface Ad {
   spent_amount: number;
   cpm?: number;
   cpc?: number;
-  targeting_criteria: Record<string, any>;
-  creative_content: Record<string, any>;
+  targeting_criteria: Record<string, string | number | boolean | null | undefined>;
+  creative_content: Record<string, string | number | boolean | null | undefined>;
   tags?: string[];
   notes?: string;
   approved_by?: string;
@@ -117,7 +117,7 @@ export interface AdImpression {
   country?: string;
   city?: string;
   timestamp: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface AdClick {
@@ -135,7 +135,7 @@ export interface AdClick {
   target_url: string;
   device_type: 'desktop' | 'tablet' | 'mobile';
   timestamp: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface AdCampaign {
@@ -155,7 +155,7 @@ export interface AdCampaign {
   current_impressions: number;
   current_clicks: number;
   current_conversions: number;
-  targeting_criteria: Record<string, any>;
+  targeting_criteria: Record<string, string | number | boolean | null | undefined>;
   created_by?: string;
   created_at: string;
   updated_at: string;
@@ -278,7 +278,7 @@ export interface CreateAdForm {
   budget: number;
   cpm?: number;
   cpc?: number;
-  targeting_criteria: Record<string, any>;
+  targeting_criteria: Record<string, string | number | boolean | null | undefined>;
   tags?: string[];
   notes?: string;
 }

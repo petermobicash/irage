@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, X, Clock, User, MessageCircle } from 'lucide-react';
 import { WhatsAppMessage } from '../../hooks/useRealTimeChat';
 import Card from '../ui/Card';
@@ -19,6 +19,11 @@ const MessageSearch: React.FC<MessageSearchProps> = ({
   const [searchResults, setSearchResults] = useState<WhatsAppMessage[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isSearching, setIsSearching] = useState(false);
+
+  const handleMessageSelect = useCallback((message: WhatsAppMessage) => {
+    onMessageSelect?.(message);
+    onClose?.();
+  }, [onMessageSelect, onClose]);
 
   // Search messages when query changes
   useEffect(() => {
@@ -71,12 +76,8 @@ const MessageSearch: React.FC<MessageSearchProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [searchResults, selectedIndex, onClose]);
+  }, [searchResults, selectedIndex, onClose, handleMessageSelect]);
 
-  const handleMessageSelect = (message: WhatsAppMessage) => {
-    onMessageSelect?.(message);
-    onClose?.();
-  };
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);

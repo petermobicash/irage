@@ -1,5 +1,11 @@
 import { supabase } from '../lib/supabase';
-import { Ad, AdZone } from '../types/ads';
+import { Ad, AdZone, AdAnalytics, AdImpression, AdClick } from '../types/ads';
+
+type AdAssignment = {
+  ad: Ad;
+  position_order: number;
+  [key: string]: unknown;
+};
 
 export class AdManager {
   /**
@@ -57,26 +63,29 @@ export class AdManager {
    * Apply rotation logic to ad assignments
    */
   private static applyRotationLogic(
-    assignments: any[],
+    assignments: AdAssignment[],
     rotationType: string,
     limit: number
-  ): any[] {
+  ): AdAssignment[] {
     switch (rotationType) {
-      case 'random':
+      case 'random': {
         // Shuffle array and return first 'limit' items
         const shuffled = [...assignments].sort(() => Math.random() - 0.5);
         return shuffled.slice(0, limit);
+      }
 
-      case 'weighted':
+      case 'weighted': {
         // Sort by weight (priority) and return top 'limit' items
         const weighted = assignments.sort((a, b) => (b.ad?.weight || 0) - (a.ad?.weight || 0));
         return weighted.slice(0, limit);
+      }
 
       case 'sequential':
-      default:
+      default: {
         // Sort by position_order and return first 'limit' items
         const sequential = assignments.sort((a, b) => (a.position_order || 0) - (b.position_order || 0));
         return sequential.slice(0, limit);
+      }
     }
   }
 
@@ -87,7 +96,7 @@ export class AdManager {
     adId: string,
     zoneId: string,
     assignmentId: string,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, string | number | boolean | null | undefined> = {}
   ): Promise<void> {
     try {
       const impressionData = {
@@ -128,7 +137,7 @@ export class AdManager {
     zoneId: string,
     assignmentId: string,
     targetUrl: string,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, string | number | boolean | null | undefined> = {}
   ): Promise<void> {
     try {
       // First, get the latest impression for this ad/zone combination
@@ -211,7 +220,7 @@ export class AdManager {
     adId: string,
     startDate: string,
     endDate: string
-  ): Promise<any> {
+  ): Promise<AdAnalytics | null> {
     try {
       // Get impressions
       const { data: impressions, error: impressionsError } = await supabase
@@ -223,6 +232,8 @@ export class AdManager {
 
       if (impressionsError) throw impressionsError;
 
+      const typedImpressions: AdImpression[] = impressions || [];
+
       // Get clicks
       const { data: clicks, error: clicksError } = await supabase
         .from('ad_clicks')
@@ -233,8 +244,10 @@ export class AdManager {
 
       if (clicksError) throw clicksError;
 
-      const totalImpressions = impressions?.length || 0;
-      const totalClicks = clicks?.length || 0;
+      const typedClicks: AdClick[] = clicks || [];
+
+      const totalImpressions = typedImpressions.length;
+      const totalClicks = typedClicks.length;
       const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
       return {
@@ -242,9 +255,17 @@ export class AdManager {
         total_impressions: totalImpressions,
         total_clicks: totalClicks,
         ctr: ctr,
-        unique_impressions: new Set(impressions?.map(i => i.user_id || i.session_id)).size,
-        unique_clicks: new Set(clicks?.map(c => c.user_id || c.session_id)).size,
-        date_range: { start: startDate, end: endDate }
+        unique_impressions: new Set(typedImpressions.map(i => i.user_id || i.session_id)).size,
+        unique_clicks: new Set(typedClicks.map(c => c.user_id || c.session_id)).size,
+        total_spent: 0,
+        date_range: { start: startDate, end: endDate },
+        daily_stats: [],
+        device_breakdown: {
+          desktop: { impressions: 0, clicks: 0, ctr: 0 },
+          tablet: { impressions: 0, clicks: 0, ctr: 0 },
+          mobile: { impressions: 0, clicks: 0, ctr: 0 }
+        },
+        geographic_breakdown: []
       };
     } catch (error) {
       console.error('Error fetching ad analytics:', error);

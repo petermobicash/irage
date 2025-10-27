@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Sparkles, TrendingUp, CheckCircle, X, Lightbulb, Target, Zap, Eye, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -39,19 +39,13 @@ const AIContentSuggestions: React.FC<AIContentSuggestionsProps> = ({
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (content && title) {
-      generateSuggestions();
-    }
-  }, [content, title]);
-
-  const generateSuggestions = async () => {
+  const generateSuggestions = useCallback(async () => {
     setLoading(true);
-    
+
     try {
       // Simulate AI analysis with realistic suggestions
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       const generatedSuggestions: ContentSuggestion[] = [];
 
       // SEO Suggestions
@@ -86,7 +80,7 @@ const AIContentSuggestions: React.FC<AIContentSuggestionsProps> = ({
       // Readability Suggestions
       const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
       const avgSentenceLength = sentences.reduce((sum, s) => sum + s.split(' ').length, 0) / sentences.length;
-      
+
       if (avgSentenceLength > 20) {
         generatedSuggestions.push({
           id: 'readability-sentence-length',
@@ -165,7 +159,13 @@ const AIContentSuggestions: React.FC<AIContentSuggestionsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [content, title, contentType, showToast]);
+
+  useEffect(() => {
+    if (content && title) {
+      generateSuggestions();
+    }
+  }, [content, title, generateSuggestions]);
 
   const applySuggestion = async (suggestion: ContentSuggestion) => {
     try {

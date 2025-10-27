@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Clock, Check, X, AlertTriangle, RefreshCw, ArrowRight } from 'lucide-react';
 import Card from '../ui/Card';
@@ -31,18 +31,14 @@ const WorkflowManager: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const { showToast } = useToast();
   
-  useEffect(() => {
-    loadWorkflowItems();
-  }, [filter]);
-
-  const loadWorkflowItems = async () => {
+  const loadWorkflowItems = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('content')
         .select('*')
-        .in('status', filter === 'all' 
-          ? ['draft', 'pending_review', 'reviewed', 'published', 'rejected'] 
+        .in('status', filter === 'all'
+          ? ['draft', 'pending_review', 'reviewed', 'published', 'rejected']
           : [filter])
         .order('updated_at', { ascending: false });
 
@@ -53,7 +49,11 @@ const WorkflowManager: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadWorkflowItems();
+  }, [loadWorkflowItems]);
 
   const handleStatusChange = async (itemId: string, newStatus: string, notes: string = '') => {
     try {

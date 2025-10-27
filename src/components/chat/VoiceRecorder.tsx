@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Square, Play, Pause, Trash2 } from 'lucide-react';
 import Button from '../ui/Button';
 
+// Type for webkit audio context
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 interface VoiceRecorderProps {
   onRecordingComplete: (audioBlob: Blob, duration: number) => void;
   onCancel?: () => void;
@@ -83,7 +88,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (!streamRef.current) return;
 
     try {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
 
       const source = audioContextRef.current.createMediaStreamSource(streamRef.current);

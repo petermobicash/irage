@@ -46,36 +46,37 @@ export const isUsingSupabase = () => {
 };
 
 // Helper function for localStorage fallback
-const saveToLocalStorage = (formType: string, data: any) => {
+const saveToLocalStorage = (formType: string, data: unknown) => {
   const storageKey = `benirage_${formType}s`;
   const existingData = JSON.parse(localStorage.getItem(storageKey) || '[]');
-  
+  const formData = data as Record<string, unknown>;
+
   // Handle references field rename
-  if (data.references) {
-    data.referencesinfo = data.references;
-    delete data.references;
+  if (formData.references) {
+    formData.referencesinfo = formData.references;
+    delete formData.references;
   }
-  
+
   // Handle reference_info field rename
-  if (data.reference_info) {
-    data.referencesinfo = data.reference_info;
-    delete data.reference_info;
+  if (formData.reference_info) {
+    formData.referencesinfo = formData.reference_info;
+    delete formData.reference_info;
   }
-  
+
   // Handle referenceInfo field rename (from React forms)
-  if (data.referenceInfo) {
-    data.referencesinfo = data.referenceInfo;
-    delete data.referenceInfo;
+  if (formData.referenceInfo) {
+    formData.referencesinfo = formData.referenceInfo;
+    delete formData.referenceInfo;
   }
-  
-  const newData = { ...data, id: Date.now().toString(), submissionDate: new Date().toISOString() };
+
+  const newData = { ...formData, id: Date.now().toString(), submissionDate: new Date().toISOString() };
   existingData.push(newData);
   localStorage.setItem(storageKey, JSON.stringify(existingData));
   return newData.id;
 };
 
 // Hybrid storage functions (fallback to localStorage if database fails)
-export const hybridSaveFormData = (formType: string, data: any) => {
+export const hybridSaveFormData = (formType: string, data: unknown) => {
   return saveToLocalStorage(formType, data);
 };
 

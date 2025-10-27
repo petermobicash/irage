@@ -53,7 +53,7 @@ class PaymentService {
    * Get supported payment providers for a specific method and currency
    */
   getSupportedProviders(method: PaymentMethod, currency: Currency) {
-    return Object.entries(this.providers).filter(([_, config]) =>
+    return Object.entries(this.providers).filter(([, config]) =>
       config.sandbox &&
       config.supportedMethods.includes(method) &&
       config.supportedCurrencies.includes(currency)
@@ -248,7 +248,7 @@ class PaymentService {
           success: true,
           paymentId: result.id,
           status: 'processing' as PaymentStatus,
-          redirectUrl: result.links?.find((link: any) => link.rel === 'approval_url')?.href,
+          redirectUrl: result.links?.find((link: unknown) => (link as { rel: string }).rel === 'approval_url')?.href,
           metadata: result
         };
       } else {

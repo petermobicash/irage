@@ -5,8 +5,20 @@ import Button from './Button';
 import ProgressBar from './ProgressBar';
 import { getProductionReadinessChecklist, calculateReadinessScore } from '../../utils/productionReadiness';
 
+interface ReadinessItem {
+  status: string;
+  name: string;
+  description: string;
+  priority: string;
+}
+
+interface ReadinessCategory {
+  category: string;
+  items: ReadinessItem[];
+}
+
 const ProductionReadiness = () => {
-  const [checklist, setChecklist] = useState<any[]>([]);
+  const [checklist, setChecklist] = useState<ReadinessCategory[]>([]);
   const [readinessScore, setReadinessScore] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
 
@@ -66,8 +78,8 @@ const ProductionReadiness = () => {
     }
   };
 
-  const completedItems = checklist.reduce((total, category) => 
-    total + category.items.filter((item: any) => item.status === 'complete').length, 0
+  const completedItems = checklist.reduce((total, category) =>
+    total + category.items.filter((item: ReadinessItem) => item.status === 'complete').length, 0
   );
   
   const totalItems = checklist.reduce((total, category) => total + category.items.length, 0);
@@ -151,13 +163,13 @@ const ProductionReadiness = () => {
                   {category.category}
                 </h3>
                 <p className="text-clear-gray text-sm">
-                  {category.items.filter((item: any) => item.status === 'complete').length} of {category.items.length} completed
+                  {category.items.filter((item: ReadinessItem) => item.status === 'complete').length} of {category.items.length} completed
                 </p>
               </div>
             </div>
 
             <div className="space-y-3">
-              {category.items.map((item: any, itemIndex: number) => (
+              {category.items.map((item: ReadinessItem, itemIndex: number) => (
                 <div key={itemIndex} className={`flex items-center justify-between p-4 border rounded-lg ${getStatusColor(item.status)}`}>
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(item.status)}

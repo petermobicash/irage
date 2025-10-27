@@ -1,18 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Users, Eye, Lock, Unlock, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { RealtimeChannel, PostgrestError } from '@supabase/supabase-js';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { useToast } from '../../hooks/useToast';
 
+const isPostgrestError = (error: unknown): error is PostgrestError => {
+  return typeof error === 'object' && error !== null && 'code' in error && 'message' in error;
+};
+interface User {
+  id: string;
+  email?: string;
+  avatar_url?: string;
+}
+
 interface CollaborationProps {
   contentId: string;
-  currentUser: any;
+  currentUser: User;
   onContentChange: (content: string) => void;
   initialContent?: string;
 }
 
 interface ActiveEditor {
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  last_seen: string;
+  cursor_position?: number;
+}
+
+interface PresenceState {
   user_id: string;
   user_name: string;
   user_avatar?: string;
@@ -34,9 +52,53 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
   const [content, setContent] = useState(initialContent);
   const [isEditing, setIsEditing] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<'connected' | 'disconnected' | 'error'>('disconnected');
-  const channelRef = useRef<any>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
   const { showToast } = useToast();
+
+  const checkContentLock = useCallback(async () => {
+    if (!contentId || !currentUser?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('content_locks')
+        .select('*')
+        .eq('content_id', contentId)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        // Handle permission errors gracefully
+        if (isPostgrestError(error) && (error.code === '42501' || error.message?.includes('row-level security policy'))) {
+          console.log('Lock checking restricted to admin/editor users');
+          // For regular users, assume no locks and allow editing
+          setIsLocked(false);
+          setLockOwner(null);
+          return;
+        }
+        console.error('Error checking content lock:', error);
+        return;
+      }
+
+      if (data) {
+        setIsLocked(true);
+        setLockOwner(data.user_name || data.user_email);
+
+        if (data.user_id !== currentUser.id) {
+          showToast(`Content is being edited by ${data.user_name || data.user_email}`, 'warning');
+        }
+      } else {
+        // No active lock found, ensure UI reflects this
+        setIsLocked(false);
+        setLockOwner(null);
+      }
+    } catch (error: unknown) {
+      console.error('Error checking content lock:', error);
+      // On error, assume no lock for better user experience
+      setIsLocked(false);
+      setLockOwner(null);
+    }
+  }, [contentId, currentUser, showToast]);
 
   useEffect(() => {
     if (!contentId || !currentUser) return;
@@ -49,19 +111,19 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        const editors: ActiveEditor[] = Object.values(state).flat().map((presence: any) => ({
-          user_id: presence.user_id,
-          user_name: presence.user_name,
-          user_avatar: presence.user_avatar,
-          last_seen: presence.last_seen,
-          cursor_position: presence.cursor_position
+        const editors: ActiveEditor[] = Object.values(state).flat().map((presence: unknown) => ({
+          user_id: (presence as PresenceState).user_id,
+          user_name: (presence as PresenceState).user_name,
+          user_avatar: (presence as PresenceState).user_avatar,
+          last_seen: (presence as PresenceState).last_seen,
+          cursor_position: (presence as PresenceState).cursor_position
         }));
         setActiveEditors(editors.filter(editor => editor.user_id !== currentUser?.id));
       })
-      .on('presence', { event: 'join' }, ({ key: _key, newPresences }) => {
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
         console.log('User joined:', newPresences);
       })
-      .on('presence', { event: 'leave' }, ({ key: _key, leftPresences }) => {
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
         console.log('User left:', leftPresences);
       })
       .on('broadcast', { event: 'content-change' }, ({ payload }) => {
@@ -107,55 +169,11 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current as RealtimeChannel);
         channelRef.current = null;
       }
     };
-  }, [contentId, currentUser]);
-
-  const checkContentLock = async () => {
-    if (!contentId || !currentUser?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('content_locks')
-        .select('*')
-        .eq('content_id', contentId)
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        // Handle permission errors gracefully
-        if (error?.code === '42501' || error?.message?.includes('row-level security policy')) {
-          console.log('Lock checking restricted to admin/editor users');
-          // For regular users, assume no locks and allow editing
-          setIsLocked(false);
-          setLockOwner(null);
-          return;
-        }
-        console.error('Error checking content lock:', error);
-        return;
-      }
-
-      if (data) {
-        setIsLocked(true);
-        setLockOwner(data.user_name || data.user_email);
-
-        if (data.user_id !== currentUser.id) {
-          showToast(`Content is being edited by ${data.user_name || data.user_email}`, 'warning');
-        }
-      } else {
-        // No active lock found, ensure UI reflects this
-        setIsLocked(false);
-        setLockOwner(null);
-      }
-    } catch (error) {
-      console.error('Error checking content lock:', error);
-      // On error, assume no lock for better user experience
-      setIsLocked(false);
-      setLockOwner(null);
-    }
-  };
+  }, [contentId, currentUser, checkContentLock, onContentChange, showToast]);
 
   const acquireLock = async () => {
     try {
@@ -175,17 +193,17 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
       setIsLocked(true);
       setLockOwner(currentUser?.email?.split('@')[0] || 'User');
       showToast('Edit lock acquired', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error acquiring lock:', error);
-
+      
       // Handle permission errors gracefully - only admins/editors can manage locks
-      if (error?.code === '42501' || error?.message?.includes('row-level security policy')) {
+      if (isPostgrestError(error) && (error.code === '42501' || error.message?.includes('row-level security policy'))) {
         console.log('Lock management restricted to admin/editor users');
         showToast('Edit locks are only available for admin/editor users', 'warning');
       } else {
         showToast('Failed to acquire edit lock', 'error');
       }
-
+      
       // Set UI to allow editing in read-only mode for regular users
       setIsEditing(true);
     }
@@ -204,11 +222,11 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
       setIsLocked(false);
       setLockOwner(null);
       showToast('Edit lock released', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error releasing lock:', error);
-
+      
       // Handle permission errors gracefully
-      if (error?.code === '42501' || error?.message?.includes('row-level security policy')) {
+      if (isPostgrestError(error) && (error.code === '42501' || error.message?.includes('row-level security policy'))) {
         console.log('Lock management restricted to admin/editor users');
         // Still update UI state even if database operation fails
         setIsLocked(false);
@@ -252,7 +270,7 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
     // Broadcast content change to other users (only if realtime is available)
     if (channelRef.current && currentUser?.id) {
       try {
-        channelRef.current.send({
+        (channelRef.current as RealtimeChannel).send({
           type: 'broadcast',
           event: 'content-change',
           payload: {
@@ -261,7 +279,7 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
             timestamp: new Date().toISOString()
           }
         });
-      } catch (error) {
+      } catch {
         // Silently fail if realtime isn't available - component works in manual mode
         console.log('Realtime broadcast failed, continuing in manual mode');
       }

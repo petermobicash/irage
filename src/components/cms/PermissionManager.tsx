@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Key, Shield } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -78,20 +78,12 @@ const PermissionManager = () => {
     initializePermissions();
   }, []);
 
-  // Fetch permissions and categories data - must be after permission initialization
-  useEffect(() => {
-    if (!isInitializing && canManagePermissions) {
-      fetchPermissions();
-      fetchCategories();
-    }
-  }, [isInitializing, canManagePermissions]);
-
   const actions = [
     'create', 'read', 'update', 'delete', 'publish', 'manage', 'view', 'export', 'import'
   ];
 
   const resources = [
-    'content', 'users', 'roles', 'permissions', 'settings', 'media', 'categories', 'tags', 
+    'content', 'users', 'roles', 'permissions', 'settings', 'media', 'categories', 'tags',
     'comments', 'forms', 'analytics', 'system'
   ];
 
@@ -106,8 +98,7 @@ const PermissionManager = () => {
     { value: '#0891b2', label: 'Cyan' }
   ];
 
-
-  const fetchPermissions = async () => {
+  const fetchPermissions = useCallback(async () => {
     try {
       const permissionsList = await getPermissions();
       setPermissions(permissionsList);
@@ -115,9 +106,9 @@ const PermissionManager = () => {
       console.error('Error fetching permissions:', error);
       showToast('Failed to load permissions', 'error');
     }
-  };
+  }, [showToast]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       // For now, we'll fetch categories directly since they're not in groupRBAC yet
       const { data, error } = await supabase
@@ -133,7 +124,15 @@ const PermissionManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  // Fetch permissions and categories data - must be after permission initialization
+  useEffect(() => {
+    if (!isInitializing && canManagePermissions) {
+      fetchPermissions();
+      fetchCategories();
+    }
+  }, [isInitializing, canManagePermissions, fetchPermissions, fetchCategories]);
 
   const handlePermissionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

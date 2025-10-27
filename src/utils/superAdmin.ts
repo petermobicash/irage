@@ -19,13 +19,13 @@ import {
   getCurrentUserProfile
 } from './rbac';
 import { PREDEFINED_ROLES } from './predefinedRoles';
-import { Permission } from '../types/permissions';
+import { Permission, UserRole } from '../types/permissions';
 
 export interface SuperAdminResult {
   success: boolean;
   message: string;
   error?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface CreateUserData {
@@ -194,12 +194,12 @@ export const withErrorHandling = async <T>(
       message: `${operationName} completed successfully`,
       data: result
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error in ${operationName}:`, error);
     return {
       success: false,
       message: `${operationName} failed`,
-      error: error.message || 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 };
@@ -248,12 +248,12 @@ export const verifySuperAdminAccess = async (): Promise<SuperAdminResult> => {
       message: 'Super admin access verified',
       data: { profile }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error verifying super admin access:', error);
     return {
       success: false,
       message: 'Error verifying super admin access',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -348,7 +348,7 @@ export const createUser = async (userData: CreateUserData): Promise<SuperAdminRe
 
     // Assign role if specified
     if (userData.role) {
-      const roleAssigned = await assignUserRole(userId, userData.role as any);
+      const roleAssigned = await assignUserRole(userId, userData.role as UserRole);
       if (!roleAssigned) {
         console.warn('⚠️ Warning: Failed to assign role, but user was created');
       }
@@ -357,7 +357,7 @@ export const createUser = async (userData: CreateUserData): Promise<SuperAdminRe
     // Add custom permissions if specified
     if (userData.customPermissions && userData.customPermissions.length > 0) {
       for (const permission of userData.customPermissions) {
-        await addUserCustomPermission(userId, permission as any);
+        await addUserCustomPermission(userId, permission);
       }
     }
 
@@ -374,12 +374,12 @@ export const createUser = async (userData: CreateUserData): Promise<SuperAdminRe
       }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error creating user:', error);
     return {
       success: false,
       message: 'Unexpected error creating user',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -419,7 +419,7 @@ export const createGroup = async (groupData: CreateGroupData): Promise<SuperAdmi
       name: sanitizedData.name,
       description: sanitizedData.description,
       jobDescription: sanitizedData.jobDescription,
-      permissions: sanitizedData.permissions as any,
+      permissions: sanitizedData.permissions as Permission[],
       createdBy: 'super-admin',
       isActive: sanitizedData.isActive !== false
     }, 'super-admin');
@@ -440,12 +440,12 @@ export const createGroup = async (groupData: CreateGroupData): Promise<SuperAdmi
       data: { groupName: sanitizedData.name, permissions: sanitizedData.permissions }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error creating group:', error);
     return {
       success: false,
       message: 'Unexpected error creating group',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -589,12 +589,12 @@ export const assignPermissions = async (assignment: PermissionAssignment): Promi
       error: 'Must specify either userId or groupId'
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error assigning permissions:', error);
     return {
       success: false,
       message: 'Unexpected error assigning permissions',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -632,12 +632,12 @@ export const getAllUsers = async (): Promise<SuperAdminResult> => {
       data: { users: users || [] }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error fetching users:', error);
     return {
       success: false,
       message: 'Unexpected error fetching users',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -661,12 +661,12 @@ export const getAllGroups = async (): Promise<SuperAdminResult> => {
       data: { groups }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error fetching groups:', error);
     return {
       success: false,
       message: 'Unexpected error fetching groups',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -699,12 +699,12 @@ export const getAllPermissions = async (): Promise<SuperAdminResult> => {
       data: { permissions: permissionsArray }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error fetching permissions:', error);
     return {
       success: false,
       message: 'Unexpected error fetching permissions',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -760,12 +760,12 @@ export const deleteUser = async (userId: string): Promise<SuperAdminResult> => {
       data: { userId }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error deleting user:', error);
     return {
       success: false,
       message: 'Unexpected error deleting user',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -803,12 +803,12 @@ export const deleteGroup = async (groupId: string): Promise<SuperAdminResult> =>
       data: { groupId }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error deleting group:', error);
     return {
       success: false,
       message: 'Unexpected error deleting group',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -858,12 +858,12 @@ export const getSystemStats = async (): Promise<SuperAdminResult> => {
       }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error getting system stats:', error);
     return {
       success: false,
       message: 'Unexpected error getting system stats',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -999,19 +999,19 @@ export const ensureDefaultSuperAdmin = async (): Promise<SuperAdminResult> => {
       }
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error ensuring default super admin:', error);
     return {
       success: false,
       message: 'Unexpected error creating default super admin',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
 
 // Make functions available globally for console usage
 if (typeof window !== 'undefined') {
-  (window as any).superAdmin = {
+  const superAdminObj = {
     verifyAccess: verifySuperAdminAccess,
     createUser,
     createGroup,
@@ -1024,4 +1024,5 @@ if (typeof window !== 'undefined') {
     getSystemStats,
     ensureDefaultSuperAdmin
   };
+  (window as unknown as { superAdmin: typeof superAdminObj }).superAdmin = superAdminObj;
 }

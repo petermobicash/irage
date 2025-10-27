@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Eye, EyeOff, Download, ExternalLink } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
@@ -62,11 +62,7 @@ const ResourcesManager = () => {
     { value: 'archived', label: 'Archived' }
   ];
 
-  useEffect(() => {
-    fetchResources();
-  }, []);
-
-  const fetchResources = async () => {
+  const fetchResources = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('content')
@@ -82,7 +78,11 @@ const ResourcesManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   const generateSlug = (title: string) => {
     return title

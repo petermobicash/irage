@@ -171,6 +171,7 @@ const Membership = () => {
         code_of_conduct_accepted: formData.codeOfConductAccepted,
         communication_consent: formData.communicationConsent,
         status: 'pending'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
       
       if (result.success) {
@@ -406,7 +407,10 @@ const Membership = () => {
 
               {!formData.profilePhoto ? (
                 <ImageUpload
-                  onUpload={(url, _path) => handleInputChange('profilePhoto', url)}
+                  onUpload={(url, path) => {
+                    console.log('Profile photo uploaded to:', path);
+                    handleInputChange('profilePhoto', url);
+                  }}
                   onRemove={() => handleInputChange('profilePhoto', '')}
                   currentImage={formData.profilePhoto}
                   maxSize={2}

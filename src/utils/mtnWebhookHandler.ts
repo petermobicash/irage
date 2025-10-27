@@ -169,9 +169,9 @@ export class MtnWebhookHandler {
   }
 
   /**
-    * Verify webhook signature (if MTN provides signature verification)
-    */
-   static verifyWebhookSignature(payload: any, signature: string, secret: string): boolean {
+     * Verify webhook signature (if MTN provides signature verification)
+     */
+    static verifyWebhookSignature(payload: unknown, signature: string, secret: string): boolean {
      try {
        // MTN might provide signature verification
        // This is a placeholder for signature verification logic

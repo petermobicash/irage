@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, Check, Trash2, MessageSquare, Heart, AtSign, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { AppNotification } from '../../types/chat';
@@ -15,14 +15,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId, onClose
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'mentions' | 'comments'>('all');
 
-  useEffect(() => {
-    if (userId) {
-      loadNotifications();
-      setupRealTimeSubscription();
-    }
-  }, [userId]);
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!userId) return;
 
     try {
@@ -40,9 +33,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId, onClose
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  const setupRealTimeSubscription = () => {
+  const setupRealTimeSubscription = useCallback(() => {
     if (!userId) return;
 
     const channel = supabase.channel(`notifications-${userId}`);
@@ -66,7 +59,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId, onClose
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      loadNotifications();
+      setupRealTimeSubscription();
+    }
+  }, [userId, loadNotifications, setupRealTimeSubscription]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -212,7 +212,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ userId, onClose
         ].map((filterOption) => (
           <button
             key={filterOption.id}
-            onClick={() => setFilter(filterOption.id as any)}
+            onClick={() => setFilter(filterOption.id as typeof filter)}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
               filter === filterOption.id
                 ? 'bg-blue-100 text-blue-900'

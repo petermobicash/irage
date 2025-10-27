@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Megaphone, Plus, Search, MoreVertical, Edit, TrendingUp, Users, DollarSign, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -40,11 +40,7 @@ const AdManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'advertisers' | 'ads' | 'zones'>('advertisers');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       await Promise.all([
@@ -56,7 +52,11 @@ const AdManager: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const loadAdvertisers = async () => {
     const { data, error } = await supabase

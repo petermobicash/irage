@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Lightbulb, Check, X, Edit, Sparkles, TrendingUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Suggestion } from '../../types/chat';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 
+interface User {
+  id: string;
+  [key: string]: unknown;
+}
+
 interface SuggestionSystemProps {
   contentId: string;
-  currentUser?: any;
+  currentUser?: User;
 }
 
 const SuggestionSystem: React.FC<SuggestionSystemProps> = ({ contentId, currentUser }) => {
@@ -21,11 +26,7 @@ const SuggestionSystem: React.FC<SuggestionSystemProps> = ({ contentId, currentU
   });
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => {
-    loadSuggestions();
-  }, [contentId]);
-
-  const loadSuggestions = async () => {
+  const loadSuggestions = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('suggestions')
@@ -40,7 +41,11 @@ const SuggestionSystem: React.FC<SuggestionSystemProps> = ({ contentId, currentU
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentId]);
+
+  useEffect(() => {
+    loadSuggestions();
+  }, [contentId, loadSuggestions]);
 
   const submitSuggestion = async (e: React.FormEvent) => {
     e.preventDefault();

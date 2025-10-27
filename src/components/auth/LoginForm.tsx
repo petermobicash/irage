@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { User } from '@supabase/supabase-js';
 import { signInWithEmail } from '../../lib/supabase';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 
 interface LoginFormProps {
-  onLogin: (user: any) => void;
+  onLogin: (user: User) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
@@ -28,7 +29,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
             role: 'admin'
           }
         };
-        onLogin(mockUser);
+        onLogin(mockUser as unknown as User);
         return;
       }
 
@@ -39,7 +40,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         setError(result.error || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
-      setError('Login error. Please try again.');
+      setError(error instanceof Error ? error.message : 'Login error. Please try again.');
     } finally {
       setIsLoggingIn(false);
     }

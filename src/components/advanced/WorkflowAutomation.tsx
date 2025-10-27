@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Zap, Clock, CheckCircle, Play, Pause, Settings } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -11,11 +11,11 @@ interface AutomationRule {
   description: string;
   trigger: {
     type: 'content_created' | 'content_updated' | 'form_submitted' | 'user_registered' | 'scheduled_time';
-    conditions: Record<string, any>;
+    conditions: Record<string, unknown>;
   };
   actions: Array<{
     type: 'send_notification' | 'update_status' | 'assign_user' | 'send_email' | 'create_task';
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
   }>;
   is_active: boolean;
   created_at: string;
@@ -23,6 +23,7 @@ interface AutomationRule {
   execution_count: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface WorkflowAutomationProps {
 }
 
@@ -43,9 +44,121 @@ const WorkflowAutomation: React.FC<WorkflowAutomationProps> = () => {
   });
   const { showToast } = useToast();
 
+  const createDefaultRules = useCallback(async () => {
+    const defaultRules: Omit<AutomationRule, 'id' | 'created_at' | 'last_executed' | 'execution_count'>[] = [
+      {
+        name: 'Notify on New Content',
+        description: 'Send notifications when new content is published',
+        trigger: {
+          type: 'content_created',
+          conditions: { status: 'published' }
+        },
+        actions: [
+          {
+            type: 'send_notification',
+            parameters: {
+              title: 'New Content Published',
+              message: 'Check out the latest content on BENIRAGE',
+              recipients: 'subscribers'
+            }
+          }
+        ],
+        is_active: true
+      },
+      {
+        name: 'Auto-assign Content Reviewer',
+        description: 'Automatically assign content to reviewers when submitted',
+        trigger: {
+          type: 'content_updated',
+          conditions: { status: 'pending_review' }
+        },
+        actions: [
+          {
+            type: 'assign_user',
+            parameters: {
+              role: 'content-reviewer',
+              notification: true
+            }
+          }
+        ],
+        is_active: true
+      },
+      {
+        name: 'Welcome New Members',
+        description: 'Send welcome message to new members',
+        trigger: {
+          type: 'form_submitted',
+          conditions: { form_type: 'membership' }
+        },
+        actions: [
+          {
+            type: 'send_email',
+            parameters: {
+              template: 'welcome_member',
+              delay: '1 hour'
+            }
+          },
+          {
+            type: 'create_task',
+            parameters: {
+              title: 'Review membership application',
+              assignee: 'membership-manager'
+            }
+          }
+        ],
+        is_active: true
+      }
+    ];
+
+    try {
+      const rulesToInsert = defaultRules.map(rule => ({
+        ...rule,
+        id: `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        created_at: new Date().toISOString(),
+        execution_count: 0
+      }));
+
+      const { data, error } = await supabase
+        .from('automation_rules')
+        .insert(rulesToInsert)
+        .select();
+
+      if (error) throw error;
+
+      setRules(data as AutomationRule[]);
+      showToast('Default automation rules created successfully', 'success');
+    } catch (error) {
+      console.error('Error creating default rules:', error);
+      showToast('Failed to create default automation rules', 'error');
+    }
+  }, [showToast]);
+
+  const loadAutomationRules = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('automation_rules')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setRules(data as AutomationRule[]);
+      } else {
+        // Create default rules if none exist
+        await createDefaultRules();
+      }
+    } catch (error) {
+      console.error('Error loading automation rules:', error);
+      showToast('Failed to load automation rules', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast, createDefaultRules]);
+
   useEffect(() => {
     loadAutomationRules();
-  }, []);
+  }, [loadAutomationRules]);
 
   const createRule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,117 +259,7 @@ const WorkflowAutomation: React.FC<WorkflowAutomationProps> = () => {
     }
   };
 
-  const loadAutomationRules = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('automation_rules')
-        .select('*')
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setRules(data as AutomationRule[]);
-      } else {
-        // Create default rules if none exist
-        await createDefaultRules();
-      }
-    } catch (error) {
-      console.error('Error loading automation rules:', error);
-      showToast('Failed to load automation rules', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createDefaultRules = async () => {
-    const defaultRules: Omit<AutomationRule, 'id' | 'created_at' | 'last_executed' | 'execution_count'>[] = [
-      {
-        name: 'Notify on New Content',
-        description: 'Send notifications when new content is published',
-        trigger: {
-          type: 'content_created',
-          conditions: { status: 'published' }
-        },
-        actions: [
-          {
-            type: 'send_notification',
-            parameters: {
-              title: 'New Content Published',
-              message: 'Check out the latest content on BENIRAGE',
-              recipients: 'subscribers'
-            }
-          }
-        ],
-        is_active: true
-      },
-      {
-        name: 'Auto-assign Content Reviewer',
-        description: 'Automatically assign content to reviewers when submitted',
-        trigger: {
-          type: 'content_updated',
-          conditions: { status: 'pending_review' }
-        },
-        actions: [
-          {
-            type: 'assign_user',
-            parameters: {
-              role: 'content-reviewer',
-              notification: true
-            }
-          }
-        ],
-        is_active: true
-      },
-      {
-        name: 'Welcome New Members',
-        description: 'Send welcome message to new members',
-        trigger: {
-          type: 'form_submitted',
-          conditions: { form_type: 'membership' }
-        },
-        actions: [
-          {
-            type: 'send_email',
-            parameters: {
-              template: 'welcome_member',
-              delay: '1 hour'
-            }
-          },
-          {
-            type: 'create_task',
-            parameters: {
-              title: 'Review membership application',
-              assignee: 'membership-manager'
-            }
-          }
-        ],
-        is_active: true
-      }
-    ];
-
-    try {
-      const rulesToInsert = defaultRules.map(rule => ({
-        ...rule,
-        id: `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        created_at: new Date().toISOString(),
-        execution_count: 0
-      }));
-
-      const { data, error } = await supabase
-        .from('automation_rules')
-        .insert(rulesToInsert)
-        .select();
-
-      if (error) throw error;
-
-      setRules(data as AutomationRule[]);
-      showToast('Default automation rules created successfully', 'success');
-    } catch (error) {
-      console.error('Error creating default rules:', error);
-      showToast('Failed to create default automation rules', 'error');
-    }
-  };
 
   const toggleRule = async (ruleId: string, isActive: boolean) => {
     try {

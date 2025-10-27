@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Edit, Save, X, Trash2, Eye, Check, XCircle, Star, StarOff,
   Search, Filter, Printer, MapPin, BookOpen, AlertCircle, CheckCircle2,
@@ -12,9 +12,7 @@ import { useToast } from '../../hooks/useToast';
 import { MultimediaStory, StoryMediaType } from '../../types/storytelling';
 import MediaStorageService from '../../utils/mediaStorage';
 
-interface Story extends MultimediaStory {
-  // Extends MultimediaStory to include all multimedia properties
-}
+type Story = MultimediaStory;
 
 interface StoryFormData {
   title: string;
@@ -28,6 +26,24 @@ interface StoryFormData {
   is_featured: boolean;
   is_approved: boolean;
   tags: string;
+}
+
+type MediaDataValue = string | StoryMediaType | File | undefined;
+
+interface MultimediaData {
+  media_type: StoryMediaType;
+  transcript?: string | null;
+  audio_url?: string;
+  audio_duration?: number;
+  video_url?: string;
+  video_duration?: number;
+  thumbnail_url?: string;
+}
+
+type StoryUpdateData = {
+  is_approved: boolean;
+  is_featured: boolean;
+  approved_at?: string;
 }
 
 const StoryManager = () => {
@@ -94,15 +110,8 @@ const StoryManager = () => {
     { value: 'rejected', label: 'Rejected' }
   ];
 
-  useEffect(() => {
-    fetchStories();
-  }, []);
 
-  useEffect(() => {
-    filterStories();
-  }, [stories, searchTerm, statusFilter, typeFilter]);
-
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -120,9 +129,9 @@ const StoryManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setStories, showToast]);
 
-  const filterStories = () => {
+  const filterStories = useCallback(() => {
     let filtered = stories;
 
     if (searchTerm) {
@@ -148,13 +157,21 @@ const StoryManager = () => {
     }
 
     setFilteredStories(filtered);
-  };
+  }, [stories, searchTerm, statusFilter, typeFilter, setFilteredStories]);
 
-  const handleInputChange = (field: keyof StoryFormData, value: string | boolean) => {
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
+
+  useEffect(() => {
+    filterStories();
+  }, [stories, searchTerm, statusFilter, typeFilter, filterStories]);
+
+  const handleInputChange = (field: keyof StoryFormData, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleMediaChange = (field: keyof typeof mediaData, value: any) => {
+  const handleMediaChange = (field: keyof typeof mediaData, value: MediaDataValue) => {
     setMediaData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -244,7 +261,7 @@ const StoryManager = () => {
       setUploadingMedia(true);
 
       // Prepare multimedia data
-      const multimediaData: any = {
+      const multimediaData: MultimediaData = {
         media_type: mediaData.media_type,
         transcript: mediaData.transcript || null
       };
@@ -342,7 +359,7 @@ const StoryManager = () => {
 
   const handleStatusUpdate = async (storyId: string, isApproved: boolean, isFeatured: boolean = false) => {
     try {
-      const updateData: any = {
+      const updateData: StoryUpdateData = {
         is_approved: isApproved,
         is_featured: isFeatured
       };
@@ -851,7 +868,7 @@ const StoryManager = () => {
                   label="Story Title"
                   type="text"
                   value={formData.title || ''}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  onChange={(value) => handleInputChange('title', value)}
                   required
                 />
 
@@ -859,7 +876,7 @@ const StoryManager = () => {
                   label="Author Name"
                   type="text"
                   value={formData.author_name || ''}
-                  onChange={(e) => handleInputChange('author_name', e.target.value)}
+                  onChange={(value) => handleInputChange('author_name', value)}
                   required
                 />
               </div>
@@ -869,14 +886,14 @@ const StoryManager = () => {
                   label="Author Email"
                   type="email"
                   value={formData.author_email || ''}
-                  onChange={(e) => handleInputChange('author_email', e.target.value)}
+                  onChange={(value) => handleInputChange('author_email', value)}
                 />
 
                 <FormField
                   label="Author Location"
                   type="text"
                   value={formData.author_location || ''}
-                  onChange={(e) => handleInputChange('author_location', e.target.value)}
+                  onChange={(value) => handleInputChange('author_location', value)}
                 />
               </div>
 
@@ -885,7 +902,7 @@ const StoryManager = () => {
                   label="Story Type"
                   type="select"
                   value={formData.story_type || ''}
-                  onChange={(e) => handleInputChange('story_type', e.target.value)}
+                  onChange={(value) => handleInputChange('story_type', value)}
                   options={storyTypes.map(type => ({ value: type.value, label: type.label }))}
                 />
 
@@ -893,7 +910,7 @@ const StoryManager = () => {
                   label="Category"
                   type="select"
                   value={formData.category || ''}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  onChange={(value) => handleInputChange('category', value)}
                   options={storyCategories.map(cat => ({ value: cat.value, label: cat.label }))}
                 />
               </div>
@@ -902,7 +919,7 @@ const StoryManager = () => {
                 label="Tags (comma-separated)"
                 type="text"
                 value={formData.tags || ''}
-                onChange={(e) => handleInputChange('tags', e.target.value)}
+                onChange={(value) => handleInputChange('tags', value)}
                 placeholder="wisdom, culture, heritage, spirituality"
               />
 
@@ -910,7 +927,7 @@ const StoryManager = () => {
                 label="Story Content"
                 type="textarea"
                 value={formData.content || ''}
-                onChange={(e) => handleInputChange('content', e.target.value)}
+                onChange={(value) => handleInputChange('content', value)}
                 rows={8}
                 required
               />
@@ -994,7 +1011,7 @@ const StoryManager = () => {
                     label="Transcript (Optional)"
                     type="textarea"
                     value={mediaData.transcript || ''}
-                    onChange={(e) => handleMediaChange('transcript', e.target.value)}
+                    onChange={(value) => handleMediaChange('transcript', value as string)}
                     rows={4}
                     placeholder="Provide a written transcript of the audio/video content for accessibility..."
                   />

@@ -4,6 +4,17 @@ import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
 import GroupCreationModal from './GroupCreationModal';
 
+interface GroupChat {
+  id: string;
+  name: string;
+  description?: string;
+  group_type: string;
+  is_private: boolean;
+  created_by: string;
+  created_at: string;
+  max_participants: number;
+}
+
 interface Group {
   id: string;
   name: string;
@@ -96,7 +107,7 @@ const GroupList: React.FC<GroupListProps> = ({ onGroupSelect, selectedGroupId })
       // Get latest message for each group
       const groupsWithMessages = await Promise.all(
         memberGroups.map(async (memberGroup) => {
-          const group = memberGroup.group_chats as any;
+          const group = memberGroup.group_chats as unknown as GroupChat;
 
           // Get member count
           const { count: memberCount } = await supabase

@@ -2,12 +2,34 @@ import { useState, useEffect, useCallback } from 'react';
 import { synchronizationService, SyncStatus, CacheStats, PerformanceMetrics } from '../services/synchronizationService';
 import { useToast } from './useToast';
 
+interface SyncActivity {
+  id: string;
+  type: string;
+  content_type: string;
+  content_id: string;
+  operation: string;
+  status: string;
+  timestamp: string;
+  details?: Record<string, unknown>;
+}
+
+interface SyncLog {
+  id: string;
+  timestamp: string;
+  level: string;
+  message: string;
+  content_type?: string;
+  content_id?: string;
+  user_id?: string;
+  metadata: Record<string, unknown>;
+}
+
 export interface UseSynchronizationReturn {
   // Status data
   syncStatus: SyncStatus[];
   cacheStats: CacheStats | null;
   performanceMetrics: PerformanceMetrics[];
-  recentActivity: any[];
+  recentActivity: SyncActivity[];
 
   // Loading states
   loading: boolean;
@@ -21,16 +43,16 @@ export interface UseSynchronizationReturn {
   rollbackContent: (contentType: string, contentId: string, version: number) => Promise<void>;
 
   // Utilities
-  queueContentSync: (contentType: string, contentId: string, operation: 'create' | 'update' | 'delete', payload: any) => Promise<void>;
-  getSyncLogs: (filters?: any) => Promise<any[]>;
-  exportSyncData: (startDate: string, endDate: string) => Promise<any[]>;
+  queueContentSync: (contentType: string, contentId: string, operation: 'create' | 'update' | 'delete', payload: Record<string, unknown>) => Promise<void>;
+  getSyncLogs: (filters?: Record<string, unknown>) => Promise<SyncLog[]>;
+  exportSyncData: (startDate: string, endDate: string) => Promise<SyncLog[]>;
 }
 
 export const useSynchronization = (): UseSynchronizationReturn => {
   const [syncStatus, setSyncStatus] = useState<SyncStatus[]>([]);
   const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<SyncActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const { showToast } = useToast();
@@ -88,7 +110,7 @@ export const useSynchronization = (): UseSynchronizationReturn => {
 
       // Refresh data after processing
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error processing sync queue:', error);
       showToast('Failed to process synchronization queue', 'error');
     } finally {
@@ -104,7 +126,7 @@ export const useSynchronization = (): UseSynchronizationReturn => {
 
       showToast(`Cleaned up ${cleanedCount} expired cache entries`, 'success');
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cleaning cache:', error);
       showToast('Failed to cleanup cache', 'error');
     } finally {
@@ -120,7 +142,7 @@ export const useSynchronization = (): UseSynchronizationReturn => {
 
       showToast(`Retried ${retriedCount} failed synchronization items`, 'success');
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error retrying failed items:', error);
       showToast('Failed to retry synchronization items', 'error');
     } finally {
@@ -133,7 +155,7 @@ export const useSynchronization = (): UseSynchronizationReturn => {
     try {
       await synchronizationService.refreshContentCache(contentType, contentId);
       showToast('Content cache refresh queued', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error refreshing cache:', error);
       showToast('Failed to refresh content cache', 'error');
     }
@@ -155,7 +177,7 @@ export const useSynchronization = (): UseSynchronizationReturn => {
       } else {
         showToast('Failed to rollback content', 'error');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error rolling back content:', error);
       showToast('Failed to rollback content', 'error');
     } finally {
@@ -168,23 +190,23 @@ export const useSynchronization = (): UseSynchronizationReturn => {
     contentType: string,
     contentId: string,
     operation: 'create' | 'update' | 'delete',
-    payload: any
+    payload: Record<string, unknown>
   ) => {
     try {
       await synchronizationService.queueContentSync(contentType, contentId, operation, payload);
       showToast('Content queued for synchronization', 'success');
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error queueing content sync:', error);
       showToast('Failed to queue content for synchronization', 'error');
     }
   };
 
   // Get synchronization logs
-  const getSyncLogs = async (filters?: any) => {
+  const getSyncLogs = async (filters?: Record<string, unknown>) => {
     try {
       return await synchronizationService.getSyncLogs(filters);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting sync logs:', error);
       showToast('Failed to load synchronization logs', 'error');
       return [];
@@ -195,7 +217,7 @@ export const useSynchronization = (): UseSynchronizationReturn => {
   const exportSyncData = async (startDate: string, endDate: string) => {
     try {
       return await synchronizationService.exportSyncLogs(startDate, endDate);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error exporting sync data:', error);
       showToast('Failed to export synchronization data', 'error');
       return [];

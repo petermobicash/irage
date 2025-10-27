@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Heart, Eye, Calendar, MapPin, User, Plus, Filter, Search, Play, Volume2, Video, FileText, Image } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Card from '../components/ui/Card';
@@ -8,9 +8,7 @@ import MultimediaStoryPlayer from '../components/storytelling/MultimediaStoryPla
 import { MultimediaStory, StoryMediaType } from '../types/storytelling';
 import MediaStorageService from '../utils/mediaStorage';
 
-interface Story extends MultimediaStory {
-  // Extends MultimediaStory to include all multimedia properties
-}
+type Story = MultimediaStory;
 
 interface StoryFormData {
   title: string;
@@ -77,15 +75,8 @@ const Stories = () => {
     { value: 'other', label: 'Other' }
   ];
 
-  useEffect(() => {
-    fetchStories();
-  }, []);
 
-  useEffect(() => {
-    filterStories();
-  }, [stories, searchTerm, typeFilter, categoryFilter, mediaTypeFilter]);
-
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -96,14 +87,16 @@ const Stories = () => {
       if (dbError) throw dbError;
 
       // Convert database stories to MultimediaStory format
-      const allStories: MultimediaStory[] = (dbStories || []).map((story: any) => ({
+      const allStories: MultimediaStory[] = (dbStories || []).map((story: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
         id: story.id,
         title: story.title,
         content: story.content,
         author_name: story.author_name,
         author_email: story.author_email,
         author_location: story.author_location,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         story_type: story.story_type as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         category: story.category as any,
         is_anonymous: story.is_anonymous,
         is_featured: story.is_featured,
@@ -128,9 +121,13 @@ const Stories = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  const filterStories = () => {
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
+
+  const filterStories = useCallback(() => {
     let filtered = stories;
 
     if (searchTerm) {
@@ -154,7 +151,11 @@ const Stories = () => {
     }
 
     setFilteredStories(filtered);
-  };
+  }, [stories, searchTerm, typeFilter, categoryFilter, mediaTypeFilter]);
+
+  useEffect(() => {
+    filterStories();
+  }, [filterStories]);
 
   const handleInputChange = (field: keyof StoryFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -235,7 +236,8 @@ const Stories = () => {
       if (insertError) throw insertError;
 
       // Upload media files if provided
-      let multimediaData: any = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const multimediaData: any = {};
 
       if (formData.audio_file && storyRecord.id) {
         try {

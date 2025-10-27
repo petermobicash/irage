@@ -115,9 +115,9 @@ export class MediaStorageService {
   }
 
   /**
-    * Get media file metadata
-    */
-  static async getMediaInfo(filePath: string): Promise<any> {
+     * Get media file metadata
+     */
+   static async getMediaInfo(filePath: string): Promise<unknown> {
     try {
       // Extract directory path from file path
       const pathParts = filePath.split('/');

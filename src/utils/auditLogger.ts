@@ -5,13 +5,14 @@
 
 import { supabase } from '../lib/supabase';
 
+
 export interface AuditLogEntry {
   id?: string;
   userId: string;
   action: string;
   resource: string;
   resourceId?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   timestamp: string;
@@ -85,7 +86,7 @@ class AuditLogger {
   public async logUserActivity(
     userId: string,
     activity: string,
-    details?: Record<string, any>,
+    details?: AuditLogEntry['details'],
     severity: AuditLogEntry['severity'] = 'medium'
   ): Promise<boolean> {
     return this.log({
@@ -122,7 +123,7 @@ class AuditLogger {
   public async logUserUpdate(
     updatedBy: string,
     targetUserId: string,
-    changes: Record<string, any>
+    changes: Record<string, unknown>
   ): Promise<boolean> {
     return this.log({
       userId: updatedBy,
@@ -183,7 +184,7 @@ class AuditLogger {
     performedBy: string,
     operation: string,
     affectedUsers: string[],
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ): Promise<boolean> {
     return this.log({
       userId: performedBy,
@@ -334,7 +335,7 @@ export const auditLogger = AuditLogger.getInstance();
 export const logUserCreation = (createdBy: string, newUserId: string, newUserEmail: string, groupsAssigned?: string[]) =>
   auditLogger.logUserCreation(createdBy, newUserId, newUserEmail, groupsAssigned);
 
-export const logUserUpdate = (updatedBy: string, targetUserId: string, changes: Record<string, any>) =>
+export const logUserUpdate = (updatedBy: string, targetUserId: string, changes: Record<string, unknown>) =>
   auditLogger.logUserUpdate(updatedBy, targetUserId, changes);
 
 export const logUserDeletion = (deletedBy: string, targetUserId: string, targetUserEmail: string) =>
@@ -343,5 +344,5 @@ export const logUserDeletion = (deletedBy: string, targetUserId: string, targetU
 export const logGroupAssignment = (assignedBy: string, targetUserId: string, groupId: string, groupName: string, action: 'assigned' | 'removed') =>
   auditLogger.logGroupAssignment(assignedBy, targetUserId, groupId, groupName, action);
 
-export const logBulkOperation = (performedBy: string, operation: string, affectedUsers: string[], details?: Record<string, any>) =>
+export const logBulkOperation = (performedBy: string, operation: string, affectedUsers: string[], details?: Record<string, unknown>) =>
   auditLogger.logBulkOperation(performedBy, operation, affectedUsers, details);

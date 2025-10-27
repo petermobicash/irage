@@ -98,38 +98,7 @@ export const useOfflineChat = (roomId?: string) => {
         }
       }
     }
-  }, [roomId]);
-
-  // Save queued messages to localStorage whenever queue changes
-  useEffect(() => {
-    if (roomId && state.queuedMessages.length > 0) {
-      localStorage.setItem(`chat_queue_${roomId}`, JSON.stringify(state.queuedMessages));
-    } else if (roomId && state.queuedMessages.length === 0) {
-      localStorage.removeItem(`chat_queue_${roomId}`);
-    }
-  }, [state.queuedMessages, roomId]);
-
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      setState(prev => ({ ...prev, isOnline: true }));
-      if (roomId) {
-        processMessageQueue();
-      }
-    };
-
-    const handleOffline = () => {
-      setState(prev => ({ ...prev, isOnline: false }));
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [roomId]);
+  }, [roomId, state.queuedMessages, state.sendingQueue]);
 
   // Process queued messages when coming back online
   const processMessageQueue = useCallback(async () => {
@@ -168,6 +137,37 @@ export const useOfflineChat = (roomId?: string) => {
       sendingQueue: false
     }));
   }, [roomId, state.queuedMessages, state.sendingQueue]);
+
+  // Save queued messages to localStorage whenever queue changes
+  useEffect(() => {
+    if (roomId && state.queuedMessages.length > 0) {
+      localStorage.setItem(`chat_queue_${roomId}`, JSON.stringify(state.queuedMessages));
+    } else if (roomId && state.queuedMessages.length === 0) {
+      localStorage.removeItem(`chat_queue_${roomId}`);
+    }
+  }, [state.queuedMessages, roomId]);
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setState(prev => ({ ...prev, isOnline: true }));
+      if (roomId) {
+        processMessageQueue();
+      }
+    };
+
+    const handleOffline = () => {
+      setState(prev => ({ ...prev, isOnline: false }));
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [roomId, processMessageQueue]);
 
   // Add message to queue when offline
   const queueMessage = useCallback((message: string) => {

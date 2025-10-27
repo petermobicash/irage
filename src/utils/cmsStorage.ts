@@ -1,6 +1,9 @@
 import { ContentItem, MediaItem, Category, Tag, CMSSettings, User, PageContent, FormField, FormSubmission } from '../types/cms';
 import { UserGroup, Role, Permission, PermissionCategory } from '../types/cms';
 
+// Types
+type UserGroupWithChildren = UserGroup & { children: UserGroupWithChildren[] };
+
 // Storage keys
 const STORAGE_KEYS = {
   CONTENT: 'benirage_cms_content',
@@ -1029,21 +1032,21 @@ export const getUserPermissions = (userId: string): string[] => {
 };
 
 // User Group Hierarchy Management
-export const getUserGroupHierarchy = (): UserGroup[] => {
+export const getUserGroupHierarchy = (): UserGroupWithChildren[] => {
   const allGroups = getUserGroups();
-  const groupMap = new Map<string, UserGroup & { children: UserGroup[] }>();
-  
+  const groupMap = new Map<string, UserGroupWithChildren>();
+
   // Initialize all groups with children array
   allGroups.forEach(group => {
     groupMap.set(group.id, { ...group, children: [] });
   });
-  
-  const rootGroups: (UserGroup & { children: UserGroup[] })[] = [];
-  
+
+  const rootGroups: UserGroupWithChildren[] = [];
+
   // Build hierarchy
   allGroups.forEach(group => {
     const groupWithChildren = groupMap.get(group.id)!;
-    
+
     if (group.parentGroupId && groupMap.has(group.parentGroupId)) {
       // Add to parent's children
       const parent = groupMap.get(group.parentGroupId)!;
@@ -1053,17 +1056,17 @@ export const getUserGroupHierarchy = (): UserGroup[] => {
       rootGroups.push(groupWithChildren);
     }
   });
-  
+
   // Sort by order
-  const sortByOrder = (groups: UserGroup[]) => {
+  const sortByOrder = (groups: UserGroupWithChildren[]) => {
     groups.sort((a, b) => a.order - b.order);
     groups.forEach(group => {
-      if ((group as any).children && (group as any).children.length > 0) {
-        sortByOrder((group as any).children);
+      if (group.children && group.children.length > 0) {
+        sortByOrder(group.children);
       }
     });
   };
-  
+
   sortByOrder(rootGroups);
   return rootGroups;
 };

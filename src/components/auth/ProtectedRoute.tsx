@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { User } from '@supabase/supabase-js';
+import { supabase, Database } from '../../lib/supabase';
 import { ensureUserProfile } from '../../utils/auth';
 import LoginForm from './LoginForm';
 import Card from '../ui/Card';
 
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  onLogin: (user: any) => void;
+  onLogin: (user: User) => void;
   requiredRole?: string;
   requiredPermission?: string;
 }
@@ -17,15 +20,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   requiredPermission 
 }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -63,26 +62,31 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         // No user found - clear any existing state
         setUser(null);
       }
-    } catch (err: any) {
+    } catch (err) {
       // Handle anonymous users gracefully - don't log expected auth errors
-      if (err.message?.includes('Auth session missing') ||
-          err.name === 'AuthSessionMissingError' ||
-          err.message?.includes('403') ||
-          err.status === 403) {
+      const error = err as Error & { status?: number };
+      if (error.message?.includes('Auth session missing') ||
+          error.name === 'AuthSessionMissingError' ||
+          error.message?.includes('403') ||
+          error.status === 403) {
         // This is expected for anonymous users - don't log as error
         console.log('Anonymous user detected - showing login options');
         setUser(null);
         setError(null);
       } else {
-        console.error('Auth check error:', err);
+        console.error('Auth check error:', error);
         setError('Authentication check failed');
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [requiredRole, requiredPermission, onLogin]);
 
-  const checkUserPermission = (profile: any, permission: string): boolean => {
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const checkUserPermission = (profile: Profile, permission: string): boolean => {
     if (!profile) return false;
     
     // Super admin has all permissions

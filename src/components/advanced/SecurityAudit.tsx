@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Lock, Eye, Download, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -13,7 +13,7 @@ interface SecurityCheck {
   severity: 'low' | 'medium' | 'high' | 'critical';
   recommendation: string;
   lastChecked: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 interface AuditLog {
@@ -26,7 +26,7 @@ interface AuditLog {
   ip_address?: string;
   user_agent?: string;
   timestamp: string;
-  details: any;
+  details: Record<string, unknown>;
   risk_level: 'low' | 'medium' | 'high';
 }
 
@@ -37,11 +37,7 @@ const SecurityAudit: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'checks' | 'logs' | 'policies'>('overview');
 
-  useEffect(() => {
-    loadSecurityData();
-  }, []);
-
-  const loadSecurityData = async () => {
+  const loadSecurityData = useCallback(async () => {
     try {
       // Load audit logs
       const { data: logs, error: logsError } = await supabase
@@ -66,7 +62,11 @@ const SecurityAudit: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSecurityData();
+  }, [loadSecurityData]);
 
   const calculateRiskLevel = (action: string): 'low' | 'medium' | 'high' => {
     if (action.includes('delete') || action.includes('admin')) return 'high';
@@ -354,7 +354,7 @@ const SecurityAudit: React.FC = () => {
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === tab.id
                 ? 'bg-white text-blue-900 shadow-sm'

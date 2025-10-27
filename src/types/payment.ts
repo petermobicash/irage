@@ -52,7 +52,7 @@ export interface MtnPaymentResponse {
   payerMessage?: string;
   payeeNote?: string;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | null | undefined>;
 }
 
 // MTN payment status
@@ -105,7 +105,7 @@ export interface PaymentResponse {
   status: PaymentStatus;
   redirectUrl?: string;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | null | undefined>;
 }
 
 // Payment verification

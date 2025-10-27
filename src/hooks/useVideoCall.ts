@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface UseVideoCallOptions {
   callId?: string;
@@ -13,6 +14,14 @@ interface CallParticipant {
   isVideoEnabled: boolean;
   isScreenSharing: boolean;
   isLocalUser: boolean;
+}
+
+interface SignalingMessage {
+  type: string;
+  targetId: string;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
 }
 
 interface VideoCallState {
@@ -40,7 +49,7 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
 
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
-  const signalingChannelRef = useRef<any>(null);
+  const signalingChannelRef = useRef<RealtimeChannel | null>(null);
 
   // Generate a unique call ID
   const generateCallId = useCallback(() => {
@@ -91,19 +100,20 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
       }));
 
       return stream;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accessing media devices:', error);
+      const err = error as Error;
 
       let errorMessage = 'Failed to access camera/microphone. ';
 
-      if (error.name === 'NotAllowedError') {
+      if (err.name === 'NotAllowedError') {
         errorMessage += 'Please allow camera and microphone access in your browser.';
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         errorMessage += 'No camera or microphone found.';
-      } else if (error.name === 'NotReadableError') {
+      } else if (err.name === 'NotReadableError') {
         errorMessage += 'Camera or microphone is already in use by another application.';
-      } else if (error.message.includes('secure context')) {
-        errorMessage += error.message;
+      } else if (err.message.includes('secure context')) {
+        errorMessage += err.message;
       } else {
         errorMessage += 'Please check your browser settings and try again.';
       }
@@ -133,9 +143,13 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
       if (event.candidate) {
         // Send ICE candidate to remote peer via signaling
         signalingChannelRef.current?.send({
-          type: 'ice_candidate',
-          candidate: event.candidate,
-          targetId: participantId,
+          type: 'broadcast',
+          event: 'signal',
+          payload: {
+            type: 'ice_candidate',
+            candidate: event.candidate,
+            targetId: participantId,
+          },
         });
       }
     };
@@ -169,6 +183,134 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
 
     return peerConnection;
   }, []);
+
+  // Create answer
+  const createAnswer = useCallback(async (participantId: string, offer: RTCSessionDescriptionInit) => {
+    const peerConnection = peerConnectionsRef.current.get(participantId);
+    if (!peerConnection) return;
+
+    try {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+
+      // Send answer via signaling
+      signalingChannelRef.current?.send({
+        type: 'broadcast',
+        event: 'signal',
+        payload: {
+          type: 'answer',
+          answer,
+          targetId: participantId,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating answer:', error);
+    }
+  }, []);
+
+  // Create offer
+  const createOffer = useCallback(async (participantId: string, peerConnection: RTCPeerConnection) => {
+    try {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      // Send offer via signaling
+      signalingChannelRef.current?.send({
+        type: 'broadcast',
+        event: 'signal',
+        payload: {
+          type: 'offer',
+          offer,
+          targetId: participantId,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating offer:', error);
+    }
+  }, []);
+
+  // Handle signaling messages
+  const handleSignalingMessage = useCallback(async (message: SignalingMessage) => {
+    const { type, targetId, ...data } = message;
+
+    switch (type) {
+      case 'offer': {
+        if (data.offer) {
+          await createAnswer(targetId, data.offer);
+        }
+        break;
+      }
+
+      case 'answer': {
+        const peerConnection = peerConnectionsRef.current.get(targetId);
+        if (peerConnection && data.answer) {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        }
+        break;
+      }
+
+      case 'ice_candidate': {
+        const pc = peerConnectionsRef.current.get(targetId);
+        if (pc && data.candidate) {
+          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+        break;
+      }
+
+      case 'participant_joined': {
+        // Handle new participant
+        const newPeerConnection = createPeerConnection(targetId);
+        peerConnectionsRef.current.set(targetId, newPeerConnection);
+
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach(track => {
+            newPeerConnection.addTrack(track, localStreamRef.current!);
+          });
+        }
+
+        createOffer(targetId, newPeerConnection);
+        break;
+      }
+
+      case 'participant_left': {
+        // Handle participant leaving
+        const leavingPeerConnection = peerConnectionsRef.current.get(targetId);
+        if (leavingPeerConnection) {
+          leavingPeerConnection.close();
+          peerConnectionsRef.current.delete(targetId);
+        }
+
+        setCallState(prev => {
+          const newRemoteStreams = new Map(prev.remoteStreams);
+          newRemoteStreams.delete(targetId);
+
+          return {
+            ...prev,
+            remoteStreams: newRemoteStreams,
+            participants: prev.participants.filter(p => p.id !== targetId),
+          };
+        });
+        break;
+      }
+    }
+  }, [createPeerConnection, createAnswer, createOffer]);
+
+  // Set up signaling channel
+  const setupSignaling = useCallback((callId: string) => {
+    signalingChannelRef.current = supabase.channel(`video_call_${callId}`);
+
+    signalingChannelRef.current
+      .on('broadcast', { event: 'signal' }, ({ payload }: { payload: SignalingMessage }) => {
+        handleSignalingMessage(payload);
+      })
+      .subscribe((status: string) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Connected to video call signaling');
+        }
+      });
+  }, [handleSignalingMessage]);
+
 
   // Start video call
   const startCall = useCallback(async (participants: string[] = []) => {
@@ -216,7 +358,7 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
         isConnecting: false,
       }));
     }
-  }, [initialCallId, generateCallId, initializeMediaDevices, createPeerConnection]);
+  }, [initialCallId, generateCallId, initializeMediaDevices, createPeerConnection, createOffer, setupSignaling]);
 
   // Join existing call
   const joinCall = useCallback(async (callId: string) => {
@@ -248,7 +390,7 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
         isConnecting: false,
       }));
     }
-  }, [initializeMediaDevices]);
+  }, [initializeMediaDevices, setupSignaling]);
 
   // End call
   const endCall = useCallback(() => {
@@ -379,14 +521,15 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
           }
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sharing screen:', error);
+      const err = error as Error;
 
       let errorMessage = 'Failed to share screen. ';
 
-      if (error.name === 'NotAllowedError') {
+      if (err.name === 'NotAllowedError') {
         errorMessage += 'Please allow screen sharing access in your browser.';
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         errorMessage += 'Screen sharing is not supported or no screen available.';
       } else {
         errorMessage += 'Please check your browser settings and try again.';
@@ -397,119 +540,8 @@ export const useVideoCall = (options: UseVideoCallOptions = {}) => {
         error: errorMessage,
       }));
     }
-  }, []);
+  }, [checkMediaSupport]);
 
-  // Create offer
-  const createOffer = useCallback(async (participantId: string, peerConnection: RTCPeerConnection) => {
-    try {
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-
-      // Send offer via signaling
-      signalingChannelRef.current?.send({
-        type: 'offer',
-        offer,
-        targetId: participantId,
-      });
-    } catch (error) {
-      console.error('Error creating offer:', error);
-    }
-  }, []);
-
-  // Create answer
-  const createAnswer = useCallback(async (participantId: string, offer: RTCSessionDescriptionInit) => {
-    const peerConnection = peerConnectionsRef.current.get(participantId);
-    if (!peerConnection) return;
-
-    try {
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-
-      // Send answer via signaling
-      signalingChannelRef.current?.send({
-        type: 'answer',
-        answer,
-        targetId: participantId,
-      });
-    } catch (error) {
-      console.error('Error creating answer:', error);
-    }
-  }, []);
-
-  // Set up signaling channel
-  const setupSignaling = useCallback((callId: string) => {
-    signalingChannelRef.current = supabase.channel(`video_call_${callId}`);
-
-    signalingChannelRef.current
-      .on('broadcast', { event: 'signal' }, ({ payload }: { payload: any }) => {
-        handleSignalingMessage(payload);
-      })
-      .subscribe((status: string) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Connected to video call signaling');
-        }
-      });
-  }, []);
-
-  // Handle signaling messages
-  const handleSignalingMessage = useCallback(async (message: any) => {
-    const { type, targetId, ...data } = message;
-
-    switch (type) {
-      case 'offer':
-        await createAnswer(targetId, data.offer);
-        break;
-
-      case 'answer':
-        const peerConnection = peerConnectionsRef.current.get(targetId);
-        if (peerConnection) {
-          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-        }
-        break;
-
-      case 'ice_candidate':
-        const pc = peerConnectionsRef.current.get(targetId);
-        if (pc) {
-          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-        }
-        break;
-
-      case 'participant_joined':
-        // Handle new participant
-        const newPeerConnection = createPeerConnection(targetId);
-        peerConnectionsRef.current.set(targetId, newPeerConnection);
-
-        if (localStreamRef.current) {
-          localStreamRef.current.getTracks().forEach(track => {
-            newPeerConnection.addTrack(track, localStreamRef.current!);
-          });
-        }
-
-        createOffer(targetId, newPeerConnection);
-        break;
-
-      case 'participant_left':
-        // Handle participant leaving
-        const leavingPeerConnection = peerConnectionsRef.current.get(targetId);
-        if (leavingPeerConnection) {
-          leavingPeerConnection.close();
-          peerConnectionsRef.current.delete(targetId);
-        }
-
-        setCallState(prev => {
-          const newRemoteStreams = new Map(prev.remoteStreams);
-          newRemoteStreams.delete(targetId);
-
-          return {
-            ...prev,
-            remoteStreams: newRemoteStreams,
-            participants: prev.participants.filter(p => p.id !== targetId),
-          };
-        });
-        break;
-    }
-  }, [createPeerConnection, createAnswer, createOffer]);
 
   // Cleanup on unmount
   useEffect(() => {

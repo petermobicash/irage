@@ -43,19 +43,19 @@ const LeadershipEthicsWorkshopForm = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof WorkshopFormData, string>>>({});
   const { showToast } = useToast();
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof WorkshopFormData>(field: K, value: WorkshopFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev: any) => ({ ...prev, [field]: null }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: Partial<Record<keyof WorkshopFormData, string>> = {};
 
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
@@ -122,7 +122,7 @@ const LeadershipEthicsWorkshopForm = () => {
       });
       setErrors({});
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Submission error:', err);
       showToast('There was an error submitting your registration. Please try again.', 'error');
     } finally {

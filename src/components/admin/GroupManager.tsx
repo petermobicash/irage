@@ -3,7 +3,7 @@
  * Provides interface for managing groups, permissions, and user assignments
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -53,11 +53,12 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     isActive: true
   });
 
-  useEffect(() => {
-    loadData();
-  }, [filters, userId]);
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000);
+  }, [setToast]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (showUserGroups && userId) {
@@ -77,12 +78,11 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [showUserGroups, userId, showToast]);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateGroup = async () => {
     if (!formData.name.trim()) {

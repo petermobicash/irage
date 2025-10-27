@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Shield } from 'lucide-react';
 import { isAuthenticated, getCurrentAuthUser, logout } from '../utils/auth';
 import { getCurrentUserProfile, getUserAllPermissions } from '../utils/rbac';
@@ -65,13 +65,13 @@ const CMS = () => {
   }, [userProfile]);
 
   // Determine the best default page based on user permissions
-  const getDefaultPage = () => {
+  const getDefaultPage = useCallback(() => {
     // Default to dashboard for all authenticated users
     if (currentUser) {
       return 'dashboard';
     }
     return 'content-guide'; // fallback for users with limited permissions
-  };
+  }, [currentUser]);
 
   // Set initial page based on permissions after login
   useEffect(() => {
@@ -80,6 +80,7 @@ const CMS = () => {
     }
   }, [currentUser, permissions, currentPage, getDefaultPage]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleLogin = (user: any) => {
     setCurrentUser(user);
     setIsLoggedIn(true);
@@ -158,7 +159,7 @@ const CMS = () => {
           <ContentEditor
             contentId={pageParams.id}
             contentType={pageParams.type || 'post'}
-            currentUser={currentUser}
+            currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }}
             onSave={() => handleNavigate('content-list', { type: pageParams.type })}
             onCancel={() => handleNavigate('content-list', { type: pageParams.type })}
           />
@@ -210,7 +211,7 @@ const CMS = () => {
             </div>
           );
         }
-        return <FormSubmissionManager currentUser={currentUser} />;
+        return <FormSubmissionManager currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }} />;
       
       case 'resources-manager':
         if (! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED)) && ! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_OWN) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL))) {
@@ -234,7 +235,7 @@ const CMS = () => {
             </div>
           );
         }
-        return <UserManager currentUser={currentUser} />;
+        return <UserManager currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }} />;
       
       case 'user-groups':
         if (! (permissions.includes(USER_PERMISSIONS.USERS_VIEW_ALL) || permissions.includes(USER_PERMISSIONS.USERS_CREATE) || permissions.includes(USER_PERMISSIONS.USERS_EDIT_ALL))) {
@@ -492,10 +493,10 @@ const CMS = () => {
   };
 
   return (
-    <CMSLayout 
-      currentPage={currentPage} 
+    <CMSLayout
+      currentPage={currentPage}
       onNavigate={handleNavigate}
-      currentUser={currentUser}
+      currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }}
       onLogout={handleLogout}
     >
       {renderCurrentPage()}

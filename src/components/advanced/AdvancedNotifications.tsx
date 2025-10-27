@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, Check, Archive, Trash2, Filter, Search, Star, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { AppNotification } from '../../types/chat';
@@ -20,16 +20,7 @@ const AdvancedNotifications: React.FC<AdvancedNotificationsProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    loadNotifications();
-    const cleanup = setupRealTimeSubscription();
-
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [userId]);
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -45,9 +36,9 @@ const AdvancedNotifications: React.FC<AdvancedNotificationsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  const setupRealTimeSubscription = () => {
+  const setupRealTimeSubscription = useCallback(() => {
     const channel = supabase.channel(`notifications-${userId}`);
 
     channel
@@ -79,7 +70,16 @@ const AdvancedNotifications: React.FC<AdvancedNotificationsProps> = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [userId, setNotifications]);
+
+  useEffect(() => {
+    loadNotifications();
+    const cleanup = setupRealTimeSubscription();
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [userId, loadNotifications, setupRealTimeSubscription]);
 
   const markAsRead = async (notificationIds: string[]) => {
     try {
@@ -263,7 +263,7 @@ const AdvancedNotifications: React.FC<AdvancedNotificationsProps> = ({
             <Filter className="w-4 h-4 text-gray-500" />
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
+              onChange={(e) => setFilter(e.target.value as 'all' | 'unread' | 'important' | 'archived')}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Notifications</option>

@@ -7,12 +7,161 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 
 interface FormSubmissionManagerProps {
-  currentUser?: any;
+  currentUser?: { id: string; email?: string; [key: string]: unknown };
 }
+
+interface MembershipApplication {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  photo_url?: string;
+  gender?: string;
+  date_of_birth?: string;
+  country?: string;
+  district?: string;
+  sector?: string;
+  cell?: string;
+  village?: string;
+  occupation?: string;
+  education?: string;
+  organization?: string;
+  english_level?: string;
+  french_level?: string;
+  kinyarwanda_level?: string;
+  skills: string[];
+  work_experience?: string;
+  interests: string[];
+  why_join: string;
+  membership_category?: string;
+  reference1_name?: string;
+  reference1_contact?: string;
+  reference1_relationship?: string;
+  reference2_name?: string;
+  reference2_contact?: string;
+  reference2_relationship?: string;
+  status: string;
+  submission_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface VolunteerApplication {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  program_interests: string[];
+  availability: string[];
+  skills: string[];
+  experience: string;
+  motivation: string;
+  status: string;
+  submission_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PartnershipApplication {
+  id: string;
+  organization_name: string;
+  contact_person: string;
+  email: string;
+  phone: string;
+  partnership_type: string[];
+  description: string;
+  goals: string;
+  resources: string;
+  status: string;
+  submission_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ContactSubmission {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  preferred_contact: string;
+  status: string;
+  submission_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Donation {
+  id: string;
+  donor_name: string;
+  email: string;
+  phone: string;
+  amount: number;
+  currency: string;
+  payment_method: string;
+  donation_type: string;
+  status: string;
+  donation_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PhilosophyCafeApplication {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  age: number;
+  school_grade: string;
+  previous_experience: string;
+  why_join: string;
+  availability: string[];
+  questions: string;
+  status: string;
+  submission_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface LeadershipEthicsApplication {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  age: number;
+  education_level: string;
+  current_role: string;
+  organization: string;
+  leadership_experience: string;
+  why_attend: string;
+  expectations: string;
+  time_commitment: string;
+  questions: string;
+  status: string;
+  submission_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+type FormSubmissions = {
+  memberships: MembershipApplication[];
+  volunteers: VolunteerApplication[];
+  partnerships: PartnershipApplication[];
+  contacts: ContactSubmission[];
+  donations: Donation[];
+  philosophyCafe: PhilosophyCafeApplication[];
+  leadershipEthics: LeadershipEthicsApplication[];
+};
 
 const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUser }) => {
   const { showToast } = useToast();
-  const [submissions, setSubmissions] = useState<any>({
+  const [submissions, setSubmissions] = useState<Record<string, unknown[]>>({
     memberships: [],
     volunteers: [],
     partnerships: [],
@@ -23,17 +172,17 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('memberships');
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<Record<string, unknown> | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [editingSubmission, setEditingSubmission] = useState<any>(null);
+  const [editingSubmission, setEditingSubmission] = useState<Record<string, unknown> | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editFormData, setEditFormData] = useState<any>({});
+  const [editFormData, setEditFormData] = useState<Record<string, unknown>>({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  
+
   // Memoize permissions to prevent unnecessary recalculations
   const permissions = useMemo(() => getUserPermissions(currentUser), [currentUser]);
   const userRole = useMemo(() => getUserRole(currentUser), [currentUser]);
@@ -60,30 +209,13 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
     }
   }, [permissions.canManageForms, userRole]);
 
-  // Check if user has permission to view form submissions
-  if (!permissions.canManageForms) {
-    return (
-      <Card className="text-center py-12">
-        <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-        <p className="text-gray-500 mb-4">
-          You don't have permission to view form submissions.
-        </p>
-        <p className="text-sm text-gray-400">
-          Current role: {userRole}<br/>
-          Contact admin@benirage.org for access.
-        </p>
-      </Card>
-    );
-  }
-
   // Memoize loadSubmissions to prevent unnecessary re-renders
   const loadSubmissions = useCallback(async () => {
     try {
       setLoading(true);
       // Only load forms user has access to
-      const loadPromises: Promise<any>[] = [];
-      const submissionData: any = {
+      const loadPromises: Promise<{ type: string; data: unknown[] }>[] = [];
+      const submissionData: FormSubmissions = {
         memberships: [],
         volunteers: [],
         partnerships: [],
@@ -97,7 +229,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
         loadPromises.push(
           Promise.resolve(
             supabase.from('membership_applications').select('*').order('submission_date', { ascending: false })
-              .then(result => ({ type: 'memberships', data: result.data || [] }))
+              .then(result => ({ type: 'memberships', data: result.data as unknown[] || [] }))
           )
         );
       }
@@ -159,7 +291,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
       const results = await Promise.all(loadPromises);
 
       results.forEach(result => {
-        submissionData[result.type] = result.data;
+        (submissionData as Record<string, unknown>)[result.type] = result.data as unknown[];
       });
       setSubmissions({
         memberships: submissionData.memberships,
@@ -190,6 +322,57 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
     console.log('Modal states:', { showDetailsModal, selectedSubmission, showEditModal, editingSubmission });
   }, [showDetailsModal, selectedSubmission, showEditModal, editingSubmission]);
 
+  // Filter and search submissions
+  const getFilteredSubmissions = useCallback(() => {
+    const currentData = submissions[activeTab] || [];
+    let filtered: unknown[] = currentData;
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((item) => (item as Record<string, unknown>).status === statusFilter);
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((item) => {
+        const itemRecord = item as Record<string, unknown>;
+        const searchableText = [
+          'first_name' in itemRecord ? (itemRecord.first_name as string) : '',
+          'last_name' in itemRecord ? (itemRecord.last_name as string) : '',
+          (itemRecord.email as string),
+          'phone' in itemRecord ? (itemRecord.phone as string) : '',
+          'organization_name' in itemRecord ? (itemRecord.organization_name as string) : '',
+          'contact_person' in itemRecord ? (itemRecord.contact_person as string) : '',
+          'subject' in itemRecord ? (itemRecord.subject as string) : '',
+          'message' in itemRecord ? (itemRecord.message as string) : '',
+          'donor_name' in itemRecord ? (itemRecord.donor_name as string) : ''
+        ].join(' ').toLowerCase();
+
+        return searchableText.includes(searchLower);
+      });
+    }
+
+    return filtered;
+  }, [submissions, activeTab, statusFilter, searchTerm]);
+
+  // Check if user has permission to view form submissions
+  if (!permissions.canManageForms) {
+    return (
+      <Card className="text-center py-12">
+        <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+        <p className="text-gray-500 mb-4">
+          You don't have permission to view form submissions.
+        </p>
+        <p className="text-sm text-gray-400">
+          Current role: {userRole}<br/>
+          Contact admin@benirage.org for access.
+        </p>
+      </Card>
+    );
+  }
+
   const exportData = async (type: string) => {
     // Check if user has access to this form type
     if (!assignedFormTabs.includes(type.replace('_applications', '').replace('_submissions', '').replace('_registrations', ''))) {
@@ -210,31 +393,31 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
       }
 
       // Format data for better readability
-      const formattedData = data.map((item: any) => {
-        const formatted = { ...item };
+      const formattedData = data.map((item: unknown) => {
+        const formatted = { ...(item as Record<string, unknown>) };
 
         // Format dates
         if (formatted.submission_date) {
-          formatted.submission_date = new Date(formatted.submission_date).toLocaleDateString();
+          formatted.submission_date = new Date(formatted.submission_date as string).toLocaleDateString();
         }
         if (formatted.donation_date) {
-          formatted.donation_date = new Date(formatted.donation_date).toLocaleDateString();
+          formatted.donation_date = new Date(formatted.donation_date as string).toLocaleDateString();
         }
 
         // Format arrays
         if (formatted.availability && Array.isArray(formatted.availability)) {
-          formatted.availability = formatted.availability.join('; ');
+          formatted.availability = (formatted.availability as string[]).join('; ');
         }
         if (formatted.program_interests && Array.isArray(formatted.program_interests)) {
-          formatted.program_interests = formatted.program_interests.join('; ');
+          formatted.program_interests = (formatted.program_interests as string[]).join('; ');
         }
         if (formatted.partnership_type && Array.isArray(formatted.partnership_type)) {
-          formatted.partnership_type = formatted.partnership_type.join('; ');
+          formatted.partnership_type = (formatted.partnership_type as string[]).join('; ');
         }
 
         // Format status with better labels
         if (formatted.status) {
-          formatted.status = formatted.status.charAt(0).toUpperCase() + formatted.status.slice(1);
+          formatted.status = (formatted.status as string).charAt(0).toUpperCase() + (formatted.status as string).slice(1);
         }
 
         return formatted;
@@ -242,8 +425,8 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
       // Create CSV content with headers
       const headers = Object.keys(formattedData[0]).join(',');
-      const rows = formattedData.map((item: any) =>
-        Object.values(item).map((value: any) =>
+      const rows = formattedData.map((item: Record<string, unknown>) =>
+        Object.values(item).map((value: unknown) =>
           typeof value === 'string' && value.includes(',') ? `"${value}"` : value
         ).join(',')
       );
@@ -255,7 +438,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
       link.href = url;
 
       // Create better filename
-      const formTypeNames: any = {
+      const formTypeNames: Record<string, string> = {
         'membership_applications': 'Membership_Applications',
         'volunteer_applications': 'Volunteer_Applications',
         'partnership_applications': 'Partnership_Applications',
@@ -277,9 +460,9 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
     }
   };
 
-  const handleViewDetails = (submission: any) => {
+  const handleViewDetails = (submission: MembershipApplication | VolunteerApplication | PartnershipApplication | ContactSubmission | Donation | PhilosophyCafeApplication | LeadershipEthicsApplication) => {
     console.log('View Details clicked for:', submission);
-    setSelectedSubmission(submission);
+    setSelectedSubmission(submission as unknown as Record<string, unknown>);
     setShowDetailsModal(true);
   };
 
@@ -288,12 +471,12 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
     setSelectedSubmission(null);
   };
 
-  const handleEditSubmission = (submission: any) => {
+  const handleEditSubmission = (submission: MembershipApplication | VolunteerApplication | PartnershipApplication | ContactSubmission | Donation | PhilosophyCafeApplication | LeadershipEthicsApplication) => {
     console.log('Edit Submission clicked for:', submission);
     console.log('Current modal states before:', { showEditModal, editingSubmission });
     alert('Edit button clicked! Check console for details.');
-    setEditingSubmission(submission);
-    setEditFormData({ ...submission });
+    setEditingSubmission(submission as unknown as Record<string, unknown>);
+    setEditFormData({ ...submission } as Record<string, unknown>);
     setShowEditModal(true);
     console.log('Modal states after setting:', { showEditModal: true, editingSubmission: submission });
   };
@@ -304,8 +487,8 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
     setEditFormData({});
   };
 
-  const handleEditInputChange = (field: string, value: any) => {
-    setEditFormData((prev: any) => ({ ...prev, [field]: value }));
+  const handleEditInputChange = (field: string, value: unknown) => {
+    setEditFormData((prev: Record<string, unknown>) => ({ ...prev, [field]: value }));
   };
 
   const handleUpdateSubmission = async () => {
@@ -353,7 +536,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
       const { error } = await supabase
         .from(tableName)
         .update({
-          status: newStatus
+          status: newStatus,
         })
         .eq('id', submissionId);
 
@@ -382,7 +565,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
   const handleSelectAll = (isSelected: boolean) => {
     const currentData = submissions[activeTab] || [];
     if (isSelected) {
-      const allIds = new Set<string>(currentData.map((item: any) => item.id));
+      const allIds = new Set<string>(currentData.map((item: unknown) => (item as {id: string}).id));
       setSelectedSubmissions(allIds);
       setShowBulkActions(true);
     } else {
@@ -448,32 +631,32 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
       }
 
       // Format data for export
-      const formattedData = data.map((item: any) => {
-        const formatted = { ...item };
+      const formattedData = data.map((item: unknown) => {
+        const formatted = { ...(item as Record<string, unknown>) };
         if (formatted.submission_date) {
-          formatted.submission_date = new Date(formatted.submission_date).toLocaleDateString();
+          formatted.submission_date = new Date(formatted.submission_date as string).toLocaleDateString();
         }
         if (formatted.donation_date) {
-          formatted.donation_date = new Date(formatted.donation_date).toLocaleDateString();
+          formatted.donation_date = new Date(formatted.donation_date as string).toLocaleDateString();
         }
         if (formatted.availability && Array.isArray(formatted.availability)) {
-          formatted.availability = formatted.availability.join('; ');
+          formatted.availability = (formatted.availability as string[]).join('; ');
         }
         if (formatted.program_interests && Array.isArray(formatted.program_interests)) {
-          formatted.program_interests = formatted.program_interests.join('; ');
+          formatted.program_interests = (formatted.program_interests as string[]).join('; ');
         }
         if (formatted.partnership_type && Array.isArray(formatted.partnership_type)) {
-          formatted.partnership_type = formatted.partnership_type.join('; ');
+          formatted.partnership_type = (formatted.partnership_type as string[]).join('; ');
         }
         if (formatted.status) {
-          formatted.status = formatted.status.charAt(0).toUpperCase() + formatted.status.slice(1);
+          formatted.status = (formatted.status as string).charAt(0).toUpperCase() + (formatted.status as string).slice(1);
         }
         return formatted;
       });
 
       const headers = Object.keys(formattedData[0]).join(',');
-      const rows = formattedData.map((item: any) =>
-        Object.values(item).map((value: any) =>
+      const rows = formattedData.map((item: Record<string, unknown>) =>
+        Object.values(item).map((value: unknown) =>
           typeof value === 'string' && value.includes(',') ? `"${value}"` : value
         ).join(',')
       );
@@ -484,7 +667,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
       const link = document.createElement('a');
       link.href = url;
 
-      const formTypeNames: any = {
+      const formTypeNames: Record<string, string> = {
         'membership_applications': 'Membership_Applications',
         'volunteer_applications': 'Volunteer_Applications',
         'partnership_applications': 'Partnership_Applications',
@@ -506,38 +689,6 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
     }
   };
 
-  // Filter and search submissions
-  const getFilteredSubmissions = useCallback(() => {
-    const currentData = submissions[activeTab] || [];
-    let filtered = currentData;
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((item: any) => item.status === statusFilter);
-    }
-
-    // Apply search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter((item: any) => {
-        const searchableText = [
-          item.first_name,
-          item.last_name,
-          item.email,
-          item.phone,
-          item.organization_name,
-          item.contact_person,
-          item.subject,
-          item.message,
-          item.donor_name
-        ].join(' ').toLowerCase();
-
-        return searchableText.includes(searchLower);
-      });
-    }
-
-    return filtered;
-  }, [submissions, activeTab, statusFilter, searchTerm]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -629,70 +780,75 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
           </label>
         </div>
 
-        {filteredData.map((item: any, index: number) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <div className="flex items-start space-x-3">
-              <input
-                type="checkbox"
-                checked={selectedSubmissions.has(item.id)}
-                onChange={(e) => handleSelectSubmission(item.id, e.target.checked)}
-                className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
-              />
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-blue-900">
-                  {item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` :
-                   item.donor_name || item.organization_name || item.contact_person || 'Unknown'}
-                </h3>
-                <p className="text-gray-600">{item.email}</p>
-                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                  <span>Status: {item.status}</span>
-                  <span>
-                    Date: {new Date(item.submission_date || item.donation_date).toLocaleDateString()}
-                  </span>
-                  {item.amount && <span>Amount: ${item.amount}</span>}
-                  {item.age && <span>Age: {item.age}</span>}
-                  {item.phone && <span>Phone: {item.phone}</span>}
+        {filteredData.map((item: unknown, index: number) => {
+          const submission = item as Record<string, unknown>;
+          return (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
+              <div className="p-4">
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedSubmissions.has((item as {id: string}).id)}
+                    onChange={(e) => handleSelectSubmission((item as {id: string}).id, e.target.checked)}
+                    className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-blue-900">
+                      {submission.first_name && submission.last_name ? `${String(submission.first_name)} ${String(submission.last_name)}` :
+                       String(submission.donor_name) || String(submission.organization_name) || String(submission.contact_person) || 'Unknown'}
+                    </h3>
+                    <p className="text-gray-600">{String(submission.email)}</p>
+                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <span>Status: {String(submission.status)}</span>
+                      <span>
+                        Date: {new Date(String(submission.submission_date || submission.donation_date)).toLocaleDateString()}
+                      </span>
+                      {typeof submission.amount === 'number' && submission.amount > 0 && <span>Amount: ${String(submission.amount)}</span>}
+                      {typeof submission.age === 'number' && submission.age > 0 && <span>Age: {String(submission.age)}</span>}
+                      {String(submission.phone) && <span>Phone: {String(submission.phone)}</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewDetails(item as any)}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditSubmission(item as any)}
+                    >
+                      Edit
+                    </Button>
+                    {submission.status !== 'approved' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStatusChange(submission.id as string, 'approved')}
+                        className="text-green-600 border-green-300 hover:bg-green-50"
+                      >
+                        Approve
+                      </Button>
+                    )}
+                    {submission.status !== 'rejected' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStatusChange(submission.id as string, 'rejected')}
+                        className="text-red-600 border-red-300 hover:bg-red-50"
+                      >
+                        Reject
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleViewDetails(item)}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditSubmission(item)}
-                >
-                  Edit
-                </Button>
-                {item.status !== 'approved' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleStatusChange(item.id, 'approved')}
-                    className="text-green-600 border-green-300 hover:bg-green-50"
-                  >
-                    Approve
-                  </Button>
-                )}
-                {item.status !== 'rejected' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleStatusChange(item.id, 'rejected')}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
-                  >
-                    Reject
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
     );
   };
@@ -767,7 +923,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
             {/* Results Count */}
             <div className="text-sm text-gray-600">
-              Showing {getFilteredSubmissions().length} of {submissions[activeTab]?.length || 0} submissions
+              Showing {getFilteredSubmissions().length} of {submissions[activeTab as keyof FormSubmissions]?.length || 0} submissions
             </div>
           </div>
         </div>
@@ -882,7 +1038,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                       <label className="block text-sm font-medium text-gray-700">First Name</label>
                       <input
                         type="text"
-                        value={editFormData.first_name || ''}
+                        value={String(editFormData.first_name || '')}
                         onChange={(e) => handleEditInputChange('first_name', e.target.value)}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
@@ -893,7 +1049,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                       <label className="block text-sm font-medium text-gray-700">Last Name</label>
                       <input
                         type="text"
-                        value={editFormData.last_name || ''}
+                        value={String(editFormData.last_name || '')}
                         onChange={(e) => handleEditInputChange('last_name', e.target.value)}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
@@ -904,7 +1060,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                       <label className="block text-sm font-medium text-gray-700">Email</label>
                       <input
                         type="email"
-                        value={editFormData.email || ''}
+                        value={String(editFormData.email || '')}
                         onChange={(e) => handleEditInputChange('email', e.target.value)}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
@@ -915,7 +1071,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                       <label className="block text-sm font-medium text-gray-700">Phone</label>
                       <input
                         type="tel"
-                        value={editFormData.phone || ''}
+                        value={String(editFormData.phone || '')}
                         onChange={(e) => handleEditInputChange('phone', e.target.value)}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
@@ -928,7 +1084,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Status</label>
                     <select
-                      value={editFormData.status || ''}
+                      value={String(editFormData.status || '')}
                       onChange={(e) => handleEditInputChange('status', e.target.value)}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
@@ -947,7 +1103,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                         <label className="block text-sm font-medium text-gray-700">Age</label>
                         <input
                           type="number"
-                          value={editFormData.age || ''}
+                          value={String(editFormData.age || '')}
                           onChange={(e) => handleEditInputChange('age', parseInt(e.target.value))}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -958,7 +1114,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                         <label className="block text-sm font-medium text-gray-700">School Grade</label>
                         <input
                           type="text"
-                          value={editFormData.school_grade || ''}
+                          value={String(editFormData.school_grade || '')}
                           onChange={(e) => handleEditInputChange('school_grade', e.target.value)}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -974,7 +1130,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                         <label className="block text-sm font-medium text-gray-700">Age</label>
                         <input
                           type="number"
-                          value={editFormData.age || ''}
+                          value={String(editFormData.age || '')}
                           onChange={(e) => handleEditInputChange('age', parseInt(e.target.value))}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -985,7 +1141,7 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                         <label className="block text-sm font-medium text-gray-700">Education Level</label>
                         <input
                           type="text"
-                          value={editFormData.education_level || ''}
+                          value={String(editFormData.education_level || '')}
                           onChange={(e) => handleEditInputChange('education_level', e.target.value)}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -1078,28 +1234,28 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
               <div className="space-y-4">
                 {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedSubmission.first_name && (
+                  {String(selectedSubmission.first_name) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">First Name</label>
-                      <p className="text-gray-900">{selectedSubmission.first_name}</p>
+                      <p className="text-gray-900">{String(selectedSubmission.first_name)}</p>
                     </div>
                   )}
-                  {selectedSubmission.last_name && (
+                  {String(selectedSubmission.last_name) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                      <p className="text-gray-900">{selectedSubmission.last_name}</p>
+                      <p className="text-gray-900">{String(selectedSubmission.last_name)}</p>
                     </div>
                   )}
-                  {selectedSubmission.email && (
+                  {String(selectedSubmission.email) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Email</label>
-                      <p className="text-gray-900">{selectedSubmission.email}</p>
+                      <p className="text-gray-900">{String(selectedSubmission.email)}</p>
                     </div>
                   )}
-                  {selectedSubmission.phone && (
+                  {String(selectedSubmission.phone) && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Phone</label>
-                      <p className="text-gray-900">{selectedSubmission.phone}</p>
+                      <p className="text-gray-900">{String(selectedSubmission.phone)}</p>
                     </div>
                   )}
                 </div>
@@ -1114,13 +1270,13 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                       selectedSubmission.status === 'rejected' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {selectedSubmission.status}
+                      {String(selectedSubmission.status)}
                     </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Submission Date</label>
                     <p className="text-gray-900">
-                      {new Date(selectedSubmission.submission_date || selectedSubmission.donation_date).toLocaleString()}
+                      {new Date(String(selectedSubmission.submission_date || selectedSubmission.donation_date)).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -1128,22 +1284,22 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                 {/* Form-specific fields */}
                 {activeTab === 'memberships' && (
                   <div className="space-y-3">
-                    {selectedSubmission.occupation && (
+                    {String(selectedSubmission.occupation) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Occupation</label>
-                        <p className="text-gray-900">{selectedSubmission.occupation}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.occupation)}</p>
                       </div>
                     )}
-                    {selectedSubmission.organization && (
+                    {String(selectedSubmission.organization) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Organization</label>
-                        <p className="text-gray-900">{selectedSubmission.organization}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.organization)}</p>
                       </div>
                     )}
-                    {selectedSubmission.why_join && (
+                    {String(selectedSubmission.why_join) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Why Join</label>
-                        <p className="text-gray-900">{selectedSubmission.why_join}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.why_join)}</p>
                       </div>
                     )}
                   </div>
@@ -1151,16 +1307,16 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
                 {activeTab === 'volunteers' && (
                   <div className="space-y-3">
-                    {selectedSubmission.program_interests && (
+                    {String(selectedSubmission.program_interests) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Program Interests</label>
-                        <p className="text-gray-900">{Array.isArray(selectedSubmission.program_interests) ? selectedSubmission.program_interests.join(', ') : selectedSubmission.program_interests}</p>
+                        <p className="text-gray-900">{Array.isArray(selectedSubmission.program_interests) ? selectedSubmission.program_interests.join(', ') : String(selectedSubmission.program_interests)}</p>
                       </div>
                     )}
-                    {selectedSubmission.availability && (
+                    {String(selectedSubmission.availability) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Availability</label>
-                        <p className="text-gray-900">{Array.isArray(selectedSubmission.availability) ? selectedSubmission.availability.join(', ') : selectedSubmission.availability}</p>
+                        <p className="text-gray-900">{Array.isArray(selectedSubmission.availability) ? selectedSubmission.availability.join(', ') : String(selectedSubmission.availability)}</p>
                       </div>
                     )}
                   </div>
@@ -1168,22 +1324,22 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
                 {activeTab === 'partnerships' && (
                   <div className="space-y-3">
-                    {selectedSubmission.organization_name && (
+                    {String(selectedSubmission.organization_name) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Organization</label>
-                        <p className="text-gray-900">{selectedSubmission.organization_name}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.organization_name)}</p>
                       </div>
                     )}
-                    {selectedSubmission.contact_person && (
+                    {String(selectedSubmission.contact_person) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-                        <p className="text-gray-900">{selectedSubmission.contact_person}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.contact_person)}</p>
                       </div>
                     )}
-                    {selectedSubmission.partnership_type && (
+                    {String(selectedSubmission.partnership_type) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Partnership Type</label>
-                        <p className="text-gray-900">{Array.isArray(selectedSubmission.partnership_type) ? selectedSubmission.partnership_type.join(', ') : selectedSubmission.partnership_type}</p>
+                        <p className="text-gray-900">{Array.isArray(selectedSubmission.partnership_type) ? selectedSubmission.partnership_type.join(', ') : String(selectedSubmission.partnership_type)}</p>
                       </div>
                     )}
                   </div>
@@ -1191,22 +1347,22 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
                 {activeTab === 'contacts' && (
                   <div className="space-y-3">
-                    {selectedSubmission.subject && (
+                    {String(selectedSubmission.subject) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Subject</label>
-                        <p className="text-gray-900">{selectedSubmission.subject}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.subject)}</p>
                       </div>
                     )}
-                    {selectedSubmission.message && (
+                    {String(selectedSubmission.message) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Message</label>
-                        <p className="text-gray-900 whitespace-pre-wrap">{selectedSubmission.message}</p>
+                        <p className="text-gray-900 whitespace-pre-wrap">{String(selectedSubmission.message)}</p>
                       </div>
                     )}
-                    {selectedSubmission.preferred_contact && (
+                    {String(selectedSubmission.preferred_contact) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Preferred Contact</label>
-                        <p className="text-gray-900">{selectedSubmission.preferred_contact}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.preferred_contact)}</p>
                       </div>
                     )}
                   </div>
@@ -1214,22 +1370,22 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
                 {activeTab === 'donations' && (
                   <div className="space-y-3">
-                    {selectedSubmission.amount && (
+                    {selectedSubmission.amount != null && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Amount</label>
-                        <p className="text-gray-900">${selectedSubmission.amount}</p>
+                        <p className="text-gray-900">${String(selectedSubmission.amount)}</p>
                       </div>
                     )}
-                    {selectedSubmission.currency && (
+                    {String(selectedSubmission.currency) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Currency</label>
-                        <p className="text-gray-900">{selectedSubmission.currency}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.currency)}</p>
                       </div>
                     )}
-                    {selectedSubmission.payment_method && (
+                    {String(selectedSubmission.payment_method) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Payment Method</label>
-                        <p className="text-gray-900">{selectedSubmission.payment_method}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.payment_method)}</p>
                       </div>
                     )}
                   </div>
@@ -1237,40 +1393,40 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
                 {activeTab === 'philosophyCafe' && (
                   <div className="space-y-3">
-                    {selectedSubmission.age && (
+                    {selectedSubmission.age != null && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Age</label>
-                        <p className="text-gray-900">{selectedSubmission.age}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.age)}</p>
                       </div>
                     )}
-                    {selectedSubmission.school_grade && (
+                    {String(selectedSubmission.school_grade) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">School Grade</label>
-                        <p className="text-gray-900">{selectedSubmission.school_grade}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.school_grade)}</p>
                       </div>
                     )}
-                    {selectedSubmission.previous_experience && (
+                    {String(selectedSubmission.previous_experience) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Previous Experience</label>
-                        <p className="text-gray-900">{selectedSubmission.previous_experience}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.previous_experience)}</p>
                       </div>
                     )}
-                    {selectedSubmission.why_join && (
+                    {String(selectedSubmission.why_join) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Why Join</label>
-                        <p className="text-gray-900">{selectedSubmission.why_join}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.why_join)}</p>
                       </div>
                     )}
-                    {selectedSubmission.availability && (
+                    {Array.isArray(selectedSubmission.availability) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Availability</label>
-                        <p className="text-gray-900">{Array.isArray(selectedSubmission.availability) ? selectedSubmission.availability.join(', ') : selectedSubmission.availability}</p>
+                        <p className="text-gray-900">{selectedSubmission.availability.join(', ')}</p>
                       </div>
                     )}
-                    {selectedSubmission.questions && (
+                    {String(selectedSubmission.questions) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Questions</label>
-                        <p className="text-gray-900">{selectedSubmission.questions}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.questions || '')}</p>
                       </div>
                     )}
                   </div>
@@ -1278,58 +1434,58 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
 
                 {activeTab === 'leadershipEthics' && (
                   <div className="space-y-3">
-                    {selectedSubmission.age && (
+                    {selectedSubmission.age != null && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Age</label>
-                        <p className="text-gray-900">{selectedSubmission.age}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.age)}</p>
                       </div>
                     )}
-                    {selectedSubmission.education_level && (
+                    {String(selectedSubmission.education_level) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Education Level</label>
-                        <p className="text-gray-900">{selectedSubmission.education_level}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.education_level)}</p>
                       </div>
                     )}
-                    {selectedSubmission.current_role && (
+                    {String(selectedSubmission.current_role) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Current Role</label>
-                        <p className="text-gray-900">{selectedSubmission.current_role}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.current_role)}</p>
                       </div>
                     )}
-                    {selectedSubmission.organization && (
+                    {String(selectedSubmission.organization) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Organization</label>
-                        <p className="text-gray-900">{selectedSubmission.organization}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.organization)}</p>
                       </div>
                     )}
-                    {selectedSubmission.leadership_experience && (
+                    {String(selectedSubmission.leadership_experience) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Leadership Experience</label>
-                        <p className="text-gray-900">{selectedSubmission.leadership_experience}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.leadership_experience)}</p>
                       </div>
                     )}
-                    {selectedSubmission.why_attend && (
+                    {String(selectedSubmission.why_attend) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Why Attend</label>
-                        <p className="text-gray-900">{selectedSubmission.why_attend}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.why_attend)}</p>
                       </div>
                     )}
-                    {selectedSubmission.expectations && (
+                    {String(selectedSubmission.expectations) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Expectations</label>
-                        <p className="text-gray-900">{selectedSubmission.expectations}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.expectations)}</p>
                       </div>
                     )}
-                    {selectedSubmission.time_commitment && (
+                    {String(selectedSubmission.time_commitment) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Time Commitment</label>
-                        <p className="text-gray-900">{selectedSubmission.time_commitment}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.time_commitment)}</p>
                       </div>
                     )}
-                    {selectedSubmission.questions && (
+                    {String(selectedSubmission.questions) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Questions</label>
-                        <p className="text-gray-900">{selectedSubmission.questions}</p>
+                        <p className="text-gray-900">{String(selectedSubmission.questions || '')}</p>
                       </div>
                     )}
                   </div>

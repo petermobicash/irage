@@ -10,11 +10,9 @@ import {
   Share,
   Heart,
   MessageCircle,
-  Bookmark,
-  MoreHorizontal
+  Bookmark
 } from 'lucide-react';
 import { MultimediaStory, PlaybackState } from '../../types/storytelling';
-import Card from '../ui/Card';
 import Button from '../ui/Button';
 
 interface MultimediaStoryPlayerProps {

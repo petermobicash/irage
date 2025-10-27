@@ -48,7 +48,12 @@ const ContentSyncManager: React.FC<ContentSyncManagerProps> = ({
         contentType,
         limit: 10
       });
-      setSyncHistory(logs);
+      setSyncHistory(logs as unknown as Array<{
+        id?: string;
+        success: boolean;
+        action: string;
+        created_at: string;
+      }>);
     } catch (error) {
       console.error('Error loading sync history:', error);
     }
@@ -67,7 +72,7 @@ const ContentSyncManager: React.FC<ContentSyncManagerProps> = ({
        setLastSyncTime(new Date());
        showToast('Content synchronization initiated', 'success');
        onSyncComplete?.();
-     } catch (error: any) {
+     } catch (error: unknown) {
        console.error('Error syncing content:', error);
        showToast('Failed to synchronize content', 'error');
      } finally {
@@ -102,7 +107,7 @@ const ContentSyncManager: React.FC<ContentSyncManagerProps> = ({
       setLastSyncTime(new Date());
       showToast('Content force synchronized', 'success');
       await loadSyncHistory();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error force syncing content:', error);
       showToast('Failed to force synchronize content', 'error');
     } finally {
@@ -116,7 +121,7 @@ const ContentSyncManager: React.FC<ContentSyncManagerProps> = ({
       await retryFailedItems(contentType);
       showToast('Failed items retry initiated', 'success');
       await loadSyncHistory();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error retrying failed items:', error);
       showToast('Failed to retry failed items', 'error');
     } finally {
@@ -128,7 +133,7 @@ const ContentSyncManager: React.FC<ContentSyncManagerProps> = ({
     try {
       await processSyncQueue();
       await loadSyncHistory();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error processing sync queue:', error);
       showToast('Failed to process sync queue', 'error');
     }

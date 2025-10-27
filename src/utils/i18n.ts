@@ -242,17 +242,17 @@ export const initializeLanguage = (): Language => {
 export const t = (key: string, lang?: Language): string => {
   const language = lang || currentLanguage;
   const keys = key.split('.');
-  let value: any = translations[language];
+  let value: unknown = translations[language];
 
   for (const k of keys) {
-    if (value && typeof value === 'object' && k in value) {
-      value = value[k];
+    if (value && typeof value === 'object' && k in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[k];
     } else {
       // Fallback to English if translation not found
       value = translations.en;
       for (const fallbackKey of keys) {
-        if (value && typeof value === 'object' && fallbackKey in value) {
-          value = value[fallbackKey];
+        if (value && typeof value === 'object' && fallbackKey in (value as Record<string, unknown>)) {
+          value = (value as Record<string, unknown>)[fallbackKey];
         } else {
           return key; // Return key if no translation found
         }

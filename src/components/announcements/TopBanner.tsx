@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Heart, Coffee, Users, Smartphone, AlertTriangle, Info, CheckCircle, AlertCircle } from 'lucide-react';
 import { Announcement } from '../../types/announcements';
 
@@ -27,8 +27,7 @@ const TopBanner = ({ announcements, onDismiss, deviceType = 'desktop' }: TopBann
     return iconMap[iconName || 'Info'] || Info;
   };
 
-  // Auto-hide functionality
-  useEffect(() => {
+  const setupAutoHideTimers = useCallback(() => {
     announcements.forEach(announcement => {
       if (announcement.autoHide && announcement.autoHideDelay && !autoHideTimers.has(announcement.id)) {
         const timer = setTimeout(() => {
@@ -42,7 +41,13 @@ const TopBanner = ({ announcements, onDismiss, deviceType = 'desktop' }: TopBann
     return () => {
       autoHideTimers.forEach(timer => clearTimeout(timer));
     };
-  }, [announcements, onDismiss]);
+  }, [announcements, onDismiss, autoHideTimers]);
+
+  // Auto-hide functionality
+  useEffect(() => {
+    const cleanup = setupAutoHideTimers();
+    return cleanup;
+  }, [setupAutoHideTimers]);
 
   // Update visible announcements when announcements prop changes
   useEffect(() => {

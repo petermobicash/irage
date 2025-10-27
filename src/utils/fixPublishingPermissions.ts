@@ -7,6 +7,13 @@
 
 import { supabase } from '../lib/supabase';
 
+// Extend Window interface for global function
+declare global {
+  interface Window {
+    fixPublishingPermissions: typeof fixPublishingPermissions;
+  }
+}
+
 export const fixPublishingPermissions = async (): Promise<{
   success: boolean;
   message: string;
@@ -55,7 +62,7 @@ export const fixPublishingPermissions = async (): Promise<{
     }
 
     // Also update in users table if it exists
-    const { data: _userData, error: userError } = await supabase
+    const { error: userError } = await supabase
       .from('users')
       .update({
         role: 'content-manager',
@@ -140,17 +147,17 @@ export const fixPublishingPermissions = async (): Promise<{
       message: 'Successfully updated user role to content-manager'
     };
 
-  } catch (error: any) {
-    console.error('❌ ERROR: Unexpected error:', error.message);
+  } catch (error: unknown) {
+    console.error('❌ ERROR: Unexpected error:', error);
     return {
       success: false,
       message: 'Unexpected error occurred',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 };
 
 // Make it available globally for console usage
 if (typeof window !== 'undefined') {
-  (window as any).fixPublishingPermissions = fixPublishingPermissions;
+  window.fixPublishingPermissions = fixPublishingPermissions;
 }

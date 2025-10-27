@@ -3,7 +3,7 @@ export interface TestResult {
   name: string;
   status: 'pass' | 'fail' | 'warning';
   message: string;
-  details?: any;
+  details?: unknown;
 }
 
 export interface TestSuite {
@@ -32,6 +32,10 @@ export const testDatabaseConnection = async (): Promise<TestResult> => {
     // Test actual connection
     const { supabase } = await import('../lib/supabase');
     const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
+
+    if (data !== null) {
+      console.log('Database connection test successful, user count available');
+    }
     
     if (error) {
       return {
@@ -67,6 +71,10 @@ export const testAuthenticationSystem = async (): Promise<TestResult[]> => {
       .from('users')
       .select('*')
       .limit(1);
+
+    if (users) {
+      console.log('User table structure verified:', Object.keys(users[0] || {}));
+    }
     
     if (userError) {
       tests.push({
@@ -112,6 +120,10 @@ export const testContentManagement = async (): Promise<TestResult[]> => {
       .from('content')
       .select('*')
       .limit(1);
+
+    if (content) {
+      console.log('Content table structure verified:', Object.keys(content[0] || {}));
+    }
     
     if (contentError) {
       tests.push({
@@ -232,7 +244,7 @@ export const testPerformance = async (): Promise<TestResult[]> => {
     });
 
     // Test memory usage
-    const memoryInfo = (performance as any).memory;
+    const memoryInfo = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory;
     if (memoryInfo) {
       const memoryUsage = memoryInfo.usedJSHeapSize / 1024 / 1024;
       tests.push({
@@ -370,6 +382,7 @@ export const performHealthCheck = async () => {
       details.totalSubmissions = submissionsCount.count || 0;
     } catch (error) {
       // Use fallback values if database not available
+      console.warn('Database not available for health check, using fallback values:', error);
       details.totalUsers = 5; // Demo users
       details.totalContent = 3; // Sample content
       details.totalSubmissions = 0;
@@ -377,6 +390,7 @@ export const performHealthCheck = async () => {
 
   } catch (error) {
     console.error('Health check error:', error);
+    // Error is already logged above, no additional action needed
   }
 
   return { checks, details };

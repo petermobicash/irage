@@ -3,11 +3,17 @@ import { FileText, Users, Image, Settings, BarChart3, LogOut, Home, Shield, Key,
 import Button from '../ui/Button';
 import { getCurrentUserProfile, getUserAllPermissions } from '../../utils/rbac';
 
+interface User {
+  id: string;
+  email: string;
+  [key: string]: unknown;
+}
+
 interface CMSLayoutProps {
   children: React.ReactNode;
   currentPage: string;
   onNavigate: (page: string) => void;
-  currentUser: any;
+  currentUser: User;
   onLogout: () => void;
 }
 

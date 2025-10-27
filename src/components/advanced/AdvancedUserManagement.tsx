@@ -56,9 +56,7 @@ const AdvancedUserManagement: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showUserForm, setShowUserForm] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [editingUser, setEditingUser] = useState<ExtendedUser | null>(null);
   const { showToast } = useToast();
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { FileText, Clock, CheckCircle, XCircle, Eye, Edit } from 'lucide-react';
 import Card from '../ui/Card';
@@ -91,7 +91,10 @@ const WorkflowDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>
+        <div className="flex items-center justify-center p-8">
+          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
       </div>
     );
   }

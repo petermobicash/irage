@@ -27,6 +27,24 @@ interface UserOnboardingProps {
   onSkip: () => void;
 }
 
+interface ProfileData {
+  name: string;
+  department: string;
+  position: string;
+  bio: string;
+  phone: string;
+  location: string;
+  timezone: string;
+  language_preference: string;
+}
+
+interface NotificationPreferences {
+  email_notifications: boolean;
+  push_notifications: boolean;
+  weekly_digest: boolean;
+  security_alerts: boolean;
+}
+
 const UserOnboarding: React.FC<UserOnboardingProps> = ({
   userId,
   userEmail,
@@ -35,7 +53,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileData>({
     name: '',
     department: '',
     position: '',
@@ -46,12 +64,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({
     language_preference: 'en'
   });
   const [groupSelections, setGroupSelections] = useState<string[]>([]);
-  const [notificationPreferences, setNotificationPreferences] = useState<{
-    email_notifications: boolean;
-    push_notifications: boolean;
-    weekly_digest: boolean;
-    security_alerts: boolean;
-  }>({
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({
     email_notifications: true,
     push_notifications: true,
     weekly_digest: true,
@@ -363,8 +376,8 @@ const WelcomeStep: React.FC<{ userEmail: string }> = ({ userEmail }) => (
 );
 
 const ProfileStep: React.FC<{
-  profileData: any;
-  setProfileData: (data: any) => void;
+  profileData: ProfileData;
+  setProfileData: (data: ProfileData) => void;
 }> = ({ profileData, setProfileData }) => (
   <div className="space-y-4">
     <div className="text-center mb-6">
@@ -539,8 +552,8 @@ const GroupsStep: React.FC<{
 };
 
 const NotificationsStep: React.FC<{
-  preferences: any;
-  setPreferences: (preferences: any) => void;
+  preferences: NotificationPreferences;
+  setPreferences: (preferences: NotificationPreferences) => void;
 }> = ({ preferences, setPreferences }) => (
   <div className="space-y-4">
     <div className="text-center mb-6">

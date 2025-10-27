@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart3, Eye, MessageSquare, Share2, Clock, Users, Target } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Card from '../ui/Card';
@@ -29,11 +29,7 @@ const ContentAnalytics: React.FC<ContentAnalyticsProps> = ({ contentId }) => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [contentId, timeRange]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       // Load real analytics data from content_analytics table
       const { data: analyticsData, error } = await supabase
@@ -94,7 +90,11 @@ const ContentAnalytics: React.FC<ContentAnalyticsProps> = ({ contentId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentId]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const recordView = async () => {
     try {
@@ -108,7 +108,7 @@ const ContentAnalytics: React.FC<ContentAnalyticsProps> = ({ contentId }) => {
       });
       */
       console.log('Analytics tracking disabled to prevent permission errors');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error recording view:', error);
       // Don't show error to user for analytics failures
     }

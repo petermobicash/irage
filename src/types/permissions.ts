@@ -378,7 +378,7 @@ export interface UserProfile {
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
-  profileData?: Record<string, any>;
+  profileData?: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface PermissionCheckResult {

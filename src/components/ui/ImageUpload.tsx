@@ -67,17 +67,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
       onUpload(result.url, result.path);
       showToast('Image uploaded successfully', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading image:', error);
+      const err = error as Error;
 
       // Provide specific error messages for common issues
-      if (error?.message?.includes('Bucket not found')) {
+      if (err?.message?.includes('Bucket not found')) {
         showToast('Storage not configured. Upload disabled until bucket is created.', 'warning');
         // For now, create a local preview without uploading
         const localUrl = URL.createObjectURL(file);
         onUpload(localUrl, `local://${filePath}`);
         showToast('Using local preview (no upload). Contact admin to enable storage.', 'info');
-      } else if (error?.message?.includes('permission denied') || error?.message?.includes('unauthorized')) {
+      } else if (err?.message?.includes('permission denied') || err?.message?.includes('unauthorized')) {
         showToast('Permission denied. Please ensure you are logged in.', 'error');
       } else {
         showToast('Failed to upload image. Please try again.', 'error');

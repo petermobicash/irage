@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { getCurrentUser } from '../lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 export interface WhatsAppMessage {
   id: string;
@@ -24,11 +25,50 @@ export interface WhatsAppMessage {
     name: string;
     size?: number;
   }>;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   edited_at?: string;
   deleted_at?: string;
+}
+
+interface Conversation {
+  id: string;
+  participants: UserProfile[];
+  last_message?: WhatsAppMessage;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  avatar_url?: string;
+  created_by: string;
+  group_type: 'group' | 'channel' | 'broadcast';
+  is_private: boolean;
+  max_members: number;
+  members: GroupMember[];
+  last_message?: WhatsAppMessage;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface GroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  role: 'admin' | 'moderator' | 'member';
+  joined_at: string;
+  joined_by?: string;
+  is_muted: boolean;
+  mute_expires_at?: string;
+  permissions: string[];
 }
 
 export interface UserProfile {
@@ -64,8 +104,8 @@ export interface ChatState {
   typingUsers: TypingIndicator[];
   onlineUsers: UserProfile[];
   currentUser: UserProfile | null;
-  conversations: any[]; // Will be populated with conversation data
-  groups: any[]; // Will be populated with group data
+  conversations: Conversation[];
+  groups: Group[];
   isConnected: boolean;
   error: string | null;
 }
@@ -102,7 +142,7 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
   }, [conversationId, groupId]);
 
   // Initialize user presence
-  const initializePresence = useCallback(async (user: any) => {
+  const initializePresence = useCallback(async (user: User) => {
     if (!user) return;
 
     try {
@@ -124,14 +164,21 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
       presenceChannelRef.current
         .on('presence', { event: 'sync' }, () => {
           const newState = presenceChannelRef.current?.presenceState();
-          const onlineUsers = Object.values(newState || {}).map((presence: any) => ({
-            id: presence.user_id,
-            user_id: presence.user_id,
-            display_name: presence.display_name,
-            avatar_url: presence.avatar_url,
-            status: presence.status || 'online',
+          const onlineUsers = Object.values(newState || {}).flat().map((presence: Record<string, unknown>) => ({
+            id: String(presence.user_id || ''),
+            user_id: String(presence.user_id || ''),
+            display_name: String(presence.display_name || ''),
+            avatar_url: presence.avatar_url ? String(presence.avatar_url) : undefined,
+            status: String(presence.status || 'online'),
             is_online: true,
             last_seen: new Date().toISOString(),
+            username: undefined,
+            bio: undefined,
+            phone_number: undefined,
+            show_last_seen: true,
+            show_status: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           }));
 
           setChatState(prev => ({
@@ -374,23 +421,23 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
             schema: 'public',
             table: conversationId ? 'direct_messages' : groupId ? 'group_messages' : 'chat_messages',
             filter: conversationId ? `conversation_id=eq.${conversationId}` : groupId ? `group_id=eq.${groupId}` : undefined,
-          }, (payload: RealtimePostgresChangesPayload<any>) => {
+          }, (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
             if (payload.eventType === 'INSERT') {
               setChatState(prev => ({
                 ...prev,
-                messages: [...prev.messages, payload.new as WhatsAppMessage],
+                messages: [...prev.messages, payload.new as unknown as WhatsAppMessage],
               }));
             } else if (payload.eventType === 'UPDATE') {
               setChatState(prev => ({
                 ...prev,
                 messages: prev.messages.map(msg =>
-                  msg.id === payload.new.id ? { ...msg, ...payload.new } : msg
+                  msg.id === (payload.new as unknown as WhatsAppMessage).id ? { ...msg, ...(payload.new as unknown as WhatsAppMessage) } : msg
                 ),
               }));
             } else if (payload.eventType === 'DELETE') {
               setChatState(prev => ({
                 ...prev,
-                messages: prev.messages.filter(msg => msg.id !== payload.old.id),
+                messages: prev.messages.filter(msg => msg.id !== (payload.old as unknown as WhatsAppMessage).id),
               }));
             }
           })

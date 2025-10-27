@@ -3,7 +3,7 @@
  * Allows editors to select pages and edit specific sections they have permission to edit
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Edit, Save, X, Settings, ChevronDown, ChevronRight } from 'lucide-react';
 import Card from '../ui/Card';
@@ -17,8 +17,8 @@ interface PageSection {
   section_name: string;
   section_slug: string;
   section_type: string;
-  content: any;
-  settings: any;
+  content: Record<string, unknown>;
+  settings: Record<string, unknown>;
   css_classes?: string;
   is_active: boolean;
   order_index: number;
@@ -35,7 +35,7 @@ interface Page {
 }
 
 interface PageSectionEditorProps {
-  currentUser?: any;
+  currentUser?: { id: string; [key: string]: unknown };
   onSave?: () => void;
 }
 
@@ -47,21 +47,11 @@ const PageSectionEditor: React.FC<PageSectionEditorProps> = ({ currentUser, onSa
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [sectionFormData, setSectionFormData] = useState<any>({});
+  const [sectionFormData, setSectionFormData] = useState<Partial<PageSection>>({});
 
   // Check permissions
   const { hasPermission: canEditContent } = usePermission(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL);
   const { hasPermission: canEditOwn } = usePermission(CONTENT_PERMISSIONS.CONTENT_EDIT_OWN);
-
-  useEffect(() => {
-    loadPages();
-  }, []);
-
-  useEffect(() => {
-    if (selectedPage) {
-      loadPageSections(selectedPage.id);
-    }
-  }, [selectedPage]);
 
   const loadPages = async () => {
     try {
@@ -81,7 +71,20 @@ const PageSectionEditor: React.FC<PageSectionEditorProps> = ({ currentUser, onSa
     }
   };
 
-  const loadPageSections = async (pageId: string) => {
+  const createDefaultPageSections = useCallback(async (pageId: string) => {
+    try {
+      const { error } = await supabase.rpc('create_default_page_sections', {
+        page_id: pageId,
+        created_by: currentUser?.id
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error creating default page sections:', error);
+    }
+  }, [currentUser]);
+
+  const loadPageSections = useCallback(async (pageId: string) => {
     try {
       const { data, error } = await supabase
         .from('page_sections')
@@ -111,20 +114,18 @@ const PageSectionEditor: React.FC<PageSectionEditorProps> = ({ currentUser, onSa
     } catch (error) {
       console.error('Error loading page sections:', error);
     }
-  };
+  }, [createDefaultPageSections]);
 
-  const createDefaultPageSections = async (pageId: string) => {
-    try {
-      const { error } = await supabase.rpc('create_default_page_sections', {
-        page_id: pageId,
-        created_by: currentUser?.id
-      });
+  useEffect(() => {
+    loadPages();
+  }, []);
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error creating default page sections:', error);
+  useEffect(() => {
+    if (selectedPage) {
+      loadPageSections(selectedPage.id);
     }
-  };
+  }, [selectedPage, loadPageSections]);
+
 
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
@@ -146,8 +147,8 @@ const PageSectionEditor: React.FC<PageSectionEditorProps> = ({ currentUser, onSa
     });
   };
 
-  const handleSectionInputChange = (field: string, value: any) => {
-    setSectionFormData((prev: any) => ({
+  const handleSectionInputChange = (field: string, value: unknown) => {
+    setSectionFormData((prev: Partial<PageSection>) => ({
       ...prev,
       [field]: value
     }));
@@ -353,7 +354,7 @@ const PageSectionEditor: React.FC<PageSectionEditorProps> = ({ currentUser, onSa
                             const parsed = JSON.parse(e.target.value);
                             handleSectionInputChange('content', parsed);
                           } catch (error) {
-                            // Invalid JSON, don't update
+                            console.warn('Invalid JSON in content field:', error);
                           }
                         }}
                         rows={8}
@@ -373,7 +374,7 @@ const PageSectionEditor: React.FC<PageSectionEditorProps> = ({ currentUser, onSa
                             const parsed = JSON.parse(e.target.value);
                             handleSectionInputChange('settings', parsed);
                           } catch (error) {
-                            // Invalid JSON, don't update
+                            console.warn('Invalid JSON in settings field:', error);
                           }
                         }}
                         rows={4}

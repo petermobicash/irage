@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { RotateCcw, Eye, Clock, User, AlertTriangle, RefreshCw } from 'lucide-react';
 import { synchronizationService } from '../../services/synchronizationService';
 import Card from '../ui/Card';
@@ -10,7 +10,7 @@ interface ContentVersion {
   content_type: string;
   content_id: string;
   version_number: number;
-  content_data: any;
+  content_data: Record<string, unknown>;
   change_summary?: string;
   change_type: string;
   created_by?: string;
@@ -36,22 +36,22 @@ const ContentVersionManager: React.FC<ContentVersionManagerProps> = ({
   const [previewVersion, setPreviewVersion] = useState<ContentVersion | null>(null);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    loadVersions();
-  }, [contentType, contentId]);
-
-  const loadVersions = async () => {
+  const loadVersions = useCallback(async () => {
     try {
       setLoading(true);
       const data = await synchronizationService.getContentVersions(contentType, contentId, 20);
-      setVersions(data);
-    } catch (error: any) {
+      setVersions(data as ContentVersion[]);
+    } catch (error: unknown) {
       console.error('Error loading versions:', error);
       showToast('Failed to load version history', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentType, contentId, showToast]);
+
+  useEffect(() => {
+    loadVersions();
+  }, [loadVersions]);
 
   const handleRollback = async (targetVersion: number) => {
     try {
@@ -69,7 +69,7 @@ const ContentVersionManager: React.FC<ContentVersionManagerProps> = ({
       } else {
         showToast('Failed to rollback content', 'error');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error rolling back content:', error);
       showToast('Failed to rollback content', 'error');
     } finally {
@@ -81,7 +81,7 @@ const ContentVersionManager: React.FC<ContentVersionManagerProps> = ({
     setPreviewVersion(version);
   };
 
-  const formatVersionData = (data: any) => {
+  const formatVersionData = (data: unknown) => {
     if (!data) return 'No data';
     if (typeof data === 'string') return data.substring(0, 100) + '...';
     if (typeof data === 'object') {

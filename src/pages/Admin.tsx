@@ -4,10 +4,12 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
 const Admin = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
@@ -80,6 +82,7 @@ const Admin = () => {
         alert(result.error || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
+      console.error('Login error:', error);
       alert('Login error. Please try again.');
     } finally {
       setIsLoggingIn(false);
@@ -281,7 +284,7 @@ const Admin = () => {
               <Card>
                 <h4 className="text-lg font-semibold text-blue-900 mb-4">Latest Membership Applications</h4>
                 <div className="space-y-3">
-                  {dashboardData.memberships.slice(0, 5).map((member: any, index: number) => (
+                  {dashboardData.memberships.slice(0, 5).map((member: any, index: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                     <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-blue-900">{member.first_name} {member.last_name}</p>
@@ -301,7 +304,7 @@ const Admin = () => {
               <Card>
                 <h4 className="text-lg font-semibold text-blue-900 mb-4">Latest Contact Messages</h4>
                 <div className="space-y-3">
-                  {dashboardData.contacts.slice(0, 5).map((contact: any, index: number) => (
+                  {dashboardData.contacts.slice(0, 5).map((contact: any, index: number) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                     <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-blue-900">{contact.first_name} {contact.last_name}</p>

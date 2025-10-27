@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart3, Download, Users, MessageSquare, TrendingUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { ActivityLog } from '../../types/chat';
@@ -9,17 +9,29 @@ interface ActivityReportsProps {
   dateRange?: string;
 }
 
+interface ActivityData {
+  totalActivities: number;
+  totalComments: number;
+  totalMessages: number;
+  uniqueUsers: number;
+  activityByType: Record<string, number>;
+  activityByDay: Record<string, number>;
+  topUsers: [string, number][];
+  recentActivities: ActivityLog[];
+  commentEngagement: {
+    totalComments: number;
+    averageLength: number;
+    topCommenters: [string, number][];
+  };
+}
+
 const ActivityReports: React.FC<ActivityReportsProps> = ({ dateRange = '7d' }) => {
-  const [activityData, setActivityData] = useState<any>(null);
+  const [activityData, setActivityData] = useState<ActivityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDateRange, setSelectedDateRange] = useState(dateRange);
   const [reportType, setReportType] = useState<'overview' | 'detailed' | 'user' | 'content'>('overview');
 
-  useEffect(() => {
-    loadActivityData();
-  }, [selectedDateRange]);
-
-  const loadActivityData = async () => {
+  const loadActivityData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -78,21 +90,21 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ dateRange = '7d' }) =
         ]).size,
         
         // Activity by type
-        activityByType: activities?.reduce((acc: any, activity) => {
+        activityByType: activities?.reduce((acc: Record<string, number>, activity) => {
           acc[activity.action] = (acc[activity.action] || 0) + 1;
           return acc;
         }, {}) || {},
-        
+
         // Activity by day
-        activityByDay: activities?.reduce((acc: any, activity) => {
+        activityByDay: activities?.reduce((acc: Record<string, number>, activity) => {
           const day = activity.timestamp.split('T')[0];
           acc[day] = (acc[day] || 0) + 1;
           return acc;
         }, {}) || {},
-        
+
         // Top users by activity
         topUsers: Object.entries(
-          activities?.reduce((acc: any, activity) => {
+          activities?.reduce((acc: Record<string, number>, activity) => {
             if (activity.user_name) {
               acc[activity.user_name] = (acc[activity.user_name] || 0) + 1;
             }
@@ -100,7 +112,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ dateRange = '7d' }) =
           }, {}) || {}
         )
         .sort(([,a], [,b]) => (b as number) - (a as number))
-        .slice(0, 10),
+        .slice(0, 10) as [string, number][],
         
         // Recent activities
         recentActivities: activities?.slice(0, 20) || [],
@@ -111,13 +123,13 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ dateRange = '7d' }) =
           averageLength: comments?.length ? 
             Math.round(comments.reduce((sum, c) => sum + c.comment_text.length, 0) / comments.length) : 0,
           topCommenters: Object.entries(
-            comments?.reduce((acc: any, comment) => {
+            comments?.reduce((acc: Record<string, number>, comment) => {
               acc[comment.author_name] = (acc[comment.author_name] || 0) + 1;
               return acc;
             }, {}) || {}
           )
           .sort(([,a], [,b]) => (b as number) - (a as number))
-          .slice(0, 5)
+          .slice(0, 5) as [string, number][]
         }
       };
 
@@ -128,7 +140,11 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ dateRange = '7d' }) =
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDateRange]);
+
+  useEffect(() => {
+    loadActivityData();
+  }, [loadActivityData]);
 
   const exportReport = async () => {
     try {
@@ -272,7 +288,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ dateRange = '7d' }) =
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setReportType(tab.id as any)}
+            onClick={() => setReportType(tab.id as typeof reportType)}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md font-medium transition-colors ${
               reportType === tab.id
                 ? 'bg-white text-blue-900 shadow-sm'

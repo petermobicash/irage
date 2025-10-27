@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Download } from 'lucide-react';
 import Button from '../ui/Button';
 
+// Type for webkit audio context
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 interface VoiceMessagePlayerProps {
   audioUrl?: string;
   audioBlob?: Blob;
@@ -88,7 +93,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
     if (!audioRef.current) return;
 
     try {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
 
@@ -195,7 +200,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
         URL.revokeObjectURL(audio.src);
       }
     };
-  }, [audioUrl, audioBlob]);
+  }, [audioUrl, audioBlob, onEnd, onPause, onPlay]);
 
   // Handle play/pause
   const togglePlayPause = async () => {

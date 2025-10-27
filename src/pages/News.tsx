@@ -43,6 +43,7 @@ const News = () => {
         error(result.error || 'Failed to subscribe. Please try again.');
       }
     } catch (err) {
+      console.error('Newsletter subscription error:', err);
       error('An error occurred. Please try again later.');
     } finally {
       setIsSubmitting(false);

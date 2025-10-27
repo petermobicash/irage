@@ -1,70 +1,42 @@
-/**
- * Supabase Client Configuration and Database Operations
- *
- * This file provides a comprehensive interface for interacting with the Supabase database
- * and authentication system for the Benirage website.
- */
-
-// ============================================================================
-// CORE CONFIGURATION
-// ============================================================================
-
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Validate Supabase configuration
+// Check if Supabase is configured
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ CRITICAL: Supabase not configured!');
   console.error('📋 TO FIX: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
   console.error('🔗 Get credentials from: https://supabase.com/dashboard → Settings → API');
-  console.error('Current values:', {
-    supabaseUrl: supabaseUrl ? 'SET' : 'NOT SET',
-    supabaseAnonKey: supabaseAnonKey ? 'SET' : 'NOT SET'
-  });
+  console.error('Current values:', { supabaseUrl: supabaseUrl ? 'SET' : 'NOT SET', supabaseAnonKey: supabaseAnonKey ? 'SET' : 'NOT SET' });
 }
 
-// Initialize Supabase client with optimized configuration
-export const supabase: SupabaseClient = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || '',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: localStorage,
-      storageKey: 'benirage-auth-token'
-    },
-    db: {
-      schema: 'public'
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'benirage-website',
-        'apikey': supabaseAnonKey || ''
-      }
-    },
-    // Enhanced configuration for local development
-    ...(supabaseUrl?.includes('127.0.0.1') || supabaseUrl?.includes('localhost')) && {
-      rest: {
-        timeout: 10000
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 10
-        }
-      }
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'benirage-website',
+      'apikey': supabaseAnonKey || ''
     }
-  }
-);
+  },
+  // For local development, ensure proper configuration
+  ...(supabaseUrl?.includes('127.0.0.1') && {
+    // Additional config for local development if needed
+    rest: {
+      timeout: 10000
+    }
+  })
+});
 
-// ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
-
+// Database types for TypeScript
 export interface Database {
   public: {
     Tables: {
@@ -207,7 +179,6 @@ export interface Database {
           is_edited: boolean;
           is_deleted: boolean;
           is_pinned: boolean;
-          message_status: 'sent' | 'delivered' | 'seen';
           metadata: any;
           created_at: string;
           updated_at: string;
@@ -228,7 +199,6 @@ export interface Database {
           is_edited?: boolean;
           is_deleted?: boolean;
           is_pinned?: boolean;
-          message_status?: 'sent' | 'delivered' | 'seen';
           metadata?: any;
         };
         Update: {
@@ -2298,33 +2268,161 @@ export interface Database {
       };
     };
   };
-}
+};
 
-// ============================================================================
-// AUTHENTICATION HELPERS
-// ============================================================================
-
-export interface AuthResult {
-  success: boolean;
-  user?: any;
-  error?: string;
-  message?: string;
-}
-
-export interface ConnectionResult {
-  connected: boolean;
-  message: string;
-}
-
-/**
- * Sign in with email and password
- */
-export const signInWithEmail = async (
-  email: string,
-  password: string
-): Promise<AuthResult> => {
+// Helper functions for database operations
+export const getPublishedContent = async (
+  type?: string,
+  limit?: number
+): Promise<{ success: boolean; data: any[]; error?: any }> => {
   try {
-    // Validate Supabase configuration
+    let query = supabase
+      .from('content')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (type && type !== 'all') {
+      query = query.eq('type', type);
+    }
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching published content:', error);
+    return { success: false, error, data: [] };
+  }
+};
+
+export const submitMembershipApplication = async (applicationData: Database['public']['Tables']['membership_applications']['Insert']) => {
+  try {
+    console.log('Submitting membership application:', applicationData);
+    const { data, error } = await supabase
+      .from('membership_applications')
+      .insert([{
+        ...applicationData,
+        submission_date: new Date().toISOString(),
+        status: 'pending'
+      }])
+      .select();
+
+    if (error) throw error;
+    console.log('Membership application submitted successfully');
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Error submitting membership application:', error);
+    console.log('Error details:', error.message, error.details, error.hint);
+    return { success: false, error };
+  }
+};
+
+export const submitVolunteerApplication = async (applicationData: Database['public']['Tables']['volunteer_applications']['Insert']) => {
+  try {
+    const { data, error } = await supabase
+      .from('volunteer_applications')
+      .insert([{
+        ...applicationData,
+        submission_date: new Date().toISOString(),
+        status: 'pending'
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error submitting volunteer application:', error);
+    return { success: false, error };
+  }
+};
+
+export const submitContactForm = async (contactData: Database['public']['Tables']['contact_submissions']['Insert']) => {
+  try {
+    const { data, error } = await supabase
+      .from('contact_submissions')
+      .insert([{
+        ...contactData,
+        submission_date: new Date().toISOString(),
+        status: 'new'
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error submitting contact form:', error);
+    return { success: false, error };
+  }
+};
+
+export const submitDonation = async (donationData: Database['public']['Tables']['donations']['Insert']) => {
+  try {
+    const { data, error } = await supabase
+      .from('donations')
+      .insert([{
+        ...donationData,
+        donation_date: new Date().toISOString(),
+        payment_status: 'pending'
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error submitting donation:', error);
+    return { success: false, error };
+  }
+};
+
+export const submitPartnershipApplication = async (applicationData: Database['public']['Tables']['partnership_applications']['Insert']) => {
+  try {
+    const { data, error } = await supabase
+      .from('partnership_applications')
+      .insert([{
+        ...applicationData,
+        submission_date: new Date().toISOString(),
+        status: 'pending'
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error submitting partnership application:', error);
+    return { success: false, error };
+  }
+};
+
+export const submitPhilosophyCafeApplication = async (applicationData: Database['public']['Tables']['philosophy_cafe_applications']['Insert']) => {
+  try {
+    console.log('Submitting philosophy cafe application:', applicationData);
+    const { data, error } = await supabase
+      .from('philosophy_cafe_applications')
+      .insert([{
+        ...applicationData,
+        submission_date: new Date().toISOString(),
+        status: 'pending'
+      }])
+      .select();
+
+    if (error) throw error;
+    console.log('Philosophy cafe application submitted successfully');
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Error submitting philosophy cafe application:', error);
+    console.log('Error details:', error.message, error.details, error.hint);
+    return { success: false, error };
+  }
+};
+
+// Authentication helpers
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    // Check if Supabase is configured
     if (!supabaseUrl || !supabaseAnonKey) {
       return {
         success: false,
@@ -2339,26 +2437,24 @@ export const signInWithEmail = async (
       // Ignore errors when clearing - session might already be invalid
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    let data, error;
+
+    ({ data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    }));
 
     if (error) {
       // Handle specific auth errors
       if (error.message?.includes('Invalid Refresh Token') || error.message?.includes('Refresh Token Not Found')) {
         console.warn('Invalid refresh token during login attempt. This is normal if session was expired.');
         // Retry the login after clearing the invalid session
-        const retryResult = await supabase.auth.signInWithPassword({
+        const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (retryResult.error) throw retryResult.error;
-        return {
-          success: true,
-          user: retryResult.data.user,
-          message: 'Successfully logged in!'
-        };
+        if (retryError) throw retryError;
+        data = retryData;
       } else {
         throw error;
       }
@@ -2399,10 +2495,7 @@ export const signInWithEmail = async (
   }
 };
 
-/**
- * Sign out current user
- */
-export const signOut = async (): Promise<{ success: boolean; error?: any }> => {
+export const signOut = async () => {
   try {
     const user = await getCurrentUser();
     const { error } = await supabase.auth.signOut();
@@ -2428,12 +2521,8 @@ export const signOut = async (): Promise<{ success: boolean; error?: any }> => {
   }
 };
 
-/**
- * Get current authenticated user
- */
-export const getCurrentUser = async (): Promise<any> => {
+export const getCurrentUser = async () => {
   try {
-    console.log('Getting current user from auth...');
     const { data: { user }, error } = await supabase.auth.getUser();
 
     // Handle specific auth errors gracefully for anonymous users
@@ -2443,14 +2532,11 @@ export const getCurrentUser = async (): Promise<any> => {
           error.message?.includes('Auth session missing') ||
           error.status === 403) {
         // This is expected for anonymous users - don't log as error
-        console.log('Anonymous user detected');
         return null;
       }
-      console.error('Auth error:', error);
       throw error;
     }
 
-    console.log('Current user:', user?.id || 'none');
     return user;
   } catch (error: any) {
     // Handle auth errors gracefully for anonymous users
@@ -2459,7 +2545,6 @@ export const getCurrentUser = async (): Promise<any> => {
         error.message?.includes('Auth session missing') ||
         error.status === 403) {
       // Expected for anonymous users - return null silently
-      console.log('Anonymous user detected in catch block');
       return null;
     }
 
@@ -2468,63 +2553,61 @@ export const getCurrentUser = async (): Promise<any> => {
   }
 };
 
-/**
- * Refresh current session
- */
-export const refreshSession = async (): Promise<{ success: boolean; user?: any; needsLogin?: boolean; error?: any }> => {
+// Dashboard data functions
+export const getDashboardStats = async () => {
   try {
-    console.log('Refreshing session...');
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
-      if (error.message?.includes('Invalid Refresh Token') ||
-          error.message?.includes('Refresh Token Not Found') ||
-          error.message?.includes('Auth session missing') ||
-          error.status === 403) {
-        // Expected for anonymous users - don't log as error
-        console.log('Session refresh failed - needs login');
-        return { success: false, needsLogin: true };
+    const [memberships, volunteers, contacts, donations, contentStats] = await Promise.all([
+      supabase.from('membership_applications').select('*', { count: 'exact' }),
+      supabase.from('volunteer_applications').select('*', { count: 'exact' }),
+      supabase.from('contact_submissions').select('*', { count: 'exact' }),
+      supabase.from('donations').select('*', { count: 'exact' }),
+      supabase.from('content').select('*', { count: 'exact' })
+    ]);
+
+    // Get status breakdowns
+    const [pendingMemberships, publishedContent] = await Promise.all([
+      supabase.from('membership_applications').select('*', { count: 'exact' }).eq('status', 'pending'),
+      supabase.from('content').select('*', { count: 'exact' }).eq('status', 'published')
+    ]);
+
+    return {
+      memberships: {
+        total: memberships.count || 0,
+        pending: pendingMemberships.count || 0,
+        data: memberships.data || []
+      },
+      volunteers: {
+        total: volunteers.count || 0,
+        data: volunteers.data || []
+      },
+      contacts: {
+        total: contacts.count || 0,
+        data: contacts.data || []
+      },
+      donations: {
+        total: donations.count || 0,
+        data: donations.data || []
+      },
+      content: {
+        total: contentStats.count || 0,
+        published: publishedContent.count || 0,
+        data: contentStats.data || []
       }
-      console.error('Session refresh error:', error);
-      throw error;
-    }
-    console.log('Session refreshed successfully');
-    return { success: true, user: data.user };
-  } catch (error: any) {
-    // Handle anonymous users gracefully
-    if (error.message?.includes('Invalid Refresh Token') ||
-        error.message?.includes('Refresh Token Not Found') ||
-        error.message?.includes('Auth session missing') ||
-        error.status === 403) {
-      // Expected for anonymous users - return silently
-      console.log('Session refresh failed - anonymous user');
-      return { success: false, needsLogin: true };
-    }
-    console.error('Error refreshing session:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Clear authentication session
- */
-export const clearAuthSession = async (): Promise<{ success: boolean; error?: any }> => {
-  try {
-    await supabase.auth.signOut({ scope: 'local' });
-    return { success: true };
+    };
   } catch (error) {
-    console.error('Error clearing auth session:', error);
-    return { success: false, error };
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      memberships: { total: 0, pending: 0, data: [] },
+      volunteers: { total: 0, data: [] },
+      contacts: { total: 0, data: [] },
+      donations: { total: 0, data: [] },
+      content: { total: 0, published: 0, data: [] }
+    };
   }
 };
 
-// ============================================================================
-// CONNECTION AND HEALTH CHECKS
-// ============================================================================
-
-/**
- * Check if Supabase is properly configured and connected
- */
-export const checkSupabaseConnection = async (): Promise<ConnectionResult> => {
+// Check if Supabase is properly configured
+export const checkSupabaseConnection = async () => {
   try {
     if (!supabaseUrl || !supabaseAnonKey) {
       return {
@@ -2555,66 +2638,8 @@ export const checkSupabaseConnection = async (): Promise<ConnectionResult> => {
   }
 };
 
-// ============================================================================
-// CONTENT MANAGEMENT
-// ============================================================================
-
-export interface ContentResult {
-  success: boolean;
-  data?: any;
-  error?: any;
-}
-
-export interface ListResult {
-  success: boolean;
-  data: any[];
-  error?: any;
-}
-
-export interface SimpleResult {
-  success: boolean;
-  error?: any;
-}
-
-/**
- * Get published content with optional filtering
- */
-export const getPublishedContent = async (
-  type?: string,
-  limit?: number
-): Promise<ListResult> => {
-  try {
-    let query = supabase
-      .from('content')
-      .select('*')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false });
-
-    if (type && type !== 'all') {
-      query = query.eq('type', type);
-    }
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching published content:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-/**
- * Get content with optional filtering
- */
-export const getContent = async (
-  type?: string,
-  status?: string,
-  limit?: number
-): Promise<ListResult> => {
+// Content management functions
+export const getContent = async (type?: string, status?: string, limit?: number) => {
   try {
     let query = supabase
       .from('content')
@@ -2642,12 +2667,7 @@ export const getContent = async (
   }
 };
 
-/**
- * Create new content
- */
-export const createContent = async (
-  contentData: Database['public']['Tables']['content']['Insert']
-): Promise<ContentResult> => {
+export const createContent = async (contentData: Database['public']['Tables']['content']['Insert']) => {
   try {
     const { data, error } = await supabase
       .from('content')
@@ -2683,13 +2703,7 @@ export const createContent = async (
   }
 };
 
-/**
- * Update existing content
- */
-export const updateContent = async (
-  id: string,
-  contentData: Database['public']['Tables']['content']['Update']
-): Promise<ContentResult> => {
+export const updateContent = async (id: string, contentData: Database['public']['Tables']['content']['Update']) => {
   try {
     const { data, error } = await supabase
       .from('content')
@@ -2723,13 +2737,7 @@ export const updateContent = async (
   }
 };
 
-/**
- * Delete content (soft delete)
- */
-export const deleteContent = async (
-  id: string,
-  deletedBy: string
-): Promise<ContentResult> => {
+export const deleteContent = async (id: string, deletedBy: string) => {
   try {
     const { data, error } = await supabase
       .from('content')
@@ -2761,204 +2769,9 @@ export const deleteContent = async (
   }
 };
 
-/**
- * Get categories
- */
-export const getCategories = async (): Promise<ListResult> => {
-  try {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('order_index');
+// ===== CHAT FUNCTIONALITY =====
 
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-/**
- * Get tags
- */
-export const getTags = async (): Promise<ListResult> => {
-  try {
-    const { data, error } = await supabase
-      .from('tags')
-      .select('*')
-      .order('count', { ascending: false });
-
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching tags:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-// ============================================================================
-// FORM SUBMISSIONS
-// ============================================================================
-
-/**
- * Submit membership application
- */
-export const submitMembershipApplication = async (
-  applicationData: Database['public']['Tables']['membership_applications']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    console.log('Submitting membership application:', applicationData);
-    const { data, error } = await supabase
-      .from('membership_applications')
-      .insert([{
-        ...applicationData,
-        submission_date: new Date().toISOString(),
-        status: 'pending'
-      }])
-      .select();
-
-    if (error) throw error;
-    console.log('Membership application submitted successfully');
-    return { success: true, data };
-  } catch (error: any) {
-    console.error('Error submitting membership application:', error);
-    console.log('Error details:', error.message, error.details, error.hint);
-    return { success: false, error };
-  }
-};
-
-/**
- * Submit volunteer application
- */
-export const submitVolunteerApplication = async (
-  applicationData: Database['public']['Tables']['volunteer_applications']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('volunteer_applications')
-      .insert([{
-        ...applicationData,
-        submission_date: new Date().toISOString(),
-        status: 'pending'
-      }])
-      .select();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error submitting volunteer application:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Submit contact form
- */
-export const submitContactForm = async (
-  contactData: Database['public']['Tables']['contact_submissions']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('contact_submissions')
-      .insert([{
-        ...contactData,
-        submission_date: new Date().toISOString(),
-        status: 'new'
-      }])
-      .select();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error submitting contact form:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Submit donation
- */
-export const submitDonation = async (
-  donationData: Database['public']['Tables']['donations']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('donations')
-      .insert([{
-        ...donationData,
-        donation_date: new Date().toISOString(),
-        payment_status: 'pending'
-      }])
-      .select();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error submitting donation:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Submit partnership application
- */
-export const submitPartnershipApplication = async (
-  applicationData: Database['public']['Tables']['partnership_applications']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('partnership_applications')
-      .insert([{
-        ...applicationData,
-        submission_date: new Date().toISOString(),
-        status: 'pending'
-      }])
-      .select();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error submitting partnership application:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Submit philosophy cafe application
- */
-export const submitPhilosophyCafeApplication = async (
-  applicationData: Database['public']['Tables']['philosophy_cafe_applications']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    console.log('Submitting philosophy cafe application:', applicationData);
-    const { data, error } = await supabase
-      .from('philosophy_cafe_applications')
-      .insert([{
-        ...applicationData,
-        submission_date: new Date().toISOString(),
-        status: 'pending'
-      }])
-      .select();
-
-    if (error) throw error;
-    console.log('Philosophy cafe application submitted successfully');
-    return { success: true, data };
-  } catch (error: any) {
-    console.error('Error submitting philosophy cafe application:', error);
-    console.log('Error details:', error.message, error.details, error.hint);
-    return { success: false, error };
-  }
-};
-
-// ============================================================================
-// CHAT FUNCTIONALITY
-// ============================================================================
-
-/**
- * Get chat rooms
- */
-export const getChatRooms = async (): Promise<ListResult> => {
+export const getChatRooms = async () => {
   try {
     const { data, error } = await supabase
       .from('chat_rooms')
@@ -2970,17 +2783,11 @@ export const getChatRooms = async (): Promise<ListResult> => {
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching chat rooms:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Get chat messages for a room
- */
-export const getChatMessages = async (
-  roomId: string,
-  limit = 50
-): Promise<ListResult> => {
+export const getChatMessages = async (roomId: string, limit = 50) => {
   try {
     const { data, error } = await supabase
       .from('chat_messages')
@@ -2994,23 +2801,15 @@ export const getChatMessages = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching chat messages:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Send a chat message
- */
-export const sendChatMessage = async (
-  messageData: Database['public']['Tables']['chat_messages']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const sendChatMessage = async (messageData: Database['public']['Tables']['chat_messages']['Insert']) => {
   try {
     const { data, error } = await supabase
       .from('chat_messages')
-      .insert([{
-        ...messageData,
-        message_status: messageData.message_status || 'sent'
-      }])
+      .insert([messageData])
       .select();
 
     if (error) throw error;
@@ -3021,15 +2820,7 @@ export const sendChatMessage = async (
   }
 };
 
-/**
- * Join a chat room
- */
-export const joinChatRoom = async (
-  roomId: string,
-  userId: string,
-  userName: string,
-  userAvatar?: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const joinChatRoom = async (roomId: string, userId: string, userName: string, userAvatar?: string) => {
   try {
     const { data, error } = await supabase
       .from('chat_participants')
@@ -3058,104 +2849,77 @@ export const joinChatRoom = async (
   }
 };
 
-// ============================================================================
-// USER MANAGEMENT
-// ============================================================================
+// ===== CONTENT MANAGEMENT =====
 
-/**
- * Get user profile
- */
-export const getUserProfile = async (
-  userId: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const getCategories = async () => {
   try {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from('categories')
       .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Update user profile
- */
-export const updateUserProfile = async (
-  userId: string,
-  profileData: any
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update({
-        ...profileData,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', userId)
-      .select();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Get user groups
- */
-export const getUserGroups = async (): Promise<ListResult> => {
-  try {
-    const { data, error } = await supabase
-      .from('user_groups')
-      .select('*')
-      .eq('is_active', true)
       .order('order_index');
 
     if (error) throw error;
     return { success: true, data: data || [] };
   } catch (error) {
-    console.error('Error fetching user groups:', error);
-    return { success: false, error, data: [] };
+    console.error('Error fetching categories:', error);
+    return { success: false, error };
   }
 };
 
-/**
- * Get roles
- */
-export const getRoles = async (): Promise<ListResult> => {
+export const getTags = async () => {
   try {
     const { data, error } = await supabase
-      .from('roles')
+      .from('tags')
       .select('*')
-      .eq('is_active', true)
-      .order('order_index');
+      .order('count', { ascending: false });
 
     if (error) throw error;
     return { success: true, data: data || [] };
   } catch (error) {
-    console.error('Error fetching roles:', error);
-    return { success: false, error, data: [] };
+    console.error('Error fetching tags:', error);
+    return { success: false, error };
   }
 };
 
-// ============================================================================
-// NOTIFICATIONS
-// ============================================================================
+export const getContentTemplates = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('content_templates')
+      .select('*')
+      .eq('is_public', true)
+      .order('usage_count', { ascending: false });
 
-/**
- * Get user notifications
- */
-export const getUserNotifications = async (
-  userId: string
-): Promise<ListResult> => {
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching content templates:', error);
+    return { success: false, error };
+  }
+};
+
+export const getMediaLibrary = async (type?: string) => {
+  try {
+    let query = supabase
+      .from('media')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
+
+    if (type) {
+      query = query.eq('type', type);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching media library:', error);
+    return { success: false, error };
+  }
+};
+
+// ===== NOTIFICATIONS =====
+
+export const getUserNotifications = async (userId: string) => {
   try {
     const { data, error } = await supabase
       .from('user_notifications')
@@ -3169,16 +2933,11 @@ export const getUserNotifications = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching user notifications:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Mark notification as read
- */
-export const markNotificationAsRead = async (
-  notificationId: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const markNotificationAsRead = async (notificationId: string) => {
   try {
     const { data, error } = await supabase
       .from('user_notifications')
@@ -3197,16 +2956,9 @@ export const markNotificationAsRead = async (
   }
 };
 
-// ============================================================================
-// ANALYTICS
-// ============================================================================
+// ===== ANALYTICS =====
 
-/**
- * Get content analytics
- */
-export const getContentAnalytics = async (
-  contentId?: string
-): Promise<ListResult> => {
+export const getContentAnalytics = async (contentId?: string) => {
   try {
     let query = supabase
       .from('content_analytics')
@@ -3221,16 +2973,11 @@ export const getContentAnalytics = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching content analytics:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Get search analytics
- */
-export const getSearchAnalytics = async (
-  limit = 100
-): Promise<ListResult> => {
+export const getSearchAnalytics = async (limit = 100) => {
   try {
     const { data, error } = await supabase
       .from('search_analytics')
@@ -3242,145 +2989,82 @@ export const getSearchAnalytics = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching search analytics:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
+// ===== USER MANAGEMENT =====
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Log activity
- */
-export const logActivity = async (
-  activityData: Database['public']['Tables']['activity_logs']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const getUserProfile = async (userId: string) => {
   try {
     const { data, error } = await supabase
-      .from('activity_logs')
-      .insert([{
-        ...activityData,
-        timestamp: new Date().toISOString()
-      }])
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return { success: false, error };
+  }
+};
+
+export const updateUserProfile = async (userId: string, profileData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update({
+        ...profileData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId)
       .select();
 
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error logging activity:', error);
-    return { success: false, error, data: [] };
+    console.error('Error updating user profile:', error);
+    return { success: false, error };
   }
 };
 
-/**
- * Get activity logs
- */
-export const getActivityLogs = async (
-  limit = 100
-): Promise<ListResult> => {
+export const getUserGroups = async () => {
   try {
     const { data, error } = await supabase
-      .from('activity_logs')
+      .from('user_groups')
       .select('*')
-      .order('timestamp', { ascending: false })
-      .limit(limit);
+      .eq('is_active', true)
+      .order('order_index');
 
     if (error) throw error;
     return { success: true, data: data || [] };
   } catch (error) {
-    console.error('Error fetching activity logs:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-/**
- * Get setting value
- */
-export const getSetting = async (
-  key: string
-): Promise<{ success: boolean; data?: string | null; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', key)
-      .single();
-
-    if (error) throw error;
-    return { success: true, data: data?.value };
-  } catch (error) {
-    console.error('Error fetching setting:', error);
+    console.error('Error fetching user groups:', error);
     return { success: false, error };
   }
 };
 
-/**
- * Set setting value
- */
-export const setSetting = async (
-  key: string,
-  value: string,
-  updatedBy?: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const getRoles = async () => {
   try {
     const { data, error } = await supabase
-      .from('settings')
-      .upsert({
-        key,
-        value,
-        updated_by: updatedBy,
-        updated_at: new Date().toISOString()
-      })
-      .select();
+      .from('roles')
+      .select('*')
+      .eq('is_active', true)
+      .order('order_index');
 
     if (error) throw error;
-    return { success: true, data };
+    return { success: true, data: data || [] };
   } catch (error) {
-    console.error('Error setting value:', error);
+    console.error('Error fetching roles:', error);
     return { success: false, error };
   }
 };
 
+// ===== FORM MANAGEMENT =====
 
-/**
- * Unsubscribe from newsletter
- */
-export const unsubscribeFromNewsletter = async (
-  email: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('newsletter_subscriptions')
-      .update({
-        is_active: false,
-        unsubscribed_at: new Date().toISOString()
-      })
-      .eq('email', email)
-      .select();
-
-    if (error) throw error;
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error unsubscribing from newsletter:', error);
-    return { success: false, error };
-  }
-};
-
-
-
-
-// ============================================================================
-// FORM MANAGEMENT
-// ============================================================================
-
-/**
- * Get form fields for a page
- */
-export const getFormFields = async (
-  pageId: string
-): Promise<ListResult> => {
+export const getFormFields = async (pageId: string) => {
   try {
     const { data, error } = await supabase
       .from('form_fields')
@@ -3393,17 +3077,11 @@ export const getFormFields = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching form fields:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Submit form data
- */
-export const submitForm = async (
-  pageId: string,
-  formData: any
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const submitForm = async (pageId: string, formData: any) => {
   try {
     const { data, error } = await supabase
       .from('form_submissions')
@@ -3423,12 +3101,7 @@ export const submitForm = async (
   }
 };
 
-/**
- * Get form submissions
- */
-export const getFormSubmissions = async (
-  pageId?: string
-): Promise<ListResult> => {
+export const getFormSubmissions = async (pageId?: string) => {
   try {
     let query = supabase
       .from('form_submissions')
@@ -3444,142 +3117,87 @@ export const getFormSubmissions = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching form submissions:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-// ============================================================================
-// MEDIA MANAGEMENT
-// ============================================================================
+// ===== SETTINGS =====
 
-/**
- * Get media library
- */
-export const getMediaLibrary = async (
-  type?: string
-): Promise<ListResult> => {
-  try {
-    let query = supabase
-      .from('media')
-      .select('*')
-      .order('uploaded_at', { ascending: false });
-
-    if (type) {
-      query = query.eq('type', type);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching media library:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-// ============================================================================
-// CACHE MANAGEMENT
-// ============================================================================
-
-/**
- * Set cache refresh flag
- */
-export const setCacheRefreshFlag = async (
-  cacheName: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const getSetting = async (key: string) => {
   try {
     const { data, error } = await supabase
-      .from('cache_refresh_flags')
+      .from('settings')
+      .select('value')
+      .eq('key', key)
+      .single();
+
+    if (error) throw error;
+    return { success: true, data: data?.value };
+  } catch (error) {
+    console.error('Error fetching setting:', error);
+    return { success: false, error };
+  }
+};
+
+export const setSetting = async (key: string, value: string, updatedBy?: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('settings')
       .upsert({
-        cache_name: cacheName,
-        flagged_at: new Date().toISOString()
+        key,
+        value,
+        updated_by: updatedBy,
+        updated_at: new Date().toISOString()
       })
       .select();
 
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error setting cache refresh flag:', error);
+    console.error('Error setting value:', error);
     return { success: false, error };
   }
 };
 
-/**
- * Get cache refresh flags
- */
-export const getCacheRefreshFlags = async (): Promise<ListResult> => {
+// ===== ACTIVITY LOGS =====
+
+export const logActivity = async (activityData: Database['public']['Tables']['activity_logs']['Insert']) => {
   try {
     const { data, error } = await supabase
-      .from('cache_refresh_flags')
-      .select('*')
-      .order('flagged_at', { ascending: false });
-
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching cache refresh flags:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-// ============================================================================
-// MODERATION
-// ============================================================================
-
-/**
- * Get moderation logs
- */
-export const getModerationLogs = async (
-  limit = 50
-): Promise<ListResult> => {
-  try {
-    const { data, error } = await supabase
-      .from('moderation_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching moderation logs:', error);
-    return { success: false, error, data: [] };
-  }
-};
-
-/**
- * Log moderation action
- */
-export const logModerationAction = async (
-  moderationData: Database['public']['Tables']['moderation_logs']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
-  try {
-    const { data, error } = await supabase
-      .from('moderation_logs')
+      .from('activity_logs')
       .insert([{
-        ...moderationData,
-        created_at: new Date().toISOString()
+        ...activityData,
+        timestamp: new Date().toISOString()
       }])
       .select();
 
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error logging moderation action:', error);
+    console.error('Error logging activity:', error);
     return { success: false, error };
   }
 };
 
-// ============================================================================
-// WORKFLOW MANAGEMENT
-// ============================================================================
+export const getActivityLogs = async (limit = 100) => {
+  try {
+    const { data, error } = await supabase
+      .from('activity_logs')
+      .select('*')
+      .order('timestamp', { ascending: false })
+      .limit(limit);
 
-/**
- * Get workflow logs
- */
-export const getWorkflowLogs = async (
-  contentId?: string
-): Promise<ListResult> => {
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    return { success: false, error };
+  }
+};
+
+// ===== WORKFLOW MANAGEMENT =====
+
+export const getWorkflowLogs = async (contentId?: string) => {
   try {
     let query = supabase
       .from('workflow_logs')
@@ -3595,16 +3213,11 @@ export const getWorkflowLogs = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching workflow logs:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Log workflow action
- */
-export const logWorkflowAction = async (
-  workflowData: Database['public']['Tables']['workflow_logs']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const logWorkflowAction = async (workflowData: Database['public']['Tables']['workflow_logs']['Insert']) => {
   try {
     const { data, error } = await supabase
       .from('workflow_logs')
@@ -3622,16 +3235,80 @@ export const logWorkflowAction = async (
   }
 };
 
-// ============================================================================
-// SUGGESTIONS
-// ============================================================================
+// ===== MODERATION =====
 
-/**
- * Get content suggestions
- */
-export const getContentSuggestions = async (
-  contentId?: string
-): Promise<ListResult> => {
+export const getModerationLogs = async (limit = 50) => {
+  try {
+    const { data, error } = await supabase
+      .from('moderation_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching moderation logs:', error);
+    return { success: false, error };
+  }
+};
+
+export const logModerationAction = async (moderationData: Database['public']['Tables']['moderation_logs']['Insert']) => {
+  try {
+    const { data, error } = await supabase
+      .from('moderation_logs')
+      .insert([{
+        ...moderationData,
+        created_at: new Date().toISOString()
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error logging moderation action:', error);
+    return { success: false, error };
+  }
+};
+
+// ===== CACHE MANAGEMENT =====
+
+export const setCacheRefreshFlag = async (cacheName: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('cache_refresh_flags')
+      .upsert({
+        cache_name: cacheName,
+        flagged_at: new Date().toISOString()
+      })
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error setting cache refresh flag:', error);
+    return { success: false, error };
+  }
+};
+
+export const getCacheRefreshFlags = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cache_refresh_flags')
+      .select('*')
+      .order('flagged_at', { ascending: false });
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching cache refresh flags:', error);
+    return { success: false, error };
+  }
+};
+
+// ===== SUGGESTIONS =====
+
+export const getContentSuggestions = async (contentId?: string) => {
   try {
     let query = supabase
       .from('suggestions')
@@ -3647,16 +3324,11 @@ export const getContentSuggestions = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching content suggestions:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Submit suggestion
- */
-export const submitSuggestion = async (
-  suggestionData: Database['public']['Tables']['suggestions']['Insert']
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const submitSuggestion = async (suggestionData: Database['public']['Tables']['suggestions']['Insert']) => {
   try {
     const { data, error } = await supabase
       .from('suggestions')
@@ -3671,16 +3343,9 @@ export const submitSuggestion = async (
   }
 };
 
-// ============================================================================
-// PAGE CONTENT MANAGEMENT
-// ============================================================================
+// ===== PAGE CONTENT MANAGEMENT =====
 
-/**
- * Get page content
- */
-export const getPageContent = async (
-  pageId: string
-): Promise<ListResult> => {
+export const getPageContent = async (pageId: string) => {
   try {
     const { data, error } = await supabase
       .from('page_content')
@@ -3693,17 +3358,11 @@ export const getPageContent = async (
     return { success: true, data: data || [] };
   } catch (error) {
     console.error('Error fetching page content:', error);
-    return { success: false, error, data: [] };
+    return { success: false, error };
   }
 };
 
-/**
- * Update page content
- */
-export const updatePageContent = async (
-  id: string,
-  contentData: any
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const updatePageContent = async (id: string, contentData: any) => {
   try {
     const { data, error } = await supabase
       .from('page_content')
@@ -3722,18 +3381,9 @@ export const updatePageContent = async (
   }
 };
 
-// ============================================================================
-// COMMENT REACTIONS
-// ============================================================================
+// ===== COMMENT REACTIONS =====
 
-/**
- * Add comment reaction
- */
-export const addCommentReaction = async (
-  commentId: string,
-  userId: string,
-  reactionType: string
-): Promise<{ success: boolean; data?: any; error?: any }> => {
+export const addCommentReaction = async (commentId: string, userId: string, reactionType: string) => {
   try {
     const { data, error } = await supabase
       .from('comment_reactions')
@@ -3753,13 +3403,7 @@ export const addCommentReaction = async (
   }
 };
 
-/**
- * Remove comment reaction
- */
-export const removeCommentReaction = async (
-  commentId: string,
-  userId: string
-): Promise<{ success: boolean; error?: any }> => {
+export const removeCommentReaction = async (commentId: string, userId: string) => {
   try {
     const { error } = await supabase
       .from('comment_reactions')
@@ -3775,155 +3419,87 @@ export const removeCommentReaction = async (
   }
 };
 
-// ============================================================================
-// CONTENT TEMPLATES
-// ============================================================================
+// ===== REAL-TIME SUBSCRIPTIONS =====
 
-/**
- * Get content templates
- */
-export const getContentTemplates = async (): Promise<ListResult> => {
+export const subscribeToChatMessages = (roomId: string, callback: (payload: any) => void) => {
+  return supabase
+    .channel(`chat_messages:${roomId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages',
+        filter: `room_id=eq.${roomId}`
+      },
+      callback
+    )
+    .subscribe();
+};
+
+export const subscribeToNotifications = (userId: string, callback: (payload: any) => void) => {
+  return supabase
+    .channel(`notifications:${userId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'user_notifications',
+        filter: `recipient_id=eq.${userId}`
+      },
+      callback
+    )
+    .subscribe();
+};
+
+export const unsubscribeFromChannel = (channel: any) => {
+  supabase.removeChannel(channel);
+};
+
+// ===== AUTHENTICATION UTILITIES =====
+
+export const refreshSession = async () => {
   try {
-    const { data, error } = await supabase
-      .from('content_templates')
-      .select('*')
-      .eq('is_public', true)
-      .order('usage_count', { ascending: false });
-
-    if (error) throw error;
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error('Error fetching content templates:', error);
-    return { success: false, error, data: [] };
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      if (error.message?.includes('Invalid Refresh Token') ||
+          error.message?.includes('Refresh Token Not Found') ||
+          error.message?.includes('Auth session missing') ||
+          error.status === 403) {
+        // Expected for anonymous users - don't log as error
+        return { success: false, needsLogin: true };
+      }
+      throw error;
+    }
+    return { success: true, user: data.user };
+  } catch (error: any) {
+    // Handle anonymous users gracefully
+    if (error.message?.includes('Invalid Refresh Token') ||
+        error.message?.includes('Refresh Token Not Found') ||
+        error.message?.includes('Auth session missing') ||
+        error.status === 403) {
+      // Expected for anonymous users - return silently
+      return { success: false, needsLogin: true };
+    }
+    console.error('Error refreshing session:', error);
+    return { success: false, error };
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ============================================================================
-// DASHBOARD DATA
-// ============================================================================
-
-/**
- * Get dashboard statistics
- */
-export const getDashboardStats = async (): Promise<{
-  success: boolean;
-  data?: {
-    memberships: { total: number; pending: number; data: any[] };
-    volunteers: { total: number; data: any[] };
-    contacts: { total: number; data: any[] };
-    donations: { total: number; data: any[] };
-    content: { total: number; published: number; data: any[] };
-  };
-  error?: any;
-}> => {
+export const clearAuthSession = async () => {
   try {
-    const [memberships, volunteers, contacts, donations, contentStats] = await Promise.all([
-      supabase.from('membership_applications').select('*', { count: 'exact' }),
-      supabase.from('volunteer_applications').select('*', { count: 'exact' }),
-      supabase.from('contact_submissions').select('*', { count: 'exact' }),
-      supabase.from('donations').select('*', { count: 'exact' }),
-      supabase.from('content').select('*', { count: 'exact' })
-    ]);
-
-    // Get status breakdowns
-    const [pendingMemberships, publishedContent] = await Promise.all([
-      supabase.from('membership_applications').select('*', { count: 'exact' }).eq('status', 'pending'),
-      supabase.from('content').select('*', { count: 'exact' }).eq('status', 'published')
-    ]);
-
-    return {
-      success: true,
-      data: {
-        memberships: {
-          total: memberships.count || 0,
-          pending: pendingMemberships.count || 0,
-          data: memberships.data || []
-        },
-        volunteers: {
-          total: volunteers.count || 0,
-          data: volunteers.data || []
-        },
-        contacts: {
-          total: contacts.count || 0,
-          data: contacts.data || []
-        },
-        donations: {
-          total: donations.count || 0,
-          data: donations.data || []
-        },
-        content: {
-          total: contentStats.count || 0,
-          published: publishedContent.count || 0,
-          data: contentStats.data || []
-        }
-      }
-    };
+    await supabase.auth.signOut({ scope: 'local' });
+    return { success: true };
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
-    return {
-      success: false,
-      error,
-      data: {
-        memberships: { total: 0, pending: 0, data: [] },
-        volunteers: { total: 0, data: [] },
-        contacts: { total: 0, data: [] },
-        donations: { total: 0, data: [] },
-        content: { total: 0, published: 0, data: [] }
-      }
-    };
+    console.error('Error clearing auth session:', error);
+    return { success: false, error };
   }
 };
 
+// ===== NEWSLETTER SUBSCRIPTION =====
 
-
-
-
-/**
- * Subscribe to newsletter
- */
-export const subscribeToNewsletter = async (
-  email: string,
-  source = 'website'
-): Promise<{ success: boolean; data?: any; error?: string }> => {
+export const subscribeToNewsletter = async (email: string, source = 'website') => {
   try {
     // Check if email is already subscribed
     const { data: existingSubscription } = await supabase
@@ -3959,226 +3535,21 @@ export const subscribeToNewsletter = async (
   }
 };
 
+export const unsubscribeFromNewsletter = async (email: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('newsletter_subscriptions')
+      .update({
+        is_active: false,
+        unsubscribed_at: new Date().toISOString()
+      })
+      .eq('email', email)
+      .select();
 
-// ============================================================================
-// REAL-TIME SUBSCRIPTIONS
-// ============================================================================
-
-/**
- * Subscribe to chat messages for a room
- */
-export const subscribeToChatMessages = (
-  roomId: string,
-  callback: (payload: any) => void
-) => {
-  return supabase
-    .channel(`chat_messages:${roomId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'chat_messages',
-        filter: `room_id=eq.${roomId}`
-      },
-      callback
-    )
-    .subscribe();
-};
-
-/**
- * Subscribe to notifications for a user
- */
-export const subscribeToNotifications = (
-  userId: string,
-  callback: (payload: any) => void
-) => {
-  return supabase
-    .channel(`notifications:${userId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'user_notifications',
-        filter: `recipient_id=eq.${userId}`
-      },
-      callback
-    )
-    .subscribe();
-};
-
-/**
- * Unsubscribe from a channel
- */
-export const unsubscribeFromChannel = (channel: any) => {
-  supabase.removeChannel(channel);
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ============================================================================
-// ERROR HANDLING UTILITIES
-// ============================================================================
-
-/**
- * Handle Supabase errors consistently
- */
-export const handleSupabaseError = (error: any): string => {
-  if (error?.message) {
-    return error.message;
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error unsubscribing from newsletter:', error);
+    return { success: false, error };
   }
-  if (error?.error_description) {
-    return error.error_description;
-  }
-  if (typeof error === 'string') {
-    return error;
-  }
-  return 'An unknown error occurred';
 };
-
-/**
- * Retry function for failed operations
- */
-export const retryOperation = async <T>(
-  operation: () => Promise<T>,
-  maxRetries = 3,
-  delay = 1000
-): Promise<T> => {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-    }
-  }
-  throw new Error('Max retries exceeded');
-};
-
-// ============================================================================
-// EXPORT UTILITIES
-// ============================================================================
-
-/**
- * Export all functions as a single object for easier importing
- */
-export const supabaseAPI = {
-  // Core
-  supabase,
-  checkSupabaseConnection,
-
-  // Authentication
-  signInWithEmail,
-  signOut,
-  getCurrentUser,
-  refreshSession,
-  clearAuthSession,
-
-  // Content Management
-  getPublishedContent,
-  getContent,
-  createContent,
-  updateContent,
-  deleteContent,
-  getCategories,
-  getTags,
-  getContentTemplates,
-
-  // Form Submissions
-  submitMembershipApplication,
-  submitVolunteerApplication,
-  submitContactForm,
-  submitDonation,
-  submitPartnershipApplication,
-  submitPhilosophyCafeApplication,
-
-  // Chat
-  getChatRooms,
-  getChatMessages,
-  sendChatMessage,
-  joinChatRoom,
-
-  // User Management
-  getUserProfile,
-  updateUserProfile,
-  getUserGroups,
-  getRoles,
-
-  // Notifications
-  getUserNotifications,
-  markNotificationAsRead,
-
-  // Analytics
-  getContentAnalytics,
-  getSearchAnalytics,
-
-  // Dashboard
-  getDashboardStats,
-
-  // Utilities
-  logActivity,
-  getActivityLogs,
-  getSetting,
-  setSetting,
-  subscribeToNewsletter,
-  unsubscribeFromNewsletter,
-
-  // Real-time subscriptions
-  subscribeToChatMessages,
-  subscribeToNotifications,
-  unsubscribeFromChannel,
-
-  // Form Management
-  getFormFields,
-  submitForm,
-  getFormSubmissions,
-
-  // Media
-  getMediaLibrary,
-
-  // Cache
-  setCacheRefreshFlag,
-  getCacheRefreshFlags,
-
-  // Moderation
-  getModerationLogs,
-  logModerationAction,
-
-  // Workflow
-  getWorkflowLogs,
-  logWorkflowAction,
-
-  // Suggestions
-  getContentSuggestions,
-  submitSuggestion,
-
-  // Page Content
-  getPageContent,
-  updatePageContent,
-
-  // Comment Reactions
-  addCommentReaction,
-  removeCommentReaction,
-
-  // Error handling
-  handleSupabaseError,
-  retryOperation
-};
-
-export default supabaseAPI;

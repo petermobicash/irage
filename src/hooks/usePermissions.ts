@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import type { User } from '@supabase/supabase-js';
 import {
   USER_ROLES,
   type Permission,
@@ -319,7 +320,7 @@ export const usePermissionGuard = (
 // ========================================
 
 export const useAuthenticatedUser = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

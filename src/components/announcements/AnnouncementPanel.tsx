@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   X,
   Heart,
@@ -118,8 +118,7 @@ const AnnouncementPanel: React.FC<AnnouncementPanelProps> = ({
     return badges[priority];
   };
 
-  // Auto-hide functionality
-  useEffect(() => {
+  const setupAutoHideTimers = useCallback(() => {
     announcements.forEach(announcement => {
       if (announcement.autoHide && announcement.autoHideDelay && !autoHideTimers.has(announcement.id)) {
         const timer = setTimeout(() => {
@@ -133,7 +132,13 @@ const AnnouncementPanel: React.FC<AnnouncementPanelProps> = ({
     return () => {
       autoHideTimers.forEach(timer => clearTimeout(timer));
     };
-  }, [announcements, onDismiss]);
+  }, [announcements, onDismiss, autoHideTimers]);
+
+  // Auto-hide functionality
+  useEffect(() => {
+    const cleanup = setupAutoHideTimers();
+    return cleanup;
+  }, [setupAutoHideTimers]);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);

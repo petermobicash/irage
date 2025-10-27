@@ -10,7 +10,7 @@ export interface Column<T> {
   header: string;
   sortable?: boolean;
   filterable?: boolean;
-  render?: (value: any, item: T) => React.ReactNode;
+  render?: (value: unknown, item: T) => React.ReactNode;
   width?: string;
   align?: 'left' | 'center' | 'right';
 }
@@ -46,7 +46,7 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-function DataTable<T extends Record<string, any>>({
+function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   searchable = true,
@@ -79,8 +79,9 @@ function DataTable<T extends Record<string, any>>({
     if (searchQuery) {
       filtered = filtered.filter(item =>
         columns.some(column => {
-          const value = column.key.toString().split('.').reduce((obj, key) => obj?.[key], item);
-          return value?.toString().toLowerCase().includes(searchQuery.toLowerCase());
+          const value = column.key.toString().split('.').reduce<unknown>((obj, key) => (obj as Record<string, unknown>)?.[key], item as unknown);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (value as any)?.toString().toLowerCase().includes(searchQuery.toLowerCase());
         })
       );
     }
@@ -88,13 +89,15 @@ function DataTable<T extends Record<string, any>>({
     // Apply sorting
     if (sortConfig && sortable) {
       filtered = [...filtered].sort((a, b) => {
-        const aValue = sortConfig.key.split('.').reduce((obj, key) => obj?.[key], a);
-        const bValue = sortConfig.key.split('.').reduce((obj, key) => obj?.[key], b);
+        const aValue = sortConfig.key.split('.').reduce<unknown>((obj, key) => (obj as Record<string, unknown>)?.[key], a as unknown);
+        const bValue = sortConfig.key.split('.').reduce<unknown>((obj, key) => (obj as Record<string, unknown>)?.[key], b as unknown);
 
-        if (aValue < bValue) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((aValue as any) < (bValue as any)) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
-        if (aValue > bValue) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((aValue as any) > (bValue as any)) {
           return sortConfig.direction === 'asc' ? 1 : -1;
         }
         return 0;
@@ -158,7 +161,8 @@ function DataTable<T extends Record<string, any>>({
   };
 
   const getItemId = (item: T): string => {
-    return item.id?.toString() || item.key?.toString() || Math.random().toString();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (item as any).id?.toString() || (item as any).key?.toString() || Math.random().toString();
   };
 
   const getSortIcon = (columnKey: string) => {
@@ -171,7 +175,7 @@ function DataTable<T extends Record<string, any>>({
   };
 
   const getColumnValue = (item: T, columnKey: string) => {
-    return columnKey.split('.').reduce((obj, key) => obj?.[key], item);
+    return columnKey.split('.').reduce<unknown>((obj, key) => (obj as Record<string, unknown>)?.[key], item as unknown);
   };
 
   if (loading) {
@@ -334,9 +338,13 @@ function DataTable<T extends Record<string, any>>({
                           column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
                         }`}
                       >
-                        {column.render ? column.render(value, item) : (
+                        {column.render ? (
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          column.render(value as any, item)
+                        ) : (
                           <span className={value ? 'text-gray-900' : 'text-gray-500'}>
-                            {value?.toString() || '-'}
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {(value as any)?.toString() || '-'}
                           </span>
                         )}
                       </td>

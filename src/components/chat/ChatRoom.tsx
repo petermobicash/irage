@@ -6,6 +6,13 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { getCurrentUser } from '../../lib/supabase';
 
+interface Attachment {
+  type: string;
+  url: string;
+  name: string;
+  size?: number;
+}
+
 interface ChatRoomProps {
   roomId: string;
   onClose?: () => void;
@@ -86,7 +93,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
 
             {message.attachments && message.attachments.length > 0 && (
               <div className="mt-2 space-y-1">
-                {message.attachments.map((attachment: any, index: number) => (
+                {message.attachments.map((attachment: Attachment, index: number) => (
                   <div key={index} className="flex items-center space-x-2 text-sm">
                     <Paperclip className="w-4 h-4" />
                     <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="underline">

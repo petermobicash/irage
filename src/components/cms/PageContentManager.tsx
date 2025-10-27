@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Edit, Save, X, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
@@ -43,11 +43,7 @@ const PageContentManager = () => {
     { id: 'get-involved', name: 'Get Involved' }
   ];
 
-  useEffect(() => {
-    fetchPageContents();
-  }, []);
-
-  const fetchPageContents = async () => {
+  const fetchPageContents = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('page_content')
@@ -63,7 +59,11 @@ const PageContentManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchPageContents();
+  }, [fetchPageContents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

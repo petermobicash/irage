@@ -3,8 +3,8 @@ import React from 'react';
 interface FormFieldProps {
   label: string;
   type: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'number' | 'password' | 'color';
-  value: any;
-  onChange: (value: any) => void;
+  value: string | number | boolean;
+  onChange: (value: string | number | boolean) => void;
   placeholder?: string;
   required?: boolean;
   options?: string[] | Array<{ value: string; label: string }>;
@@ -36,9 +36,9 @@ const FormField: React.FC<FormFieldProps> = ({
   } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`;
 
   const renderInput = () => {
-    const handleChange = (e: React.ChangeEvent<any>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       if (e && e.target) {
-        onChange(e.target.value);
+        onChange(e.target.value as string | number | boolean);
       }
     };
 
@@ -52,7 +52,7 @@ const FormField: React.FC<FormFieldProps> = ({
       case 'textarea':
         return (
           <textarea
-            value={value}
+            value={value as string}
             onChange={handleChange}
             placeholder={placeholder}
             required={required}
@@ -65,7 +65,7 @@ const FormField: React.FC<FormFieldProps> = ({
       case 'select':
         return (
           <select
-            value={value}
+            value={value as string}
             onChange={handleChange}
             required={required}
             disabled={disabled}
@@ -95,7 +95,7 @@ const FormField: React.FC<FormFieldProps> = ({
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              checked={value}
+              checked={value as boolean}
               onChange={handleCheckboxChange}
               required={required}
               disabled={disabled}
@@ -136,7 +136,7 @@ const FormField: React.FC<FormFieldProps> = ({
         return (
           <input
             type={type}
-            value={value}
+            value={value as string}
             onChange={handleChange}
             placeholder={placeholder}
             required={required}

@@ -14,7 +14,7 @@ export interface SyncQueueItem {
   operation: 'create' | 'update' | 'delete';
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'retry';
   priority: number;
-  payload: any;
+  payload: Record<string, unknown>;
   created_at: string;
   processed_at?: string;
   completed_at?: string;
@@ -154,7 +154,7 @@ export class SynchronizationService {
   /**
    * Get recent synchronization activity
    */
-  async getRecentSyncActivity(limit: number = 20): Promise<any[]> {
+  async getRecentSyncActivity(limit: number = 20): Promise<unknown[]> {
     try {
       const { data, error } = await supabase.rpc('get_recent_sync_activity', {
         p_limit: limit
@@ -171,7 +171,7 @@ export class SynchronizationService {
   /**
    * Check synchronization health
    */
-  async checkSyncHealth(): Promise<any[]> {
+  async checkSyncHealth(): Promise<unknown[]> {
     try {
       const { data, error } = await supabase.rpc('check_sync_health');
 
@@ -190,7 +190,7 @@ export class SynchronizationService {
     contentType: string,
     contentId: string,
     operation: 'create' | 'update' | 'delete',
-    payload: any,
+    payload: Record<string, unknown>,
     priority: number = 5
   ): Promise<string> {
     try {
@@ -213,7 +213,7 @@ export class SynchronizationService {
   /**
    * Validate content before synchronization
    */
-  async validateContent(contentType: string, contentData: any): Promise<any> {
+  async validateContent(contentType: string, contentData: Record<string, unknown>): Promise<unknown> {
     try {
       const { data, error } = await supabase.rpc('validate_content_for_sync', {
         p_content_type: contentType,
@@ -234,7 +234,7 @@ export class SynchronizationService {
   async updateContentCache(
     contentType: string,
     contentId: string,
-    cacheData: any,
+    cacheData: Record<string, unknown>,
     cacheKey?: string,
     expiresInHours: number = 24
   ): Promise<void> {
@@ -286,7 +286,7 @@ export class SynchronizationService {
     contentType: string,
     contentId: string,
     limit: number = 10
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     try {
       const { data, error } = await supabase
         .from('content_versions')
@@ -307,7 +307,7 @@ export class SynchronizationService {
   /**
    * Get synchronization dashboard data
    */
-  async getSynchronizationDashboard(): Promise<any> {
+  async getSynchronizationDashboard(): Promise<unknown> {
     try {
       const { data, error } = await supabase
         .from('synchronization_dashboard')
@@ -350,7 +350,7 @@ export class SynchronizationService {
   /**
    * Get sync settings
    */
-  async getSyncSettings(): Promise<any[]> {
+  async getSyncSettings(): Promise<unknown[]> {
     try {
       const { data, error } = await supabase
         .from('sync_settings')
@@ -369,7 +369,7 @@ export class SynchronizationService {
   /**
    * Update sync setting
    */
-  async updateSyncSetting(settingKey: string, settingValue: any): Promise<void> {
+  async updateSyncSetting(settingKey: string, settingValue: unknown): Promise<void> {
     try {
       const { error } = await supabase
         .from('sync_settings')
@@ -467,7 +467,7 @@ export class SynchronizationService {
       limit?: number;
       offset?: number;
     } = {}
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     try {
       let query = supabase
         .from('content_sync_logs')
@@ -616,8 +616,8 @@ export class SynchronizationService {
   async getSyncOverview(): Promise<{
     queueStatus: SyncStatus[];
     cacheStats: CacheStats | null;
-    recentActivity: any[];
-    healthStatus: any[];
+    recentActivity: unknown[];
+    healthStatus: unknown[];
   }> {
     try {
       const [queueStatus, cacheStats, recentActivity, healthStatus] = await Promise.all([
@@ -646,7 +646,7 @@ export class SynchronizationService {
     startDate: string,
     endDate: string,
     contentType?: string
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     try {
       let query = supabase
         .from('content_sync_logs')
@@ -684,8 +684,8 @@ export class SynchronizationService {
     totalOperations: number;
     successRate: number;
     averageProcessingTime: number;
-    topFailingContentTypes: any[];
-    dailyTrends: any[];
+    topFailingContentTypes: unknown[];
+    dailyTrends: unknown[];
   }> {
     try {
       const metrics = await this.getPerformanceMetrics(days);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { MtnPaymentResponse } from '../../types/payment';
@@ -25,26 +25,7 @@ export const MtnPaymentStatus: React.FC<MtnPaymentStatusProps> = ({
   const [error, setError] = useState<string>('');
   const [checkCount, setCheckCount] = useState(0);
 
-  useEffect(() => {
-    checkPaymentStatus();
-
-    // Check payment status every 5 seconds for up to 2 minutes
-    const interval = setInterval(() => {
-      if (checkCount < 24) { // 24 * 5 seconds = 2 minutes
-        checkPaymentStatus();
-        setCheckCount(prev => prev + 1);
-      } else {
-        clearInterval(interval);
-        setStatus('failed');
-        setError('Payment timeout. Please try again.');
-        onPaymentFailed?.('Payment timeout');
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [paymentId, checkCount]);
-
-  const checkPaymentStatus = async () => {
+  const checkPaymentStatus = useCallback(async () => {
     try {
       const response: MtnPaymentResponse = await mtnPaymentService.checkPaymentStatus(paymentId);
 
@@ -64,7 +45,26 @@ export const MtnPaymentStatus: React.FC<MtnPaymentStatusProps> = ({
       setError('Failed to check payment status');
       onPaymentFailed?.('Failed to check payment status');
     }
-  };
+  }, [paymentId, onPaymentComplete, onPaymentFailed]);
+
+  useEffect(() => {
+    checkPaymentStatus();
+
+    // Check payment status every 5 seconds for up to 2 minutes
+    const interval = setInterval(() => {
+      if (checkCount < 24) { // 24 * 5 seconds = 2 minutes
+        checkPaymentStatus();
+        setCheckCount(prev => prev + 1);
+      } else {
+        clearInterval(interval);
+        setStatus('failed');
+        setError('Payment timeout. Please try again.');
+        onPaymentFailed?.('Payment timeout');
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [paymentId, checkCount, checkPaymentStatus, onPaymentFailed, onPaymentComplete]);
 
   const getStatusMessage = () => {
     switch (status) {

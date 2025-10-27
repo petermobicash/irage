@@ -1,10 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Users, FileText, MessageSquare, DollarSign, TrendingUp,
   Clock, CheckCircle, XCircle, AlertCircle, RefreshCw,
   Eye, ExternalLink
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+
+interface ActivityMetadata {
+  user_id?: string;
+  email?: string;
+  phone?: string;
+  amount?: number;
+  category?: string;
+  subject?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: string | number | boolean | undefined;
+}
 
 interface ActivityItem {
   id: string;
@@ -15,7 +27,7 @@ interface ActivityItem {
   status?: 'pending' | 'approved' | 'rejected' | 'completed';
   amount?: number;
   user_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: ActivityMetadata;
 }
 
 interface ActivityFeedProps {
@@ -23,74 +35,22 @@ interface ActivityFeedProps {
   className?: string;
 }
 
+interface RealtimePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new?: Record<string, unknown>;
+  old?: Record<string, unknown>;
+  schema: string;
+  table: string;
+  commit_timestamp: string;
+}
+
 const ActivityFeed: React.FC<ActivityFeedProps> = ({ onRefresh, className = '' }) => {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadActivities();
 
-    // Add system update notification for the new goal progress feature
-    const systemUpdateActivity: ActivityItem = {
-      id: 'system-update-goals',
-      type: 'content',
-      title: 'Goal Progress Enhanced',
-      subtitle: 'Direct progress updates now available - click on current values to update',
-      time: 'Just now',
-      status: 'completed'
-    };
-
-    setActivities(prev => [systemUpdateActivity, ...prev.slice(0, 9)]);
-
-    // Set up real-time subscription for new activities
-    const subscription = supabase
-      .channel('recent-activities')
-      .on('postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'membership_applications'
-        },
-        handleRealtimeUpdate
-      )
-      .on('postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'volunteer_applications'
-        },
-        handleRealtimeUpdate
-      )
-      .on('postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'contact_submissions'
-        },
-        handleRealtimeUpdate
-      )
-      .on('postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'donations'
-        },
-        handleRealtimeUpdate
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleRealtimeUpdate = (_payload: any) => {
-    // Refresh activities when new data comes in
-    loadActivities();
-  };
-
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -180,7 +140,13 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({ onRefresh, className = '' }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const handleRealtimeUpdate = useCallback((payload: RealtimePayload) => {
+    console.log('Real-time activity update received:', payload);
+    // Refresh activities when new data comes in
+    loadActivities();
+  }, [loadActivities]);
 
   const formatTimeAgo = (date: Date): string => {
     const now = new Date();
@@ -244,6 +210,63 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({ onRefresh, className = '' }
         return <AlertCircle className="w-4 h-4 text-gray-600" />;
     }
   };
+
+  useEffect(() => {
+    loadActivities();
+
+    // Add system update notification for the new goal progress feature
+    const systemUpdateActivity: ActivityItem = {
+      id: 'system-update-goals',
+      type: 'content',
+      title: 'Goal Progress Enhanced',
+      subtitle: 'Direct progress updates now available - click on current values to update',
+      time: 'Just now',
+      status: 'completed'
+    };
+
+    setActivities(prev => [systemUpdateActivity, ...prev.slice(0, 9)]);
+
+    // Set up real-time subscription for new activities
+    const subscription = supabase
+      .channel('recent-activities')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'membership_applications'
+        },
+        handleRealtimeUpdate
+      )
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'volunteer_applications'
+        },
+        handleRealtimeUpdate
+      )
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'contact_submissions'
+        },
+        handleRealtimeUpdate
+      )
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'donations'
+        },
+        handleRealtimeUpdate
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [handleRealtimeUpdate, loadActivities]);
 
   if (loading) {
     return (

@@ -85,7 +85,7 @@ const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({ roomId, guestUser, 
       audio.volume = 0.3;
       audio.play().catch(e => console.log('Could not play notification sound:', e));
     } catch (error) {
-      console.log('Audio playback not supported');
+      console.log('Audio playback not supported:', error);
     }
   };
 
@@ -99,6 +99,7 @@ const EnhancedChatRoom: React.FC<EnhancedChatRoomProps> = ({ roomId, guestUser, 
       setShowEmojiPicker(false);
     } catch (err) {
       console.error('Error sending message:', err);
+      // Handle error if needed
     }
   };
 

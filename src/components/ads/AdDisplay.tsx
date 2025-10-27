@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import { Ad, AdZone } from '../../types/ads';
 import { AdManager } from '../../utils/adManager';
@@ -27,23 +27,7 @@ const AdDisplay: React.FC<AdDisplayProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [impressionTracked, setImpressionTracked] = useState(false);
 
-  useEffect(() => {
-    loadAd();
-
-    if (autoRefresh) {
-      const interval = setInterval(loadAd, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [zoneSlug, autoRefresh, refreshInterval]);
-
-  useEffect(() => {
-    // Track impression when ad becomes visible
-    if (ad && isVisible && !impressionTracked) {
-      trackImpression();
-    }
-  }, [ad, isVisible, impressionTracked]);
-
-  const loadAd = async () => {
+  const loadAd = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -67,9 +51,16 @@ const AdDisplay: React.FC<AdDisplayProps> = ({
     } finally {
       setLoading(false);
     }
+  }, [zoneSlug, onAdLoad]);
+
+  const getDeviceType = (): 'desktop' | 'tablet' | 'mobile' => {
+    const width = window.innerWidth;
+    if (width <= 768) return 'mobile';
+    if (width <= 1024) return 'tablet';
+    return 'desktop';
   };
 
-  const trackImpression = async () => {
+  const trackImpression = useCallback(async () => {
     if (!ad || !zone || impressionTracked) return;
 
     try {
@@ -82,10 +73,7 @@ const AdDisplay: React.FC<AdDisplayProps> = ({
           zone_slug: zoneSlug,
           referrer: document.referrer,
           device_type: deviceType,
-          viewport: {
-            width: window.innerWidth,
-            height: window.innerHeight
-          }
+          viewport: `${window.innerWidth}x${window.innerHeight}`
         }
       );
 
@@ -93,7 +81,23 @@ const AdDisplay: React.FC<AdDisplayProps> = ({
     } catch (err) {
       console.error('Error tracking impression:', err);
     }
-  };
+  }, [ad, zone, impressionTracked, zoneSlug]);
+
+  useEffect(() => {
+    loadAd();
+
+    if (autoRefresh) {
+      const interval = setInterval(loadAd, refreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [loadAd, autoRefresh, refreshInterval]);
+
+  useEffect(() => {
+    // Track impression when ad becomes visible
+    if (ad && isVisible && !impressionTracked) {
+      trackImpression();
+    }
+  }, [ad, isVisible, impressionTracked, trackImpression]);
 
   const handleAdClick = async (event: React.MouseEvent) => {
     event.preventDefault();
@@ -111,8 +115,8 @@ const AdDisplay: React.FC<AdDisplayProps> = ({
         {
           zone_slug: zoneSlug,
           device_type: deviceType,
-          click_x: event.clientX,
-          click_y: event.clientY
+          clickX: event.clientX,
+          clickY: event.clientY
         }
       );
 
@@ -125,13 +129,6 @@ const AdDisplay: React.FC<AdDisplayProps> = ({
 
   const handleClose = () => {
     setIsVisible(false);
-  };
-
-  const getDeviceType = (): 'desktop' | 'tablet' | 'mobile' => {
-    const width = window.innerWidth;
-    if (width <= 768) return 'mobile';
-    if (width <= 1024) return 'tablet';
-    return 'desktop';
   };
 
   const renderAdContent = () => {

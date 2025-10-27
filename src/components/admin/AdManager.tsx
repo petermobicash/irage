@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Eye, BarChart3, Users, DollarSign } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -17,11 +17,7 @@ const AdManager: React.FC<AdManagerProps> = ({ initialView = 'ads' }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  useEffect(() => {
-    loadData();
-  }, [activeView]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       // TODO: Implement API calls to load data based on activeView
@@ -45,7 +41,11 @@ const AdManager: React.FC<AdManagerProps> = ({ initialView = 'ads' }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeView]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateAd = () => {
     // TODO: Open create ad modal/form

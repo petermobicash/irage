@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Clock, Plus, Edit2, Trash2, Eye, CheckCircle, XCircle, AlertCircle, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -67,10 +67,6 @@ const ContentCalendar = () => {
     loadEvents();
   }, []);
 
-  useEffect(() => {
-    filterEvents();
-  }, [events, searchTerm, statusFilter, typeFilter]);
-
   const loadEvents = async () => {
     try {
       setLoading(true);
@@ -99,7 +95,7 @@ const ContentCalendar = () => {
     }
   };
 
-  const filterEvents = () => {
+  const filterEvents = useCallback(() => {
     let filtered = events;
 
     if (searchTerm) {
@@ -119,7 +115,11 @@ const ContentCalendar = () => {
     }
 
     setFilteredEvents(filtered);
-  };
+  }, [events, searchTerm, statusFilter, typeFilter]);
+
+  useEffect(() => {
+    filterEvents();
+  }, [filterEvents]);
 
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,7 +326,7 @@ const ContentCalendar = () => {
         <div className="flex items-center space-x-3">
           <select
             value={viewMode}
-            onChange={(e) => setViewMode(e.target.value as any)}
+            onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
             className="border border-gray-300 rounded-lg px-3 py-2"
           >
             <option value="month">Month View</option>
@@ -398,7 +398,7 @@ const ContentCalendar = () => {
                   <FormField
                     label="Title"
                     value={eventForm.title}
-                    onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(value) => setEventForm(prev => ({ ...prev, title: value as string }))}
                     placeholder="Enter content title"
                     required
                     type="text"
@@ -407,7 +407,7 @@ const ContentCalendar = () => {
                   <FormField
                     label="Content Type"
                     value={eventForm.content_type}
-                    onChange={(value) => setEventForm(prev => ({ ...prev, content_type: value as any }))}
+                    onChange={(value) => setEventForm(prev => ({ ...prev, content_type: value as CalendarEvent['content_type'] }))}
                     type="select"
                     options={['post', 'page', 'event', 'announcement']}
                   />
@@ -416,7 +416,7 @@ const ContentCalendar = () => {
                 <FormField
                   label="Content"
                   value={eventForm.content}
-                  onChange={(e) => setEventForm(prev => ({ ...prev, content: e.target.value }))}
+                  onChange={(value) => setEventForm(prev => ({ ...prev, content: value as string }))}
                   placeholder="Enter content description"
                   type="textarea"
                 />
@@ -425,7 +425,7 @@ const ContentCalendar = () => {
                   <FormField
                     label="Publish Date & Time"
                     value={eventForm.publish_date}
-                    onChange={(e) => setEventForm(prev => ({ ...prev, publish_date: e.target.value }))}
+                    onChange={(value) => setEventForm(prev => ({ ...prev, publish_date: value as string }))}
                     type="text"
                     placeholder="YYYY-MM-DD HH:MM:SS"
                     required
@@ -434,7 +434,7 @@ const ContentCalendar = () => {
                   <FormField
                     label="Priority"
                     value={eventForm.priority}
-                    onChange={(value) => setEventForm(prev => ({ ...prev, priority: value as any }))}
+                    onChange={(value) => setEventForm(prev => ({ ...prev, priority: value as CalendarEvent['priority'] }))}
                     type="select"
                     options={['low', 'medium', 'high']}
                   />
@@ -444,7 +444,7 @@ const ContentCalendar = () => {
                   <FormField
                     label="Tags (comma-separated)"
                     value={eventForm.tags}
-                    onChange={(e) => setEventForm(prev => ({ ...prev, tags: e.target.value }))}
+                    onChange={(value) => setEventForm(prev => ({ ...prev, tags: value as string }))}
                     placeholder="tag1, tag2, tag3"
                     type="text"
                   />
@@ -452,7 +452,7 @@ const ContentCalendar = () => {
                   <FormField
                     label="Featured Image URL"
                     value={eventForm.featured_image}
-                    onChange={(e) => setEventForm(prev => ({ ...prev, featured_image: e.target.value }))}
+                    onChange={(value) => setEventForm(prev => ({ ...prev, featured_image: value as string }))}
                     placeholder="https://example.com/image.jpg"
                     type="url"
                   />
@@ -461,7 +461,7 @@ const ContentCalendar = () => {
                 <FormField
                   label="Excerpt"
                   value={eventForm.excerpt}
-                  onChange={(e) => setEventForm(prev => ({ ...prev, excerpt: e.target.value }))}
+                  onChange={(value) => setEventForm(prev => ({ ...prev, excerpt: value as string }))}
                   placeholder="Brief description for previews"
                   type="textarea"
                 />

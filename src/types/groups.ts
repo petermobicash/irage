@@ -48,7 +48,7 @@ export interface Permission {
   module: string;
   action: string;
   resource?: string;
-  conditions?: Record<string, any>;
+  conditions?: Record<string, string | number | boolean | null | undefined>;
   isActive: boolean;
   isSystemPermission: boolean;
   orderIndex: number;
@@ -202,7 +202,7 @@ export interface GroupActivity {
   description: string;
   performedBy: string;
   performedAt: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | null | undefined>;
 }
 
 // Types for permission management
@@ -290,14 +290,14 @@ export const GROUP_ICONS = [
 ] as const;
 
 // Type guards
-export const isGroup = (obj: any): obj is Group => {
-  return obj && typeof obj === 'object' && 'id' in obj && 'name' in obj;
+export const isGroup = (obj: unknown): obj is Group => {
+  return obj !== null && typeof obj === 'object' && 'id' in obj && 'name' in obj;
 };
 
-export const isPermission = (obj: any): obj is Permission => {
-  return obj && typeof obj === 'object' && 'id' in obj && 'name' in obj && 'slug' in obj;
+export const isPermission = (obj: unknown): obj is Permission => {
+  return obj !== null && typeof obj === 'object' && 'id' in obj && 'name' in obj && 'slug' in obj;
 };
 
-export const isGroupUser = (obj: any): obj is GroupUser => {
-  return obj && typeof obj === 'object' && 'id' in obj && 'groupId' in obj && 'userId' in obj;
+export const isGroupUser = (obj: unknown): obj is GroupUser => {
+  return obj !== null && typeof obj === 'object' && 'id' in obj && 'groupId' in obj && 'userId' in obj;
 };

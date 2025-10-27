@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare, Users, Volume2, VolumeX, Reply, Heart, ThumbsUp, Smile, Paperclip, MoreVertical, Search, X, Pin, Star, Mic, Settings, Shield } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { getCurrentUser, supabase } from '../../lib/supabase';
@@ -8,6 +9,15 @@ import VoiceMessagePlayer from './VoiceMessagePlayer';
 import VideoCallButton from './VideoCallButton';
 import GuestChatEntry from './GuestChatEntry';
 import { usePermission } from '../../hooks/usePermissions';
+
+interface OnlineUser {
+  id: string;
+  display_name: string;
+  username: string;
+  avatar_url: string | null;
+  status: string;
+  role: string;
+}
 
 interface Attachment {
   type: 'image' | 'file' | 'audio' | 'video';
@@ -26,14 +36,14 @@ interface ChatMessage {
   message_text: string;
   message_type: 'text' | 'image' | 'file' | 'system' | 'notification';
   reply_to_id: string | null;
-  mentions: any;
+  mentions: Record<string, unknown>;
   attachments: Attachment[];
-  reactions: any;
+  reactions: Record<string, unknown>;
   is_edited: boolean;
   is_deleted: boolean;
   is_pinned: boolean;
   message_status: 'sent' | 'delivered' | 'seen';
-  metadata: any;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   edited_at: string | null;
@@ -51,11 +61,11 @@ const GeneralChat: React.FC<GeneralChatProps> = ({ onClose }) => {
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [showParticipants, setShowParticipants] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -287,7 +297,7 @@ const GeneralChat: React.FC<GeneralChatProps> = ({ onClose }) => {
       cleanup();
       clearTimeout(timeout);
     };
-  }, [currentUser]);
+  }, [currentUser, isLoading]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

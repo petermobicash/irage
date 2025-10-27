@@ -38,14 +38,14 @@ const PhilosophyCafeJoinForm = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof PhilosophyCafeFormData, string>>>({});
   const { showToast } = useToast();
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof PhilosophyCafeFormData>(field: K, value: PhilosophyCafeFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev: any) => ({ ...prev, [field]: null }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -61,7 +61,7 @@ const PhilosophyCafeJoinForm = () => {
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: Partial<Record<keyof PhilosophyCafeFormData, string>> = {};
 
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
@@ -147,27 +147,25 @@ const PhilosophyCafeJoinForm = () => {
       });
       setErrors({});
 
-    } catch (err: any) {
-       console.error('❌ Philosophy Cafe Form submission error:', err);
-       console.error('🔍 Error details:', {
-         message: err.message,
-         details: err.details,
-         hint: err.hint,
-         code: err.code,
-         stack: err.stack
-       });
+    } catch (err: unknown) {
+        console.error('❌ Philosophy Cafe Form submission error:', err);
+        const error = err as Error;
+        console.error('🔍 Error details:', {
+          message: error.message,
+          stack: error.stack
+        });
 
-       // Provide more specific error messages
-       let errorMessage = 'There was an error submitting your application. Please try again.';
-       if (err.message?.includes('JWT')) {
-         errorMessage = 'Authentication error. Please refresh the page and try again.';
-       } else if (err.message?.includes('network')) {
-         errorMessage = 'Network error. Please check your connection and try again.';
-       } else if (err.message?.includes('permission')) {
-         errorMessage = 'Permission error. Please contact support if this persists.';
-       }
+        // Provide more specific error messages
+        let errorMessage = 'There was an error submitting your application. Please try again.';
+        if (error.message?.includes('JWT')) {
+          errorMessage = 'Authentication error. Please refresh the page and try again.';
+        } else if (error.message?.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message?.includes('permission')) {
+          errorMessage = 'Permission error. Please contact support if this persists.';
+        }
 
-       showToast(errorMessage, 'error');
+        showToast(errorMessage, 'error');
      } finally {
        setIsSubmitting(false);
      }

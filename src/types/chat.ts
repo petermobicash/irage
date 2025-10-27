@@ -23,7 +23,7 @@ export interface Comment {
     url: string;
     name: string;
   }>;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
   ip_address?: string;
   user_agent?: string;
   created_at: string;
@@ -53,7 +53,7 @@ export interface ChatRoom {
     allow_mentions: boolean;
     moderation_enabled: boolean;
   };
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
   participants?: ChatParticipant[];
   unread_count?: number;
 }
@@ -86,7 +86,7 @@ export interface ChatMessage {
   is_edited: boolean;
   is_deleted: boolean;
   is_pinned: boolean;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
   created_at: string;
   updated_at: string;
   edited_at?: string;
@@ -107,7 +107,7 @@ export interface ChatParticipant {
   is_muted: boolean;
   is_banned: boolean;
   permissions: string[];
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface ActivityLog {
@@ -118,12 +118,12 @@ export interface ActivityLog {
   action: string;
   resource_type: string;
   resource_id?: string;
-  details: Record<string, any>;
+  details: Record<string, string | number | boolean | null | undefined>;
   ip_address?: string;
   user_agent?: string;
   session_id?: string;
   timestamp: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface AppNotification {
@@ -136,7 +136,7 @@ export interface AppNotification {
   is_read: boolean;
   is_archived: boolean;
   read_at?: string;
-  data: Record<string, any>;
+  data: Record<string, string | number | boolean | null | undefined>;
   expires_at?: string;
   created_at: string;
 }
@@ -154,7 +154,7 @@ export interface Suggestion {
   reviewed_by?: string;
   reviewed_at?: string;
   created_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface ModerationLog {
@@ -165,9 +165,9 @@ export interface ModerationLog {
   resource_type: string;
   resource_id: string;
   reason?: string;
-  details: Record<string, any>;
+  details: Record<string, string | number | boolean | null | undefined>;
   created_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface CommentReaction {
@@ -208,7 +208,7 @@ export interface WhatsAppMessage {
     name: string;
     size?: number;
   }>;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null | undefined>;
   created_at: string;
   updated_at: string;
   edited_at?: string;

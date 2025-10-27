@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Upload, Image, File, Trash2, Search, Grid, List, Settings } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../ui/Button';
@@ -47,11 +47,7 @@ const MediaLibrary = () => {
   });
   const { showToast } = useToast();
 
-  useEffect(() => {
-    fetchMediaItems();
-  }, []);
-
-  const fetchMediaItems = async () => {
+  const fetchMediaItems = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('media')
@@ -66,7 +62,11 @@ const MediaLibrary = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchMediaItems();
+  }, [fetchMediaItems]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -241,7 +241,7 @@ const MediaLibrary = () => {
               <label className="block text-sm font-medium text-green-700 mb-1">Format</label>
               <select
                 value={cdnSettings.format}
-                onChange={(e) => setCdnSettings(prev => ({ ...prev, format: e.target.value as any }))}
+                onChange={(e) => setCdnSettings(prev => ({ ...prev, format: e.target.value as 'webp' | 'jpg' | 'png' }))}
                 className="w-full px-3 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500"
               >
                 <option value="webp">WebP</option>

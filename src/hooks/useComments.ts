@@ -2,6 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Comment, CommentReaction } from '../types/chat';
 
+interface CommentInsertData {
+  content_id: string;
+  parent_comment_id?: string;
+  comment_text: string;
+  comment_type: Comment['comment_type'];
+  mentions: Array<{ user_name: string; position: number }>;
+  status: string;
+  author_id?: string | null;
+  author_name: string;
+  author_email: string;
+  author_avatar?: string | null;
+}
+
 export const useComments = (contentSlug: string) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,7 +159,7 @@ export const useComments = (contentSlug: string) => {
 
         console.log('Successfully created content with ID:', newContent.id);
         setContentId(newContent.id);
-      } catch (createErr: any) {
+      } catch (createErr: unknown) {
         console.error('Exception creating content:', createErr);
         setError('Failed to initialize comments. Please refresh the page.');
         return;
@@ -178,7 +191,7 @@ export const useComments = (contentSlug: string) => {
       // Get current authenticated user (optional)
       const { data: { user } } = await supabase.auth.getUser();
 
-      const commentData: any = {
+      const commentData: CommentInsertData = {
         content_id: contentId,
         parent_comment_id: parentId,
         comment_text: commentText,
@@ -227,7 +240,7 @@ export const useComments = (contentSlug: string) => {
       console.error('Error submitting comment:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit comment');
     }
-  }, [contentId, loadComments]);
+  }, [contentId, loadComments, contentSlug, error, submitting]);
 
   // React to comment
   const reactToComment = useCallback(async (

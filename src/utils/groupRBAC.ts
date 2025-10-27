@@ -24,6 +24,63 @@ import {
   type UserProfile
 } from '../types/permissions';
 
+// Types for database rows
+interface GroupRow {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  icon: string;
+  parent_group_id: string | null;
+  order_index: number;
+  is_active: boolean;
+  is_system_group: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
+interface PermissionRow {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  category_id: string;
+  module: string;
+  action: string;
+  resource: string;
+  conditions: unknown;
+  is_system_permission: boolean;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
+interface GroupPermissionRow {
+  permission_id: string;
+  permissions: PermissionRow[];
+}
+
+interface GroupUserRow {
+  group_id: string;
+  assigned_at: string;
+  assigned_by: string;
+}
+
+interface GroupWithPermissionsRow {
+  group_id: string;
+  groups: {
+    id: string;
+    name: string;
+    is_active: boolean;
+    group_permissions: Array<{
+      permission_id: string;
+      permissions: PermissionRow[];
+    }>;
+  };
+}
+
 /**
  * Get the current authenticated user's ID
  * Returns null if user is not authenticated or ID is invalid
@@ -137,7 +194,7 @@ export const getGroups = async (filters?: GroupFilters, pagination?: PaginationO
     if (error) throw error;
 
     // Transform the data to match the Group interface
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: GroupRow) => ({
       id: item.id,
       name: item.name,
       description: item.description,
@@ -266,7 +323,7 @@ export const createGroup = async (groupData: CreateGroupRequest, createdBy: stri
 
 export const updateGroup = async (groupData: UpdateGroupRequest): Promise<Group | null> => {
   try {
-    const updateData: any = {
+    const updateData: Partial<GroupRow> = {
       updated_at: new Date().toISOString()
     };
 
@@ -475,7 +532,7 @@ export const getGroupUsers = async (groupId: string): Promise<GroupUser[]> => {
     if (error) throw error;
 
     // Transform the data to match the GroupUser interface
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: GroupUserRow & { id: string; user_id: string; is_active: boolean }) => ({
       id: item.id,
       groupId: item.group_id,
       userId: item.user_id,
@@ -554,7 +611,7 @@ export const getPermissions = async (filters?: PermissionFilters, pagination?: P
     if (error) throw error;
 
     // Transform to match Permission interface
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: PermissionRow) => ({
       id: item.id,
       name: item.name,
       slug: item.slug,
@@ -645,23 +702,26 @@ export const getGroupPermissions = async (groupId: string): Promise<Permission[]
     }
 
     // Transform to match Permission interface
-    return (groupPermData || []).map((item: any) => ({
-      id: item.permissions.id,
-      name: item.permissions.name,
-      slug: item.permissions.slug,
-      description: item.permissions.description,
-      categoryId: item.permissions.category_id,
-      module: item.permissions.module,
-      action: item.permissions.action,
-      resource: item.permissions.resource,
-      conditions: item.permissions.conditions,
-      isActive: true, // All permissions are active by default
-      isSystemPermission: item.permissions.is_system_permission,
-      orderIndex: item.permissions.order_index,
-      createdAt: item.permissions.created_at,
-      updatedAt: item.permissions.updated_at,
-      createdBy: item.permissions.created_by
-    })) as Permission[];
+    return (groupPermData || []).map((item: GroupPermissionRow) => {
+      const perm = item.permissions[0];
+      return {
+        id: perm.id,
+        name: perm.name,
+        slug: perm.slug,
+        description: perm.description,
+        categoryId: perm.category_id,
+        module: perm.module,
+        action: perm.action,
+        resource: perm.resource,
+        conditions: perm.conditions,
+        isActive: true, // All permissions are active by default
+        isSystemPermission: perm.is_system_permission,
+        orderIndex: perm.order_index,
+        createdAt: perm.created_at,
+        updatedAt: perm.updated_at,
+        createdBy: perm.created_by
+      };
+    }) as Permission[];
   } catch (error) {
     console.error('Error fetching group permissions:', error);
     return [];
@@ -707,9 +767,10 @@ export const checkUserPermissionThroughGroups = async (
       .eq('permissions.slug', permissionSlug);
 
     if (error) throw error;
-    const hasPermission = (data || []).some((item: any) =>
-      (item.groups?.group_permissions || []).some((gp: any) => (gp.permissions as any)?.slug === permissionSlug)
-    );
+    const hasPermission = (data || []).some((item: unknown) => {
+      const groups = (item as GroupWithPermissionsRow).groups;
+      return (groups?.group_permissions || []).some((gp: unknown) => (gp as { permissions: PermissionRow[] }).permissions[0]?.slug === permissionSlug);
+    });
     return hasPermission;
   } catch (error) {
     console.error('Error checking user permission through groups:', error);
@@ -749,8 +810,8 @@ export const getUserAllPermissionsThroughGroups = async (userId: string): Promis
 
     if (error) throw error;
 
-    const permissions = (data || []).flatMap((item: any) =>
-      (item.groups?.group_permissions || []).map((gp: any) => (gp.permissions as any)?.slug).filter(Boolean)
+    const permissions = (data || []).flatMap((item: unknown) =>
+      ((item as GroupWithPermissionsRow).groups?.group_permissions || []).map((gp: unknown) => (gp as { permissions: PermissionRow[] }).permissions[0]?.slug).filter(Boolean)
     );
     return [...new Set(permissions)]; // Remove duplicates
   } catch (error) {
@@ -904,7 +965,7 @@ export const getGroupHierarchy = async (): Promise<Group[]> => {
     if (error) throw error;
 
     // Transform to match Group interface
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: GroupRow) => ({
       id: item.id,
       name: item.name,
       description: item.description,
