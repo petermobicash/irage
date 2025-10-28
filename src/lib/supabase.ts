@@ -49,12 +49,12 @@ export interface Database {
           action: string;
           resource_type: string;
           resource_id: string | null;
-          details: any;
+          details: Record<string, unknown>;
           ip_address: string | null;
           user_agent: string | null;
           session_id: string | null;
           timestamp: string;
-          metadata: any;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           user_id?: string | null;
@@ -63,11 +63,11 @@ export interface Database {
           action: string;
           resource_type: string;
           resource_id?: string | null;
-          details?: any;
+          details?: Record<string, unknown>;
           ip_address?: string | null;
           user_agent?: string | null;
           session_id?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           user_id?: string | null;
@@ -76,11 +76,11 @@ export interface Database {
           action?: string;
           resource_type?: string;
           resource_id?: string | null;
-          details?: any;
+          details?: Record<string, unknown>;
           ip_address?: string | null;
           user_agent?: string | null;
           session_id?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
         };
       };
       automation_rules: {
@@ -89,8 +89,8 @@ export interface Database {
           name: string;
           description: string | null;
           trigger_type: string;
-          trigger_conditions: any;
-          actions: any;
+          trigger_conditions: Record<string, unknown>;
+          actions: Record<string, unknown>;
           is_active: boolean;
           created_by: string | null;
           created_at: string;
@@ -102,8 +102,8 @@ export interface Database {
           name: string;
           description?: string | null;
           trigger_type: string;
-          trigger_conditions?: any;
-          actions?: any;
+          trigger_conditions?: Record<string, unknown>;
+          actions?: Record<string, unknown>;
           is_active?: boolean;
           created_by?: string | null;
           execution_count?: number;
@@ -112,8 +112,8 @@ export interface Database {
           name?: string;
           description?: string | null;
           trigger_type?: string;
-          trigger_conditions?: any;
-          actions?: any;
+          trigger_conditions?: Record<string, unknown>;
+          actions?: Record<string, unknown>;
           is_active?: boolean;
           created_by?: string | null;
           last_executed?: string | null;
@@ -173,13 +173,13 @@ export interface Database {
           message_text: string;
           message_type: 'text' | 'image' | 'file' | 'system' | 'notification';
           reply_to_id: string | null;
-          mentions: any;
-          attachments: any;
-          reactions: any;
+          mentions: Record<string, unknown>;
+          attachments: Record<string, unknown>;
+          reactions: Record<string, unknown>;
           is_edited: boolean;
           is_deleted: boolean;
           is_pinned: boolean;
-          metadata: any;
+          metadata: Record<string, unknown>;
           created_at: string;
           updated_at: string;
           edited_at: string | null;
@@ -193,13 +193,13 @@ export interface Database {
           message_text: string;
           message_type?: 'text' | 'image' | 'file' | 'system' | 'notification';
           reply_to_id?: string | null;
-          mentions?: any;
-          attachments?: any;
-          reactions?: any;
+          mentions?: Record<string, unknown>;
+          attachments?: Record<string, unknown>;
+          reactions?: Record<string, unknown>;
           is_edited?: boolean;
           is_deleted?: boolean;
           is_pinned?: boolean;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           room_id?: string | null;
@@ -209,13 +209,13 @@ export interface Database {
           message_text?: string;
           message_type?: 'text' | 'image' | 'file' | 'system' | 'notification';
           reply_to_id?: string | null;
-          mentions?: any;
-          attachments?: any;
-          reactions?: any;
+          mentions?: Record<string, unknown>;
+          attachments?: Record<string, unknown>;
+          reactions?: Record<string, unknown>;
           is_edited?: boolean;
           is_deleted?: boolean;
           is_pinned?: boolean;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
           edited_at?: string | null;
           deleted_at?: string | null;
         };
@@ -233,8 +233,8 @@ export interface Database {
           is_online: boolean;
           is_muted: boolean;
           is_banned: boolean;
-          permissions: any;
-          metadata: any;
+          permissions: Record<string, unknown>;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           room_id?: string | null;
@@ -247,8 +247,8 @@ export interface Database {
           is_online?: boolean;
           is_muted?: boolean;
           is_banned?: boolean;
-          permissions?: any;
-          metadata?: any;
+          permissions?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           room_id?: string | null;
@@ -261,8 +261,8 @@ export interface Database {
           is_online?: boolean;
           is_muted?: boolean;
           is_banned?: boolean;
-          permissions?: any;
-          metadata?: any;
+          permissions?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
       };
       chat_rooms: {
@@ -278,8 +278,8 @@ export interface Database {
           created_at: string;
           updated_at: string;
           last_activity: string;
-          settings: any;
-          metadata: any;
+          settings: Record<string, unknown>;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           name: string;
@@ -289,8 +289,8 @@ export interface Database {
           is_active?: boolean;
           max_participants?: number;
           created_by?: string | null;
-          settings?: any;
-          metadata?: any;
+          settings?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           name?: string;
@@ -301,8 +301,8 @@ export interface Database {
           max_participants?: number;
           created_by?: string | null;
           last_activity?: string;
-          settings?: any;
-          metadata?: any;
+          settings?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
       };
       comment_reactions: {
@@ -405,12 +405,12 @@ export interface Database {
           published_at: string | null;
           scheduled_for: string | null;
           featured_image: string | null;
-          gallery: any;
-          categories: any;
-          tags: any;
+          gallery: Record<string, unknown>;
+          categories: Record<string, unknown>;
+          tags: Record<string, unknown>;
           seo_meta_title: string | null;
           seo_meta_description: string | null;
-          seo_keywords: any;
+          seo_keywords: Record<string, unknown>;
           seo_og_image: string | null;
           allow_comments: boolean;
           featured: boolean;
@@ -449,12 +449,12 @@ export interface Database {
           published_at?: string | null;
           scheduled_for?: string | null;
           featured_image?: string | null;
-          gallery?: any;
-          categories?: any;
-          tags?: any;
+          gallery?: Record<string, unknown>;
+          categories?: Record<string, unknown>;
+          tags?: Record<string, unknown>;
           seo_meta_title?: string | null;
           seo_meta_description?: string | null;
-          seo_keywords?: any;
+          seo_keywords?: Record<string, unknown>;
           seo_og_image?: string | null;
           allow_comments?: boolean;
           featured?: boolean;
@@ -493,12 +493,12 @@ export interface Database {
           published_at?: string | null;
           scheduled_for?: string | null;
           featured_image?: string | null;
-          gallery?: any;
-          categories?: any;
-          tags?: any;
+          gallery?: Record<string, unknown>;
+          categories?: Record<string, unknown>;
+          tags?: Record<string, unknown>;
           seo_meta_title?: string | null;
           seo_meta_description?: string | null;
-          seo_keywords?: any;
+          seo_keywords?: Record<string, unknown>;
           seo_og_image?: string | null;
           allow_comments?: boolean;
           featured?: boolean;
@@ -568,7 +568,7 @@ export interface Database {
           user_id: string;
           user_name: string;
           role: string;
-          permissions: any;
+          permissions: Record<string, unknown>;
           invited_by: string;
           invited_at: string;
           accepted_at: string | null;
@@ -581,7 +581,7 @@ export interface Database {
           user_id: string;
           user_name: string;
           role?: string;
-          permissions?: any;
+          permissions?: Record<string, unknown>;
           invited_by: string;
           invited_at?: string;
           accepted_at?: string | null;
@@ -594,7 +594,7 @@ export interface Database {
           user_id?: string;
           user_name?: string;
           role?: string;
-          permissions?: any;
+          permissions?: Record<string, unknown>;
           invited_by?: string;
           invited_at?: string;
           accepted_at?: string | null;
@@ -617,14 +617,14 @@ export interface Database {
           resolved_at: string | null;
           created_at: string;
           updated_at: string;
-          mentions: any;
+          mentions: Record<string, unknown>;
           author_user_id: string | null;
           status: 'published' | 'pending' | 'approved' | 'rejected' | 'hidden';
           is_pinned: boolean;
           is_highlighted: boolean;
           likes_count: number;
           replies_count: number;
-          attachments: any;
+          attachments: Record<string, unknown>;
           ip_address: string | null;
           user_agent: string | null;
           edited_at: string | null;
@@ -644,14 +644,14 @@ export interface Database {
           is_resolved?: boolean;
           resolved_by?: string | null;
           resolved_at?: string | null;
-          mentions?: any;
+          mentions?: Record<string, unknown>;
           author_user_id?: string | null;
           status?: 'published' | 'pending' | 'approved' | 'rejected' | 'hidden';
           is_pinned?: boolean;
           is_highlighted?: boolean;
           likes_count?: number;
           replies_count?: number;
-          attachments?: any;
+          attachments?: Record<string, unknown>;
           ip_address?: string | null;
           user_agent?: string | null;
           moderated_by_id?: string | null;
@@ -670,14 +670,14 @@ export interface Database {
           is_resolved?: boolean;
           resolved_by?: string | null;
           resolved_at?: string | null;
-          mentions?: any;
+          mentions?: Record<string, unknown>;
           author_user_id?: string | null;
           status?: 'published' | 'pending' | 'approved' | 'rejected' | 'hidden';
           is_pinned?: boolean;
           is_highlighted?: boolean;
           likes_count?: number;
           replies_count?: number;
-          attachments?: any;
+          attachments?: Record<string, unknown>;
           ip_address?: string | null;
           user_agent?: string | null;
           edited_at?: string | null;
@@ -755,7 +755,7 @@ export interface Database {
           created_by: string;
           created_at: string;
           is_current: boolean;
-          diff_data: any | null;
+          diff_data: Record<string, unknown> | null;
           word_count: number;
           character_count: number;
           created_by_id: string | null;
@@ -769,7 +769,7 @@ export interface Database {
           changes_summary?: string | null;
           created_by: string;
           is_current?: boolean;
-          diff_data?: any | null;
+          diff_data?: Record<string, unknown> | null;
           word_count?: number;
           character_count?: number;
           created_by_id?: string | null;
@@ -783,7 +783,7 @@ export interface Database {
           changes_summary?: string | null;
           created_by?: string;
           is_current?: boolean;
-          diff_data?: any | null;
+          diff_data?: Record<string, unknown> | null;
           word_count?: number;
           character_count?: number;
           created_by_id?: string | null;
@@ -800,7 +800,7 @@ export interface Database {
           executed_at: string | null;
           execution_status: string;
           error_message: string | null;
-          metadata: any;
+          metadata: Record<string, unknown>;
           scheduled_by_id: string | null;
         };
         Insert: {
@@ -812,7 +812,7 @@ export interface Database {
           executed_at?: string | null;
           execution_status?: string;
           error_message?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
           scheduled_by_id?: string | null;
         };
         Update: {
@@ -824,7 +824,7 @@ export interface Database {
           executed_at?: string | null;
           execution_status?: string;
           error_message?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
           scheduled_by_id?: string | null;
         };
       };
@@ -835,9 +835,9 @@ export interface Database {
           description: string | null;
           content_type: string;
           template_content: string;
-          template_fields: any;
+          template_fields: Record<string, unknown>;
           category: string | null;
-          tags: any;
+          tags: Record<string, unknown>;
           is_public: boolean;
           created_by: string;
           created_at: string;
@@ -851,9 +851,9 @@ export interface Database {
           description?: string | null;
           content_type: string;
           template_content: string;
-          template_fields?: any;
+          template_fields?: Record<string, unknown>;
           category?: string | null;
-          tags?: any;
+          tags?: Record<string, unknown>;
           is_public?: boolean;
           created_by: string;
           usage_count?: number;
@@ -865,9 +865,9 @@ export interface Database {
           description?: string | null;
           content_type?: string;
           template_content?: string;
-          template_fields?: any;
+          template_fields?: Record<string, unknown>;
           category?: string | null;
-          tags?: any;
+          tags?: Record<string, unknown>;
           is_public?: boolean;
           created_by?: string;
           usage_count?: number;
@@ -944,8 +944,8 @@ export interface Database {
           label: string;
           placeholder: string | null;
           required: boolean;
-          options: any;
-          validation_rules: any;
+          options: Record<string, unknown>;
+          validation_rules: Record<string, unknown>;
           order_index: number;
           is_active: boolean;
           status: string;
@@ -960,8 +960,8 @@ export interface Database {
           label: string;
           placeholder?: string | null;
           required?: boolean;
-          options?: any;
-          validation_rules?: any;
+          options?: Record<string, unknown>;
+          validation_rules?: Record<string, unknown>;
           order_index?: number;
           is_active?: boolean;
           status?: string;
@@ -974,8 +974,8 @@ export interface Database {
           label?: string;
           placeholder?: string | null;
           required?: boolean;
-          options?: any;
-          validation_rules?: any;
+          options?: Record<string, unknown>;
+          validation_rules?: Record<string, unknown>;
           order_index?: number;
           is_active?: boolean;
           status?: string;
@@ -987,7 +987,7 @@ export interface Database {
         Row: {
           id: string;
           page_id: string;
-          form_data: any;
+          form_data: Record<string, unknown>;
           submitted_at: string;
           status: string;
           reviewed_by: string | null;
@@ -997,7 +997,7 @@ export interface Database {
         };
         Insert: {
           page_id: string;
-          form_data: any;
+          form_data: Record<string, unknown>;
           status?: string;
           reviewed_by?: string | null;
           reviewed_at?: string | null;
@@ -1006,7 +1006,7 @@ export interface Database {
         };
         Update: {
           page_id?: string;
-          form_data?: any;
+          form_data?: Record<string, unknown>;
           status?: string;
           reviewed_by?: string | null;
           reviewed_at?: string | null;
@@ -1028,8 +1028,8 @@ export interface Database {
           caption: string;
           uploaded_at: string;
           uploaded_by: string;
-          tags: any;
-          metadata: any;
+          tags: Record<string, unknown>;
+          metadata: Record<string, unknown>;
           usage_count: number;
           last_used_at: string | null;
           storage_path: string | null;
@@ -1047,8 +1047,8 @@ export interface Database {
           alt?: string;
           caption?: string;
           uploaded_by: string;
-          tags?: any;
-          metadata?: any;
+          tags?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
           usage_count?: number;
           last_used_at?: string | null;
           storage_path?: string | null;
@@ -1066,8 +1066,8 @@ export interface Database {
           alt?: string;
           caption?: string;
           uploaded_by?: string;
-          tags?: any;
-          metadata?: any;
+          tags?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
           usage_count?: number;
           last_used_at?: string | null;
           storage_path?: string | null;
@@ -1226,9 +1226,9 @@ export interface Database {
           resource_type: string;
           resource_id: string;
           reason: string | null;
-          details: any;
+          details: Record<string, unknown>;
           created_at: string;
-          metadata: any;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           moderator_id?: string | null;
@@ -1237,8 +1237,8 @@ export interface Database {
           resource_type: string;
           resource_id: string;
           reason?: string | null;
-          details?: any;
-          metadata?: any;
+          details?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           moderator_id?: string | null;
@@ -1247,8 +1247,8 @@ export interface Database {
           resource_type?: string;
           resource_id?: string;
           reason?: string | null;
-          details?: any;
-          metadata?: any;
+          details?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
       };
       notification_queue: {
@@ -1257,7 +1257,7 @@ export interface Database {
           topic: string;
           ref_table: string;
           ref_id: string | null;
-          payload: any;
+          payload: Record<string, unknown>;
           status: string;
           attempts: number;
           last_error: string | null;
@@ -1273,7 +1273,7 @@ export interface Database {
           topic: string;
           ref_table: string;
           ref_id?: string | null;
-          payload?: any;
+          payload?: Record<string, unknown>;
           status?: string;
           attempts?: number;
           last_error?: string | null;
@@ -1288,7 +1288,7 @@ export interface Database {
           topic?: string;
           ref_table?: string;
           ref_id?: string | null;
-          payload?: any;
+          payload?: Record<string, unknown>;
           status?: string;
           attempts?: number;
           last_error?: string | null;
@@ -1353,16 +1353,16 @@ export interface Database {
           alternate_contact: string | null;
           alternate_email: string | null;
           headquarters: string | null;
-          operating_countries: any;
+          operating_countries: Record<string, unknown>;
           location: string | null;
           description: string | null;
           mission: string | null;
           current_programs: string | null;
           target_beneficiaries: string | null;
           annual_budget: string | null;
-          partnership_type: any;
+          partnership_type: Record<string, unknown>;
           other_partnership_type: string | null;
-          resources: any;
+          resources: Record<string, unknown>;
           other_resources: string | null;
           goals: string | null;
           timeline: string | null;
@@ -1394,16 +1394,16 @@ export interface Database {
           alternate_contact?: string | null;
           alternate_email?: string | null;
           headquarters?: string | null;
-          operating_countries?: any;
+          operating_countries?: Record<string, unknown>;
           location?: string | null;
           description?: string | null;
           mission?: string | null;
           current_programs?: string | null;
           target_beneficiaries?: string | null;
           annual_budget?: string | null;
-          partnership_type?: any;
+          partnership_type?: Record<string, unknown>;
           other_partnership_type?: string | null;
-          resources?: any;
+          resources?: Record<string, unknown>;
           other_resources?: string | null;
           goals?: string | null;
           timeline?: string | null;
@@ -1434,16 +1434,16 @@ export interface Database {
           alternate_contact?: string | null;
           alternate_email?: string | null;
           headquarters?: string | null;
-          operating_countries?: any;
+          operating_countries?: Record<string, unknown>;
           location?: string | null;
           description?: string | null;
           mission?: string | null;
           current_programs?: string | null;
           target_beneficiaries?: string | null;
           annual_budget?: string | null;
-          partnership_type?: any;
+          partnership_type?: Record<string, unknown>;
           other_partnership_type?: string | null;
-          resources?: any;
+          resources?: Record<string, unknown>;
           other_resources?: string | null;
           goals?: string | null;
           timeline?: string | null;
@@ -1526,8 +1526,8 @@ export interface Database {
           full_name: string | null;
           role: string;
           avatar_url: string | null;
-          groups: any;
-          custom_permissions: any;
+          groups: Record<string, unknown>;
+          custom_permissions: Record<string, unknown>;
           last_login: string | null;
           created_at: string;
           is_active: boolean;
@@ -1545,19 +1545,19 @@ export interface Database {
           date_of_birth: string | null;
           gender: string | null;
           nationality: string | null;
-          languages: any;
-          preferences: any;
-          notification_settings: any;
-          privacy_settings: any;
-          theme_preferences: any;
+          languages: Record<string, unknown>;
+          preferences: Record<string, unknown>;
+          notification_settings: Record<string, unknown>;
+          privacy_settings: Record<string, unknown>;
+          theme_preferences: Record<string, unknown>;
           email_verified: boolean;
           phone_verified: boolean;
           two_factor_enabled: boolean;
-          security_questions: any;
+          security_questions: Record<string, unknown>;
           login_count: number;
           last_ip_address: string | null;
           last_user_agent: string | null;
-          session_data: any;
+          session_data: Record<string, unknown>;
           last_activity_at: string;
           profile_completed: boolean;
           profile_completion_percentage: number;
@@ -1567,31 +1567,31 @@ export interface Database {
           password_changed_at: string | null;
           access_level: number;
           approval_level: number;
-          form_access_permissions: any;
-          content_access_permissions: any;
-          admin_access_permissions: any;
-          workflow_permissions: any;
-          assigned_forms: any;
-          metadata: any;
-          custom_fields: any;
+          form_access_permissions: Record<string, unknown>;
+          content_access_permissions: Record<string, unknown>;
+          admin_access_permissions: Record<string, unknown>;
+          workflow_permissions: Record<string, unknown>;
+          assigned_forms: Record<string, unknown>;
+          metadata: Record<string, unknown>;
+          custom_fields: Record<string, unknown>;
           notes: string | null;
           updated_at: string;
           website: string | null;
-          social_links: any;
+          social_links: Record<string, unknown>;
           hire_date: string | null;
           manager_id: number | null;
           location: string | null;
           timezone: string;
           language_preference: string;
-          notification_preferences: any;
-          assigned_categories: any;
-          assigned_regions: any;
+          notification_preferences: Record<string, unknown>;
+          assigned_categories: Record<string, unknown>;
+          assigned_regions: Record<string, unknown>;
         };
         Insert: {
           user_id: string;
           role?: string;
-          groups?: any;
-          custom_permissions?: any;
+          groups?: Record<string, unknown>;
+          custom_permissions?: Record<string, unknown>;
           is_active?: boolean;
           is_super_admin?: boolean;
           full_name?: string | null;
@@ -1610,19 +1610,19 @@ export interface Database {
           date_of_birth?: string | null;
           gender?: string | null;
           nationality?: string | null;
-          languages?: any;
-          preferences?: any;
-          notification_settings?: any;
-          privacy_settings?: any;
-          theme_preferences?: any;
+          languages?: Record<string, unknown>;
+          preferences?: Record<string, unknown>;
+          notification_settings?: Record<string, unknown>;
+          privacy_settings?: Record<string, unknown>;
+          theme_preferences?: Record<string, unknown>;
           email_verified?: boolean;
           phone_verified?: boolean;
           two_factor_enabled?: boolean;
-          security_questions?: any;
+          security_questions?: Record<string, unknown>;
           login_count?: number;
           last_ip_address?: string | null;
           last_user_agent?: string | null;
-          session_data?: any;
+          session_data?: Record<string, unknown>;
           last_activity_at?: string;
           profile_completed?: boolean;
           profile_completion_percentage?: number;
@@ -1632,30 +1632,30 @@ export interface Database {
           password_changed_at?: string | null;
           access_level?: number;
           approval_level?: number;
-          form_access_permissions?: any;
-          content_access_permissions?: any;
-          admin_access_permissions?: any;
-          workflow_permissions?: any;
-          assigned_forms?: any;
-          metadata?: any;
-          custom_fields?: any;
+          form_access_permissions?: Record<string, unknown>;
+          content_access_permissions?: Record<string, unknown>;
+          admin_access_permissions?: Record<string, unknown>;
+          workflow_permissions?: Record<string, unknown>;
+          assigned_forms?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
+          custom_fields?: Record<string, unknown>;
           notes?: string | null;
           website?: string | null;
-          social_links?: any;
+          social_links?: Record<string, unknown>;
           hire_date?: string | null;
           manager_id?: number | null;
           location?: string | null;
           timezone?: string;
           language_preference?: string;
-          notification_preferences?: any;
-          assigned_categories?: any;
-          assigned_regions?: any;
+          notification_preferences?: Record<string, unknown>;
+          assigned_categories?: Record<string, unknown>;
+          assigned_regions?: Record<string, unknown>;
         };
         Update: {
           user_id?: string;
           role?: string;
-          groups?: any;
-          custom_permissions?: any;
+          groups?: Record<string, unknown>;
+          custom_permissions?: Record<string, unknown>;
           is_active?: boolean;
           is_super_admin?: boolean;
           full_name?: string | null;
@@ -1674,19 +1674,19 @@ export interface Database {
           date_of_birth?: string | null;
           gender?: string | null;
           nationality?: string | null;
-          languages?: any;
-          preferences?: any;
-          notification_settings?: any;
-          privacy_settings?: any;
-          theme_preferences?: any;
+          languages?: Record<string, unknown>;
+          preferences?: Record<string, unknown>;
+          notification_settings?: Record<string, unknown>;
+          privacy_settings?: Record<string, unknown>;
+          theme_preferences?: Record<string, unknown>;
           email_verified?: boolean;
           phone_verified?: boolean;
           two_factor_enabled?: boolean;
-          security_questions?: any;
+          security_questions?: Record<string, unknown>;
           login_count?: number;
           last_ip_address?: string | null;
           last_user_agent?: string | null;
-          session_data?: any;
+          session_data?: Record<string, unknown>;
           last_activity_at?: string;
           profile_completed?: boolean;
           profile_completion_percentage?: number;
@@ -1696,24 +1696,24 @@ export interface Database {
           password_changed_at?: string | null;
           access_level?: number;
           approval_level?: number;
-          form_access_permissions?: any;
-          content_access_permissions?: any;
-          admin_access_permissions?: any;
-          workflow_permissions?: any;
-          assigned_forms?: any;
-          metadata?: any;
-          custom_fields?: any;
+          form_access_permissions?: Record<string, unknown>;
+          content_access_permissions?: Record<string, unknown>;
+          admin_access_permissions?: Record<string, unknown>;
+          workflow_permissions?: Record<string, unknown>;
+          assigned_forms?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
+          custom_fields?: Record<string, unknown>;
           notes?: string | null;
           website?: string | null;
-          social_links?: any;
+          social_links?: Record<string, unknown>;
           hire_date?: string | null;
           manager_id?: number | null;
           location?: string | null;
           timezone?: string;
           language_preference?: string;
-          notification_preferences?: any;
-          assigned_categories?: any;
-          assigned_regions?: any;
+          notification_preferences?: Record<string, unknown>;
+          assigned_categories?: Record<string, unknown>;
+          assigned_regions?: Record<string, unknown>;
         };
       };
       roles: {
@@ -1721,7 +1721,7 @@ export interface Database {
           id: string;
           name: string;
           description: string | null;
-          permissions: any;
+          permissions: Record<string, unknown>;
           parent_role_id: string | null;
           color: string;
           order_index: number;
@@ -1735,7 +1735,7 @@ export interface Database {
           id: string;
           name: string;
           description?: string | null;
-          permissions?: any;
+          permissions?: Record<string, unknown>;
           parent_role_id?: string | null;
           color?: string;
           order_index?: number;
@@ -1747,7 +1747,7 @@ export interface Database {
           id?: string;
           name?: string;
           description?: string | null;
-          permissions?: any;
+          permissions?: Record<string, unknown>;
           parent_role_id?: string | null;
           color?: string;
           order_index?: number;
@@ -1766,8 +1766,8 @@ export interface Database {
           clicked_result_id: string | null;
           search_time: string;
           response_time_ms: number | null;
-          filters_used: any;
-          metadata: any;
+          filters_used: Record<string, unknown>;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           query: string;
@@ -1776,8 +1776,8 @@ export interface Database {
           session_id?: string | null;
           clicked_result_id?: string | null;
           response_time_ms?: number | null;
-          filters_used?: any;
-          metadata?: any;
+          filters_used?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           query?: string;
@@ -1786,8 +1786,8 @@ export interface Database {
           session_id?: string | null;
           clicked_result_id?: string | null;
           response_time_ms?: number | null;
-          filters_used?: any;
-          metadata?: any;
+          filters_used?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
         };
       };
       settings: {
@@ -1822,7 +1822,7 @@ export interface Database {
           reviewed_by: string | null;
           reviewed_at: string | null;
           created_at: string;
-          metadata: any;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           content_id?: string | null;
@@ -1835,7 +1835,7 @@ export interface Database {
           status?: 'pending' | 'accepted' | 'rejected' | 'implemented';
           reviewed_by?: string | null;
           reviewed_at?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           content_id?: string | null;
@@ -1848,7 +1848,7 @@ export interface Database {
           status?: 'pending' | 'accepted' | 'rejected' | 'implemented';
           reviewed_by?: string | null;
           reviewed_at?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
         };
       };
       tags: {
@@ -1879,8 +1879,8 @@ export interface Database {
           name: string;
           description: string | null;
           color: string;
-          roles: any;
-          permissions: any;
+          roles: Record<string, unknown>;
+          permissions: Record<string, unknown>;
           parent_group_id: string | null;
           order_index: number;
           is_active: boolean;
@@ -1892,8 +1892,8 @@ export interface Database {
           name: string;
           description?: string | null;
           color?: string;
-          roles?: any;
-          permissions?: any;
+          roles?: Record<string, unknown>;
+          permissions?: Record<string, unknown>;
           parent_group_id?: string | null;
           order_index?: number;
           is_active?: boolean;
@@ -1903,8 +1903,8 @@ export interface Database {
           name?: string;
           description?: string | null;
           color?: string;
-          roles?: any;
-          permissions?: any;
+          roles?: Record<string, unknown>;
+          permissions?: Record<string, unknown>;
           parent_group_id?: string | null;
           order_index?: number;
           is_active?: boolean;
@@ -1919,7 +1919,7 @@ export interface Database {
           type: 'comment' | 'reply' | 'mention' | 'like' | 'chat' | 'system' | 'admin';
           title: string;
           message: string;
-          data: any;
+          data: Record<string, unknown>;
           is_read: boolean;
           is_archived: boolean;
           priority: 'low' | 'normal' | 'high' | 'urgent';
@@ -1933,7 +1933,7 @@ export interface Database {
           type: 'comment' | 'reply' | 'mention' | 'like' | 'chat' | 'system' | 'admin';
           title: string;
           message: string;
-          data?: any;
+          data?: Record<string, unknown>;
           is_read?: boolean;
           is_archived?: boolean;
           priority?: 'low' | 'normal' | 'high' | 'urgent';
@@ -1946,7 +1946,7 @@ export interface Database {
           type?: 'comment' | 'reply' | 'mention' | 'like' | 'chat' | 'system' | 'admin';
           title?: string;
           message?: string;
-          data?: any;
+          data?: Record<string, unknown>;
           is_read?: boolean;
           is_archived?: boolean;
           priority?: 'low' | 'normal' | 'high' | 'urgent';
@@ -2079,7 +2079,7 @@ export interface Database {
           performed_by: string;
           performed_at: string;
           notes: string | null;
-          metadata: any;
+          metadata: Record<string, unknown>;
           ip_address: string | null;
           user_agent: string | null;
           performed_by_id: string | null;
@@ -2091,7 +2091,7 @@ export interface Database {
           to_status?: string | null;
           performed_by: string;
           notes?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
           ip_address?: string | null;
           user_agent?: string | null;
           performed_by_id?: string | null;
@@ -2103,7 +2103,7 @@ export interface Database {
           to_status?: string | null;
           performed_by?: string;
           notes?: string | null;
-          metadata?: any;
+          metadata?: Record<string, unknown>;
           ip_address?: string | null;
           user_agent?: string | null;
           performed_by_id?: string | null;

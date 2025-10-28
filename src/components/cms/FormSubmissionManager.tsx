@@ -159,6 +159,8 @@ type FormSubmissions = {
   leadershipEthics: LeadershipEthicsApplication[];
 };
 
+type FormSubmission = MembershipApplication | VolunteerApplication | PartnershipApplication | ContactSubmission | Donation | PhilosophyCafeApplication | LeadershipEthicsApplication;
+
 const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUser }) => {
   const { showToast } = useToast();
   const [submissions, setSubmissions] = useState<Record<string, unknown[]>>({
@@ -812,14 +814,14 @@ const FormSubmissionManager: React.FC<FormSubmissionManagerProps> = ({ currentUs
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleViewDetails(item as any)}
+                      onClick={() => handleViewDetails(item as FormSubmission)}
                     >
                       View
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleEditSubmission(item as any)}
+                      onClick={() => handleEditSubmission(item as FormSubmission)}
                     >
                       Edit
                     </Button>
