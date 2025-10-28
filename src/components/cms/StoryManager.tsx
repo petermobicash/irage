@@ -18,14 +18,18 @@ interface StoryFormData {
   title: string;
   content: string;
   author_name: string;
-  author_email: string;
-  author_location: string;
+  author_email?: string;
+  author_location?: string;
   story_type: string;
   category: string;
   is_anonymous: boolean;
-  is_featured: boolean;
-  is_approved: boolean;
+  is_featured?: boolean;
+  is_approved?: boolean;
   tags: string;
+  media_type?: 'text' | 'audio' | 'video' | 'mixed';
+  audio_file?: File;
+  video_file?: File;
+  transcript?: string;
 }
 
 type MediaDataValue = string | StoryMediaType | File | undefined;
@@ -68,7 +72,8 @@ const StoryManager = () => {
     is_anonymous: false,
     is_featured: false,
     is_approved: false,
-    tags: ''
+    tags: '',
+    media_type: 'text'
   });
 
   const [mediaData, setMediaData] = useState<{
