@@ -103,38 +103,36 @@ function App() {
   };
 
   const renderPublicRoutes = () => (
-    <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/spiritual" element={<Spiritual />} />
-        <Route path="/philosophy" element={<Philosophy />} />
-        <Route path="/culture" element={<Culture />} />
-        <Route path="/programs" element={<Programs />} />
-        <Route path="/get-involved" element={<GetInvolved />} />
-        <Route path="/membership" element={<Membership />} />
-        <Route path="/volunteer" element={<Volunteer />} />
-        <Route path="/donate" element={<Donate />} />
-        <Route path="/partnership" element={<Partnership />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/news" element={<News />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/admin/login" element={<Admin />} />
-        <Route path="/system-test" element={<SystemTest />} />
-        <Route path="/content-guide" element={<ContentGuide />} />
-        <Route path="/deployment-guide" element={<DeploymentGuide />} />
-        <Route path="/chat-demo" element={<ChatDemo />} />
-        <Route path="/whatsapp-chat-demo" element={<WhatsAppChatDemo />} />
-        <Route path="/chat" element={<PublicChat />} />
-        <Route path="/advanced-features" element={<AdvancedFeatures />} />
-        <Route path="/stories" element={<Stories />} />
-        <Route path="/admin-ads" element={<AdminAds />} />
-        <Route path="/ad-demo" element={<AdDemo />} />
-        <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/privacy" element={<Privacy />} />
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route path="/" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Home /></Suspense>} />
+      <Route path="/about" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><About /></Suspense>} />
+      <Route path="/spiritual" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Spiritual /></Suspense>} />
+      <Route path="/philosophy" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Philosophy /></Suspense>} />
+      <Route path="/culture" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Culture /></Suspense>} />
+      <Route path="/programs" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Programs /></Suspense>} />
+      <Route path="/get-involved" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><GetInvolved /></Suspense>} />
+      <Route path="/membership" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Membership /></Suspense>} />
+      <Route path="/volunteer" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Volunteer /></Suspense>} />
+      <Route path="/donate" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Donate /></Suspense>} />
+      <Route path="/partnership" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Partnership /></Suspense>} />
+      <Route path="/resources" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Resources /></Suspense>} />
+      <Route path="/news" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><News /></Suspense>} />
+      <Route path="/contact" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Contact /></Suspense>} />
+      <Route path="/admin" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Admin /></Suspense>} />
+      <Route path="/admin/login" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Admin /></Suspense>} />
+      <Route path="/system-test" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><SystemTest /></Suspense>} />
+      <Route path="/content-guide" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><ContentGuide /></Suspense>} />
+      <Route path="/deployment-guide" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><DeploymentGuide /></Suspense>} />
+      <Route path="/chat-demo" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><ChatDemo /></Suspense>} />
+      <Route path="/whatsapp-chat-demo" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><WhatsAppChatDemo /></Suspense>} />
+      <Route path="/chat" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><PublicChat /></Suspense>} />
+      <Route path="/advanced-features" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><AdvancedFeatures /></Suspense>} />
+      <Route path="/stories" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Stories /></Suspense>} />
+      <Route path="/admin-ads" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><AdminAds /></Suspense>} />
+      <Route path="/ad-demo" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><AdDemo /></Suspense>} />
+      <Route path="/user-management" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><UserManagement /></Suspense>} />
+      <Route path="/privacy" element={<Suspense fallback={<div className="flex items-center justify-center p-8"><div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div><span className="ml-2 text-gray-600">Loading...</span></div>}><Privacy /></Suspense>} />
+    </Routes>
   );
 
   return (
