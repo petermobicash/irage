@@ -104,11 +104,7 @@ export default defineConfig(({ mode }) => ({
               return 'react-vendor';
             }
             if (id.includes('supabase')) {
-              // Split supabase into smaller chunks to avoid initialization issues
-              if (id.includes('supabase-js')) {
-                return 'supabase-core';
-              }
-              return 'supabase-utils';
+              return 'supabase-vendor';
             }
             if (id.includes('lucide-react')) {
               return 'icons-vendor';
