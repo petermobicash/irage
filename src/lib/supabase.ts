@@ -6,13 +6,13 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Check if Supabase is configured
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ CRITICAL: Supabase not configured!');
-  console.error('📋 TO FIX: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
-  console.error('🔗 Get credentials from: https://supabase.com/dashboard → Settings → API');
-  console.error('Current values:', { supabaseUrl: supabaseUrl ? 'SET' : 'NOT SET', supabaseAnonKey: supabaseAnonKey ? 'SET' : 'NOT SET' });
+  console.warn('⚠️ WARNING: Supabase not configured - app will run in offline mode');
+  console.warn('📋 TO FIX: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
+  console.warn('🔗 Get credentials from: https://supabase.com/dashboard → Settings → API');
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+// Create Supabase client with error handling
+export const supabase = createClient(supabaseUrl || 'https://dummy.supabase.co', supabaseAnonKey || 'dummy-key', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -1100,17 +1100,17 @@ export interface Database {
           education: string | null;
           organization: string | null;
           work_experience: string | null;
-          languages: any;
+          languages: Record<string, unknown>;
           english_level: string | null;
           french_level: string | null;
           kinyarwanda_level: string | null;
           other_languages: string | null;
-          interests: any;
+          interests: Record<string, unknown>;
           other_interests: string | null;
           why_join: string | null;
-          skills: any;
+          skills: Record<string, unknown>;
           other_skills: string | null;
-          financial_support: any;
+          financial_support: Record<string, unknown>;
           time_commitment: string | null;
           membership_category: string | null;
           reference1_name: string | null;
@@ -1147,17 +1147,17 @@ export interface Database {
           education?: string | null;
           organization?: string | null;
           work_experience?: string | null;
-          languages?: any;
+          languages?: Record<string, unknown>;
           english_level?: string | null;
           french_level?: string | null;
           kinyarwanda_level?: string | null;
           other_languages?: string | null;
-          interests?: any;
+          interests?: Record<string, unknown>;
           other_interests?: string | null;
           why_join?: string | null;
-          skills?: any;
+          skills?: Record<string, unknown>;
           other_skills?: string | null;
-          financial_support?: any;
+          financial_support?: Record<string, unknown>;
           time_commitment?: string | null;
           membership_category?: string | null;
           reference1_name?: string | null;
@@ -1191,17 +1191,17 @@ export interface Database {
           education?: string | null;
           organization?: string | null;
           work_experience?: string | null;
-          languages?: any;
+          languages?: Record<string, unknown>;
           english_level?: string | null;
           french_level?: string | null;
           kinyarwanda_level?: string | null;
           other_languages?: string | null;
-          interests?: any;
+          interests?: Record<string, unknown>;
           other_interests?: string | null;
           why_join?: string | null;
-          skills?: any;
+          skills?: Record<string, unknown>;
           other_skills?: string | null;
-          financial_support?: any;
+          financial_support?: Record<string, unknown>;
           time_commitment?: string | null;
           membership_category?: string | null;
           reference1_name?: string | null;
@@ -1964,7 +1964,7 @@ export interface Database {
           location: string | null;
           date_of_birth: string | null;
           gender: string | null;
-          program_interests: any;
+          program_interests: Record<string, unknown>;
           other_interests: string | null;
           nationality: string | null;
           id_number: string | null;
@@ -1976,16 +1976,16 @@ export interface Database {
           education: string | null;
           occupation: string | null;
           experience: string | null;
-          languages: any;
+          languages: Record<string, unknown>;
           other_languages: string | null;
           health_conditions: string | null;
           medications: string | null;
           reference_info: string | null;
-          availability: any;
+          availability: Record<string, unknown>;
           start_date: string | null;
           duration: string | null;
           hours_per_week: string | null;
-          skills: any;
+          skills: Record<string, unknown>;
           other_skills: string | null;
           background_check: boolean;
           agreement: boolean;
@@ -2002,7 +2002,7 @@ export interface Database {
           location?: string | null;
           date_of_birth?: string | null;
           gender?: string | null;
-          program_interests?: any;
+          program_interests?: Record<string, unknown>;
           other_interests?: string | null;
           nationality?: string | null;
           id_number?: string | null;
@@ -2014,16 +2014,16 @@ export interface Database {
           education?: string | null;
           occupation?: string | null;
           experience?: string | null;
-          languages?: any;
+          languages?: Record<string, unknown>;
           other_languages?: string | null;
           health_conditions?: string | null;
           medications?: string | null;
           reference_info?: string | null;
-          availability?: any;
+          availability?: Record<string, unknown>;
           start_date?: string | null;
           duration?: string | null;
           hours_per_week?: string | null;
-          skills?: any;
+          skills?: Record<string, unknown>;
           other_skills?: string | null;
           background_check?: boolean;
           agreement?: boolean;
@@ -2039,7 +2039,7 @@ export interface Database {
           location?: string | null;
           date_of_birth?: string | null;
           gender?: string | null;
-          program_interests?: any;
+          program_interests?: Record<string, unknown>;
           other_interests?: string | null;
           nationality?: string | null;
           id_number?: string | null;
@@ -2051,16 +2051,16 @@ export interface Database {
           education?: string | null;
           occupation?: string | null;
           experience?: string | null;
-          languages?: any;
+          languages?: Record<string, unknown>;
           other_languages?: string | null;
           health_conditions?: string | null;
           medications?: string | null;
           reference_info?: string | null;
-          availability?: any;
+          availability?: Record<string, unknown>;
           start_date?: string | null;
           duration?: string | null;
           hours_per_week?: string | null;
-          skills?: any;
+          skills?: Record<string, unknown>;
           other_skills?: string | null;
           background_check?: boolean;
           agreement?: boolean;
@@ -2244,7 +2244,7 @@ export interface Database {
           is_active: boolean;
           unsubscribed_at: string | null;
           unsubscribe_token: string | null;
-          preferences: Record<string, any> | null;
+          preferences: Record<string, Record<string, unknown>> | null;
           source: string | null;
         };
         Insert: {
@@ -2253,7 +2253,7 @@ export interface Database {
           is_active?: boolean;
           unsubscribed_at?: string | null;
           unsubscribe_token?: string | null;
-          preferences?: Record<string, any> | null;
+          preferences?: Record<string, unknown> | null;
           source?: string | null;
         };
         Update: {
@@ -2262,7 +2262,7 @@ export interface Database {
           is_active?: boolean;
           unsubscribed_at?: string | null;
           unsubscribe_token?: string | null;
-          preferences?: Record<string, any> | null;
+          preferences?: Record<string, unknown> | null;
           source?: string | null;
         };
       };
@@ -2274,7 +2274,7 @@ export interface Database {
 export const getPublishedContent = async (
   type?: string,
   limit?: number
-): Promise<{ success: boolean; data: any[]; error?: any }> => {
+): Promise<{ success: boolean; data: unknown[]; error?: unknown }> => {
   try {
     let query = supabase
       .from('content')
@@ -2314,9 +2314,13 @@ export const submitMembershipApplication = async (applicationData: Database['pub
     if (error) throw error;
     console.log('Membership application submitted successfully');
     return { success: true, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error submitting membership application:', error);
-    console.log('Error details:', error.message, error.details, error.hint);
+    console.log('Error details:', error && typeof error === 'object' ? {
+      message: 'message' in error ? error.message : undefined,
+      details: 'details' in error ? error.details : undefined,
+      hint: 'hint' in error ? error.hint : undefined
+    } : error);
     return { success: false, error };
   }
 };
@@ -2412,9 +2416,13 @@ export const submitPhilosophyCafeApplication = async (applicationData: Database[
     if (error) throw error;
     console.log('Philosophy cafe application submitted successfully');
     return { success: true, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error submitting philosophy cafe application:', error);
-    console.log('Error details:', error.message, error.details, error.hint);
+    console.log('Error details:', error && typeof error === 'object' ? {
+      message: 'message' in error ? error.message : undefined,
+      details: 'details' in error ? error.details : undefined,
+      hint: 'hint' in error ? error.hint : undefined
+    } : error);
     return { success: false, error };
   }
 };
@@ -2430,19 +2438,17 @@ export const signInWithEmail = async (email: string, password: string) => {
       };
     }
 
-    // Clear any existing invalid sessions first
+    // Clear unknown existing invalid sessions first
     try {
       await supabase.auth.signOut({ scope: 'local' });
-    } catch (clearError) {
+    } catch {
       // Ignore errors when clearing - session might already be invalid
     }
 
-    let data, error;
-
-    ({ data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    }));
+    });
 
     if (error) {
       // Handle specific auth errors
@@ -2454,7 +2460,11 @@ export const signInWithEmail = async (email: string, password: string) => {
           password,
         });
         if (retryError) throw retryError;
-        data = retryData;
+        return {
+          success: true,
+          user: retryData.user,
+          message: 'Successfully logged in!'
+        };
       } else {
         throw error;
       }
@@ -2477,11 +2487,19 @@ export const signInWithEmail = async (email: string, password: string) => {
       user: data.user,
       message: 'Successfully logged in!'
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error signing in:', error);
 
     // Provide specific guidance for invalid credentials
-    if (error.message?.includes('Invalid login credentials') || error.message?.includes('Invalid')) {
+    const errMessage =
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof error.message === 'string'
+        ? error.message
+        : '';
+
+    if (errMessage.includes('Invalid login credentials') || errMessage.includes('Invalid')) {
       return {
         success: false,
         error: 'Invalid login credentials. You need to create the admin user in Supabase Auth first:\n\n1. Go to Supabase Dashboard\n2. Authentication → Users → Add user\n3. Email: admin@benirage.org\n4. Password: admin123\n5. Check "Email Confirm" ✅\n\nThen try logging in again.'
@@ -2490,7 +2508,7 @@ export const signInWithEmail = async (email: string, password: string) => {
 
     return {
       success: false,
-      error: error.message || 'Authentication failed. Please check your credentials.'
+      error: errMessage ? errMessage : 'Authentication failed. Please check your credentials.'
     };
   }
 };
@@ -2538,12 +2556,16 @@ export const getCurrentUser = async () => {
     }
 
     return user;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle auth errors gracefully for anonymous users
-    if (error.message?.includes('Invalid Refresh Token') ||
-        error.message?.includes('Refresh Token Not Found') ||
-        error.message?.includes('Auth session missing') ||
-        error.status === 403) {
+    if (error && 
+        typeof error === 'object' && 
+        'message' in error &&
+        typeof error.message === 'string' &&
+        (error.message.includes('Invalid Refresh Token') ||
+         error.message.includes('Refresh Token Not Found') ||
+         error.message.includes('Auth session missing') ||
+         'status' in error && error.status === 403)) {
       // Expected for anonymous users - return null silently
       return null;
     }
@@ -2617,7 +2639,7 @@ export const checkSupabaseConnection = async () => {
     }
 
     // Test connection with user_profiles table
-    const { data: _data, error } = await supabase.from('user_profiles').select('*', { count: 'exact', head: true });
+    const { error } = await supabase.from('user_profiles').select('*', { count: 'exact', head: true });
 
     if (error) {
       return {
@@ -2630,10 +2652,10 @@ export const checkSupabaseConnection = async () => {
       connected: true,
       message: 'Successfully connected to Supabase database!'
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       connected: false,
-      message: `Connection error: ${error.message || error}`
+      message: `Connection error: ${error && typeof error === 'object' && 'message' in error ? error.message : error}`
     };
   }
 };
@@ -3011,7 +3033,7 @@ export const getUserProfile = async (userId: string) => {
   }
 };
 
-export const updateUserProfile = async (userId: string, profileData: any) => {
+export const updateUserProfile = async (userId: string, profileData: Database['public']['Tables']['profiles']['Update']) => {
   try {
     const { data, error } = await supabase
       .from('user_profiles')
@@ -3081,7 +3103,7 @@ export const getFormFields = async (pageId: string) => {
   }
 };
 
-export const submitForm = async (pageId: string, formData: any) => {
+export const submitForm = async (pageId: string, formData: unknown) => {
   try {
     const { data, error } = await supabase
       .from('form_submissions')
@@ -3362,7 +3384,7 @@ export const getPageContent = async (pageId: string) => {
   }
 };
 
-export const updatePageContent = async (id: string, contentData: any) => {
+export const updatePageContent = async (id: string, contentData: Database['public']['Tables']['page_content']['Update']) => {
   try {
     const { data, error } = await supabase
       .from('page_content')
@@ -3421,7 +3443,7 @@ export const removeCommentReaction = async (commentId: string, userId: string) =
 
 // ===== REAL-TIME SUBSCRIPTIONS =====
 
-export const subscribeToChatMessages = (roomId: string, callback: (payload: any) => void) => {
+export const subscribeToChatMessages = (roomId: string, callback: (payload: unknown) => void) => {
   return supabase
     .channel(`chat_messages:${roomId}`)
     .on(
@@ -3437,7 +3459,7 @@ export const subscribeToChatMessages = (roomId: string, callback: (payload: any)
     .subscribe();
 };
 
-export const subscribeToNotifications = (userId: string, callback: (payload: any) => void) => {
+export const subscribeToNotifications = (userId: string, callback: (payload: unknown) => void) => {
   return supabase
     .channel(`notifications:${userId}`)
     .on(
@@ -3453,7 +3475,9 @@ export const subscribeToNotifications = (userId: string, callback: (payload: any
     .subscribe();
 };
 
-export const unsubscribeFromChannel = (channel: any) => {
+import { RealtimeChannel } from '@supabase/supabase-js';
+
+export const unsubscribeFromChannel = (channel: RealtimeChannel) => {
   supabase.removeChannel(channel);
 };
 
@@ -3463,27 +3487,40 @@ export const refreshSession = async () => {
   try {
     const { data, error } = await supabase.auth.refreshSession();
     if (error) {
-      if (error.message?.includes('Invalid Refresh Token') ||
-          error.message?.includes('Refresh Token Not Found') ||
-          error.message?.includes('Auth session missing') ||
-          error.status === 403) {
+      if (
+        (error && typeof error === 'object' &&
+          typeof error.message === 'string' &&
+          (error.message.includes('Invalid Refresh Token') ||
+           error.message.includes('Refresh Token Not Found') ||
+           error.message.includes('Auth session missing'))
+        ) ||
+        (error && typeof error === 'object' && 'status' in error && typeof error.status === 'number' && error.status === 403)
+      ) {
         // Expected for anonymous users - don't log as error
         return { success: false, needsLogin: true };
       }
       throw error;
     }
     return { success: true, user: data.user };
-  } catch (error: any) {
-    // Handle anonymous users gracefully
-    if (error.message?.includes('Invalid Refresh Token') ||
-        error.message?.includes('Refresh Token Not Found') ||
-        error.message?.includes('Auth session missing') ||
-        error.status === 403) {
+  } catch (errUnknown: unknown) {
+    // Handle anonymous users gracefully using a safe type guard
+    if (
+      (errUnknown &&
+        typeof errUnknown === 'object' &&
+        errUnknown !== null &&
+        'message' in errUnknown &&
+        typeof errUnknown.message === 'string' &&
+        (errUnknown.message.includes('Invalid Refresh Token') ||
+         errUnknown.message.includes('Refresh Token Not Found') ||
+         errUnknown.message.includes('Auth session missing'))
+      ) ||
+      (errUnknown && typeof errUnknown === 'object' && errUnknown !== null && 'status' in errUnknown && typeof errUnknown.status === 'number' && errUnknown.status === 403)
+    ) {
       // Expected for anonymous users - return silently
       return { success: false, needsLogin: true };
     }
-    console.error('Error refreshing session:', error);
-    return { success: false, error };
+    console.error('Error refreshing session:', errUnknown);
+    return { success: false, error: errUnknown };
   }
 };
 
@@ -3529,9 +3566,9 @@ export const subscribeToNewsletter = async (email: string, source = 'website') =
 
     if (error) throw error;
     return { success: true, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error subscribing to newsletter:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 };
 

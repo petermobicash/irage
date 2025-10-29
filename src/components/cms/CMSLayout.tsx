@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Users, Image, Settings, BarChart3, LogOut, Home, Shield, Key, UserCheck, MessageSquare, Zap, Mail, Search, Calendar, Database, Megaphone, BookOpen } from 'lucide-react';
+import { FileText, Users, Image, Settings, BarChart3, LogOut, Home, Shield, Key, UserCheck, MessageSquare, Zap, Mail, Search, Calendar, Database, Megaphone, BookOpen, Globe, RefreshCw } from 'lucide-react';
 import Button from '../ui/Button';
 import { getCurrentUserProfile, getUserAllPermissions } from '../../utils/rbac';
 
@@ -121,7 +121,13 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
     // Settings - only for admins
     ...(permissions.includes('system.edit_settings') ? [
       { id: 'settings', name: 'Settings', icon: Settings, permission: null },
-      { id: 'database', name: 'Database', icon: Database, permission: null }
+      { id: 'database', name: 'Database', icon: Database, permission: null },
+      { id: 'refactoring-info', name: 'Refactoring Info', icon: RefreshCw, permission: null }
+    ] : []),
+
+    // Website Management - only for super admins
+    ...(permissions.includes('*') || permissions.includes('system.manage_permissions') ? [
+      { id: 'website-manager', name: 'Website Manager', icon: Globe, permission: null }
     ] : []),
 
     // Advanced Features - for admins and managers

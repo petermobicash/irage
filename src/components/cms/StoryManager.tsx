@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Edit, Save, X, Trash2, Eye, Check, XCircle, Star, StarOff,
   Search, Filter, Printer, MapPin, BookOpen, AlertCircle, CheckCircle2,
@@ -86,6 +86,11 @@ const StoryManager = () => {
   });
 
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [uploadAbortControllers, setUploadAbortControllers] = useState<{ [key: string]: AbortController }>({});
+
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const { showToast } = useToast();
 
@@ -180,40 +185,84 @@ const StoryManager = () => {
     setMediaData(prev => ({ ...prev, [field]: value }));
   };
 
-  const simulateMediaUpload = async (type: 'audio' | 'video'): Promise<string> => {
-    setUploadingMedia(true);
+  // File validation constants
+  const MAX_AUDIO_SIZE = 50 * 1024 * 1024; // 50MB
+  const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+  const ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a'];
+  const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
-    // Simulate upload progress
-    await new Promise(resolve => setTimeout(resolve, 2000));
+  const validateFile = (file: File, type: 'audio' | 'video'): { isValid: boolean; error?: string } => {
+    const maxSize = type === 'audio' ? MAX_AUDIO_SIZE : MAX_VIDEO_SIZE;
+    const allowedTypes = type === 'audio' ? ALLOWED_AUDIO_TYPES : ALLOWED_VIDEO_TYPES;
 
-    // Generate mock URLs based on file type
-    if (type === 'audio') {
-      return 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBC';
-    } else {
-      return 'data:video/mp4;base64,AAAAHGZ0eXBtc28yYXZpczEAAAAgbmFtZV9zcGFjZQBAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACAAACYW5jZQB';
+    if (file.size > maxSize) {
+      return {
+        isValid: false,
+        error: `File size exceeds maximum limit of ${maxSize / (1024 * 1024)}MB`
+      };
     }
+
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        isValid: false,
+        error: `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`
+      };
+    }
+
+    return { isValid: true };
   };
 
   const handleFileUpload = async (type: 'audio' | 'video') => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = type === 'audio' ? 'audio/*' : 'video/*';
+    const inputRef = type === 'audio' ? audioInputRef : videoInputRef;
+    const input = inputRef.current;
 
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
+    if (!input) return;
+
+    // Reset input value to allow re-uploading the same file
+    input.value = '';
+
+    const handleFileSelect = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+
       if (!file) return;
+
+      // Validate file
+      const validation = validateFile(file, type);
+      if (!validation.isValid) {
+        showToast(validation.error!, 'error');
+        return;
+      }
+
+      const uploadId = `${type}-${Date.now()}`;
+      const abortController = new AbortController();
+
+      setUploadAbortControllers(prev => ({ ...prev, [uploadId]: abortController }));
+      setUploadProgress(prev => ({ ...prev, [uploadId]: 0 }));
 
       try {
         setUploadingMedia(true);
 
-        // Use real media storage service
+        // Use real media storage service with enhanced error handling
         await MediaStorageService.uploadMedia({
           file,
           storyId: editingStory?.id,
           type,
           onProgress: (progress) => {
-            console.log(`${type} upload progress: ${progress}%`);
+            setUploadProgress(prev => ({ ...prev, [uploadId]: progress }));
           }
+        });
+
+        // Clear progress and abort controller on success
+        setUploadProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[uploadId];
+          return newProgress;
+        });
+        setUploadAbortControllers(prev => {
+          const newControllers = { ...prev };
+          delete newControllers[uploadId];
+          return newControllers;
         });
 
         if (type === 'audio') {
@@ -224,17 +273,125 @@ const StoryManager = () => {
 
         showToast(`${type} file uploaded successfully!`, 'success');
       } catch (error) {
-        console.error(`Error uploading ${type}:`, error);
-        showToast(`Failed to upload ${type} file`, 'error');
+        // Clear progress and abort controller on error
+        setUploadProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[uploadId];
+          return newProgress;
+        });
+        setUploadAbortControllers(prev => {
+          const newControllers = { ...prev };
+          delete newControllers[uploadId];
+          return newControllers;
+        });
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          showToast(`${type} upload cancelled`, 'info');
+        } else {
+          console.error(`Error uploading ${type}:`, error);
+          showToast(`Failed to upload ${type} file. Please try again.`, 'error');
+        }
       } finally {
         setUploadingMedia(false);
+        // Clean up event listener
+        input.removeEventListener('change', handleFileSelect);
       }
     };
 
+    input.addEventListener('change', handleFileSelect);
     input.click();
   };
 
+  const cancelUpload = (uploadId: string) => {
+    const controller = uploadAbortControllers[uploadId];
+    if (controller) {
+      controller.abort();
+      setUploadAbortControllers(prev => {
+        const newControllers = { ...prev };
+        delete newControllers[uploadId];
+        return newControllers;
+      });
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[uploadId];
+        return newProgress;
+      });
+    }
+  };
+
+  const retryUpload = async (type: 'audio' | 'video', file: File) => {
+    const uploadId = `${type}-${Date.now()}-retry`;
+    const abortController = new AbortController();
+
+    setUploadAbortControllers(prev => ({ ...prev, [uploadId]: abortController }));
+    setUploadProgress(prev => ({ ...prev, [uploadId]: 0 }));
+
+    try {
+      setUploadingMedia(true);
+
+      await MediaStorageService.uploadMedia({
+        file,
+        storyId: editingStory?.id,
+        type,
+        onProgress: (progress) => {
+          setUploadProgress(prev => ({ ...prev, [uploadId]: progress }));
+        }
+      });
+
+      // Clear progress and abort controller on success
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[uploadId];
+        return newProgress;
+      });
+      setUploadAbortControllers(prev => {
+        const newControllers = { ...prev };
+        delete newControllers[uploadId];
+        return newControllers;
+      });
+
+      if (type === 'audio') {
+        handleMediaChange('audio_file', file);
+      } else {
+        handleMediaChange('video_file', file);
+      }
+
+      showToast(`${type} file uploaded successfully!`, 'success');
+    } catch (error) {
+      // Clear progress and abort controller on error
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[uploadId];
+        return newProgress;
+      });
+      setUploadAbortControllers(prev => {
+        const newControllers = { ...prev };
+        delete newControllers[uploadId];
+        return newControllers;
+      });
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        showToast(`${type} upload cancelled`, 'info');
+      } else {
+        console.error(`Error retrying ${type} upload:`, error);
+        showToast(`Failed to upload ${type} file. Please try again.`, 'error');
+      }
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
   const handleEditStory = (story: Story) => {
+    // Cancel any ongoing uploads before editing
+    Object.keys(uploadAbortControllers).forEach(uploadId => {
+      const controller = uploadAbortControllers[uploadId];
+      if (controller) {
+        controller.abort();
+      }
+    });
+    setUploadProgress({});
+    setUploadAbortControllers({});
+
     setEditingStory(story);
     setFormData({
       title: story.title,
@@ -261,6 +418,12 @@ const StoryManager = () => {
 
   const handleSaveStory = async () => {
     if (!editingStory) return;
+
+    // Check for any ongoing uploads
+    if (Object.keys(uploadProgress).length > 0) {
+      showToast('Please wait for file uploads to complete before saving', 'warning');
+      return;
+    }
 
     try {
       setUploadingMedia(true);
@@ -348,10 +511,12 @@ const StoryManager = () => {
       setShowEditModal(false);
       setEditingStory(null);
 
-      // Reset media data
+      // Reset media data and clear any remaining upload state
       setMediaData({
         media_type: 'text'
       });
+      setUploadProgress({});
+      setUploadAbortControllers({});
 
       fetchStories();
     } catch (error) {
@@ -467,6 +632,20 @@ const StoryManager = () => {
       <html>
         <head>
           <title>${story.title} - BENIRAGE Stories</title>
+          <style>
+            body { font-family: 'Georgia', serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .story-title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+            .story-meta { color: #666; font-size: 14px; margin-bottom: 30px; }
+            .story-content { font-size: 16px; white-space: pre-wrap; }
+            .story-category { display: inline-block; background: #f0f0f0; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin: 5px; }
+            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 20px; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+           
           <style>
             body { font-family: 'Georgia', serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.6; }
             .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
@@ -969,10 +1148,11 @@ const StoryManager = () => {
                         type="button"
                         variant="outline"
                         onClick={() => handleFileUpload('audio')}
-                        disabled={uploadingMedia}
+                        disabled={uploadingMedia || Object.keys(uploadProgress).some(key => key.startsWith('audio-'))}
                         icon={Volume2}
+                        aria-describedby="audio-upload-help"
                       >
-                        {uploadingMedia ? 'Uploading...' : 'Upload Audio'}
+                        {Object.keys(uploadProgress).some(key => key.startsWith('audio-')) ? 'Uploading...' : uploadingMedia ? 'Processing...' : 'Upload Audio'}
                       </Button>
                       {mediaData.audio_file && (
                         <span className="text-sm text-green-600 flex items-center">
@@ -980,8 +1160,49 @@ const StoryManager = () => {
                           {mediaData.audio_file.name}
                         </span>
                       )}
+                      {Object.keys(uploadProgress).some(key => key.startsWith('audio-')) && (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${Object.values(uploadProgress).find((_, key) => Object.keys(uploadProgress)[key].startsWith('audio-')) || 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {Object.values(uploadProgress).find((_, key) => Object.keys(uploadProgress)[key].startsWith('audio-')) || 0}%
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => cancelUpload(Object.keys(uploadProgress).find(key => key.startsWith('audio-'))!)}
+                            className="text-red-500 hover:text-red-700"
+                            aria-label="Cancel audio upload"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      {mediaData.audio_file && !Object.keys(uploadProgress).some(key => key.startsWith('audio-')) && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => retryUpload('audio', mediaData.audio_file!)}
+                          className="text-blue-500 hover:text-blue-700"
+                          aria-label="Retry audio upload"
+                        >
+                          Retry
+                        </Button>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Supported formats: MP3, WAV, M4A (Max 50MB)</p>
+                    <p id="audio-upload-help" className="text-xs text-gray-500 mt-1">Supported formats: MP3, WAV, M4A (Max 50MB)</p>
+                    <input
+                      ref={audioInputRef}
+                      type="file"
+                      accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a"
+                      className="hidden"
+                      aria-label="Upload audio file"
+                      multiple={false}
+                    />
                   </div>
                 )}
 
@@ -995,10 +1216,11 @@ const StoryManager = () => {
                         type="button"
                         variant="outline"
                         onClick={() => handleFileUpload('video')}
-                        disabled={uploadingMedia}
+                        disabled={uploadingMedia || Object.keys(uploadProgress).some(key => key.startsWith('video-'))}
                         icon={Video}
+                        aria-describedby="video-upload-help"
                       >
-                        {uploadingMedia ? 'Uploading...' : 'Upload Video'}
+                        {Object.keys(uploadProgress).some(key => key.startsWith('video-')) ? 'Uploading...' : uploadingMedia ? 'Processing...' : 'Upload Video'}
                       </Button>
                       {mediaData.video_file && (
                         <span className="text-sm text-green-600 flex items-center">
@@ -1006,8 +1228,49 @@ const StoryManager = () => {
                           {mediaData.video_file.name}
                         </span>
                       )}
+                      {Object.keys(uploadProgress).some(key => key.startsWith('video-')) && (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${Object.values(uploadProgress).find((_, key) => Object.keys(uploadProgress)[key].startsWith('video-')) || 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {Object.values(uploadProgress).find((_, key) => Object.keys(uploadProgress)[key].startsWith('video-')) || 0}%
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => cancelUpload(Object.keys(uploadProgress).find(key => key.startsWith('video-'))!)}
+                            className="text-red-500 hover:text-red-700"
+                            aria-label="Cancel video upload"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      {mediaData.video_file && !Object.keys(uploadProgress).some(key => key.startsWith('video-')) && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => retryUpload('video', mediaData.video_file!)}
+                          className="text-blue-500 hover:text-blue-700"
+                          aria-label="Retry video upload"
+                        >
+                          Retry
+                        </Button>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Supported formats: MP4, WebM, MOV (Max 100MB)</p>
+                    <p id="video-upload-help" className="text-xs text-gray-500 mt-1">Supported formats: MP4, WebM, MOV (Max 100MB)</p>
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      className="hidden"
+                      aria-label="Upload video file"
+                      multiple={false}
+                    />
                   </div>
                 )}
 

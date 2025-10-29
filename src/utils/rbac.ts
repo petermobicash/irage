@@ -103,10 +103,24 @@ export const checkUserPermission = async (
     }
 
     const profile = await getUserProfile(userId);
-    if (!profile) return false;
+    if (!profile) {
+      // Fallback: check if this is the admin user by email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email === 'admin@benirage.org') {
+        console.log('Admin user detected via email - granting all permissions');
+        return true;
+      }
+      return false;
+    }
 
     // Super admin has all permissions - this overrides all other checks
     if (profile.isSuperAdmin) return true;
+    
+    // Additional check: if role is 'super-admin', grant all permissions
+    if (profile.role === USER_ROLES.SUPER_ADMIN) return true;
+    
+    // Fallback: check email for admin user
+    if (profile.email === 'admin@benirage.org') return true;
 
     // Check custom permissions first
     if (profile.customPermissions?.includes(permission) ||

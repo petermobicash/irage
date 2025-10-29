@@ -41,12 +41,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     type: contentType,
     status: 'draft',
     author: currentUser?.email || 'Admin User',
-    categories: [],
-    tags: [],
+    categories: {},  // Changed from [] to {} to match Record<string, unknown>
+    tags: {},       // Changed from [] to {} to match Record<string, unknown>
     featured_image: '',
     seo_meta_title: '',
     seo_meta_description: '',
-    seo_keywords: [],
+    seo_keywords: {},  // Changed from [] to {} to match Record<string, unknown>
     seo_og_image: '',
     allow_comments: true,
     featured: false,
@@ -58,7 +58,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     last_edited_by_id: currentUser?.id || null,
     last_edited_by: currentUser?.email || 'Admin User',
     // Additional fields from the comprehensive schema
-    gallery: [],
+    gallery: {},  // Changed from [] to {} to match Record<string, unknown>
     initiated_by: currentUser?.email || 'Admin User',
     initiated_by_id: currentUser?.id || null,
     review_notes: '',
@@ -129,12 +129,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             type: content.type || contentType,
             status: content.status || 'draft',
             author: content.author || 'Admin User',
-            categories: content.categories || [],
-            tags: content.tags || [],
+            categories: content.categories || {},
+            tags: content.tags || {},
             featured_image: content.featured_image || '',
             seo_meta_title: content.seo_meta_title || '',
             seo_meta_description: content.seo_meta_description || '',
-            seo_keywords: content.seo_keywords || [],
+            seo_keywords: content.seo_keywords || {},
             seo_og_image: content.seo_og_image || '',
             allow_comments: content.allow_comments !== false,
             featured: content.featured || false,
@@ -146,7 +146,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             last_edited_by_id: content.last_edited_by_id || currentUser?.id || null,
             last_edited_by: content.last_edited_by || currentUser?.email || 'Admin User',
             // Additional fields from the comprehensive schema
-            gallery: content.gallery || [],
+            gallery: content.gallery || {},
             initiated_by: content.initiated_by || currentUser?.email || 'Admin User',
             initiated_by_id: content.initiated_by_id || currentUser?.id || null,
             review_notes: content.review_notes || '',

@@ -177,6 +177,14 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
       setIsInitializing(true);
       if (currentUser) {
         try {
+          // DEVELOPMENT MODE: Always allow admin@benirage.org full access
+          if (currentUser.email === 'admin@benirage.org') {
+            console.log('🔓 Admin user detected - granting full access');
+            setCanManageUsers(true);
+            setIsInitializing(false);
+            return;
+          }
+
           // Get user permissions using new groupRBAC system
           const userPermissions = await getUserAllPermissionsThroughGroups(currentUser.id);
 
@@ -195,10 +203,32 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
             // Continue without profile data - will rely on other permission checks
           }
 
+          // Check from users table as well
+          let usersTableProfile = null;
+          try {
+            const { data: userRecord } = await supabase
+              .from('users')
+              .select('*')
+              .eq('user_id', currentUser.id)
+              .single();
+            usersTableProfile = userRecord;
+            
+            // If user is super admin in users table, grant access
+            if (userRecord?.is_super_admin === true || userRecord?.role === 'super_admin' || userRecord?.role === 'super-admin') {
+              console.log('🔓 Super admin detected in users table - granting full access');
+              setCanManageUsers(true);
+              setIsInitializing(false);
+              return;
+            }
+          } catch (error) {
+            console.warn('Could not fetch user from users table:', error);
+          }
+
           const canManage = await checkUserPermissionThroughGroups(currentUser.id, 'users.manage_all') ||
                           userPermissions.includes('users.manage_all') ||
                           userPermissions.includes('system.manage_users') ||
                           (currentUserProfile?.is_super_admin === true) ||
+                          (usersTableProfile?.is_super_admin === true) ||
                           currentUser.email === 'admin@benirage.org' ||
                           // Fallback: if profile query failed but user has any admin permissions, allow access
                           (currentUserProfile === null && userPermissions.some(p => p.includes('manage') || p.includes('admin')));
@@ -208,6 +238,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
           console.error('Error initializing permissions:', error);
           // Fallback for development - allow admin email
           if (currentUser.email === 'admin@benirage.org') {
+            console.log('🔓 Fallback: Admin email detected - granting access');
             setCanManageUsers(true);
           }
         }

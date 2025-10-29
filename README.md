@@ -1,185 +1,203 @@
-# Supabase CLI
+# Benirage Web Platform
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A comprehensive web platform for the Benirage community with chat, content management, and administrative features.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
-
-This repository contains all the functionality for Supabase CLI.
-
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
-
-## Getting started
-
-### Install the CLI
-
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+## 🚀 Quick Start
 
 ```bash
-npm i supabase --save-dev
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build:production
 ```
 
-To install the beta release channel:
+## 📁 Project Structure
+
+```
+/
+├── docs/                          # Documentation
+│   ├── setup/                     # Setup and installation guides
+│   ├── troubleshooting/           # Troubleshooting guides
+│   ├── roadmaps/                  # Feature roadmaps
+│   ├── REFACTORING_SUMMARY.md     # Recent refactoring details
+│   └── *.md                       # Other documentation
+├── scripts/                       # Utility scripts
+│   ├── admin/                     # Admin management scripts
+│   ├── users/                     # User management scripts
+│   ├── testing/                   # Test scripts
+│   └── utils/                     # Utility scripts
+├── src/                           # Application source code
+│   ├── components/                # React components
+│   ├── hooks/                     # Custom React hooks
+│   ├── pages/                     # Page components
+│   ├── utils/                     # Utility functions
+│   └── lib/                       # Library configurations
+├── supabase/                      # Supabase configuration
+│   ├── migrations/                # Database migrations
+│   └── scripts/                   # SQL utility scripts
+│       ├── archived/              # Archived scripts
+│       ├── setup/                 # Setup scripts
+│       ├── fixes/                 # Fix scripts
+│       └── tests/                 # Test scripts
+└── public/                        # Static assets
+```
+
+## 🛠️ Available Scripts
+
+### Development
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
+
+### Testing
+- `npm test` - Run tests
+- `npm run test:coverage` - Run tests with coverage
+- `npm run test:permissions` - Test permission system
+
+### Admin & User Management
+- `npm run setup:admin` - Set up admin user
+- `npm run create:users` - Create test users
+- `npm run create:users:workaround` - Alternative user creation method
+
+### Deployment
+- `npm run deploy:check` - Run pre-deployment checks
+- `npm run deploy` - Build and prepare for deployment
+
+## 📚 Documentation
+
+### Setup Guides
+- [Admin User Setup](docs/setup/ADMIN_USER_SETUP.md)
+- [Authentication Setup](docs/setup/AUTH_SETUP_GUIDE.md)
+- [User Creation Guide](docs/setup/USER_CREATION_README.md)
+
+### Troubleshooting
+- [Permission Issues](docs/troubleshooting/PERMISSIONS_TEST_README.md)
+- [User Fixes](docs/troubleshooting/APPLY_USER_FIX_INSTRUCTIONS.md)
+- [Quick Auth Fix](docs/troubleshooting/QUICK_FIX_AUTH.md)
+- [Super Admin Guide](docs/troubleshooting/SUPER_ADMIN_README.md)
+
+### Feature Documentation
+- [API Reference](docs/api-reference.md)
+- [Admin Guide](docs/admin-guide.md)
+- [Editor Guide](docs/editor-guide.md)
+- [Author Guide](docs/author-guide.md)
+- [Reviewer Guide](docs/reviewer-guide.md)
+- [Content Workflow](docs/content-workflow.md)
+- [Deployment Guide](docs/deployment-guide.md)
+
+### Roadmaps
+- [Chat Features Roadmap](docs/roadmaps/CHAT_FEATURES_ROADMAP.md)
+
+## 🔧 Recent Changes
+
+The project underwent a major refactoring on October 29, 2025. Key improvements include:
+
+- ✅ Reorganized 70+ SQL files into proper directories
+- ✅ Moved 20+ JavaScript scripts to categorized folders
+- ✅ Organized documentation by category
+- ✅ Created comprehensive migration scripts for test and production
+- ✅ Cleaned up root directory
+- ✅ Updated all script references
+
+For detailed information, see [REFACTORING_SUMMARY.md](docs/REFACTORING_SUMMARY.md).
+
+## 🗄️ Database Migrations
+
+### Running Migrations
 
 ```bash
-npm i supabase@beta --save-dev
+# Check migration status
+npx supabase db status
+
+# Apply pending migrations
+npx supabase db push
+
+# Create a new migration
+npx supabase migration new migration_name
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+### Important Migrations
+- **077**: Consolidated test environment migration
+- **078**: Production-ready migration with optimizations
 
+## 🔐 Environment Variables
+
+Create a `.env` file based on `.env.example`:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+## 🧪 Testing
 
 ```bash
-supabase bootstrap
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Test specific functionality
+npm run test:permissions
 ```
 
-Or using npx:
+## 🚀 Deployment
 
+### Pre-deployment Checklist
+1. Run `npm run deploy:check`
+2. Verify all tests pass
+3. Check TypeScript compilation
+4. Review build output
+5. Test in staging environment
+
+### Production Deployment
 ```bash
-npx supabase bootstrap
+# Build for production
+npm run build:production
+
+# Preview production build locally
+npm run preview:production
+
+# Deploy (upload dist/ folder to hosting platform)
+npm run deploy
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## 🤝 Contributing
 
-## Docs
+1. Create a feature branch
+2. Make your changes
+3. Run tests and linting
+4. Submit a pull request
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## 📝 License
 
-## Breaking changes
+See [LICENSE](LICENSE) file for details.
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+## 🆘 Support
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+For issues or questions:
+1. Check the [troubleshooting guides](docs/troubleshooting/)
+2. Review the [documentation](docs/)
+3. Contact the development team
 
-## Developing
+## 🔄 Version History
 
-To run from source:
+### Version 1.0.0 (October 29, 2025)
+- Major refactoring and reorganization
+- Improved project structure
+- Enhanced documentation
+- Production-ready migrations
+- Performance optimizations
 
-```sh
-# Go >= 1.22
-go run . help
-```
-# webBenirage
-# Benirage
+---
+
+**Built with**: React, TypeScript, Vite, Supabase, TailwindCSS
+
+**Last Updated**: October 29, 2025

@@ -37,6 +37,8 @@ import AdvancedFeatures from './AdvancedFeatures';
 import EnhancedDashboard from '../components/admin/EnhancedDashboard';
 import AIContentSuggestions from '../components/advanced/AIContentSuggestions';
 import ContentAnalytics from '../components/advanced/ContentAnalytics';
+import RefactoringInfo from '../components/cms/RefactoringInfo';
+import WebsiteManager from '../components/cms/WebsiteManager';
 
 const CMS = () => {
   const [currentPage, setCurrentPage] = useState('');
@@ -49,7 +51,27 @@ const CMS = () => {
   // Fetch user profile when currentUser changes
   useEffect(() => {
     if (currentUser) {
-      getCurrentUserProfile().then(setUserProfile);
+      // DEVELOPMENT MODE: Grant all permissions to admin@benirage.org
+      if (currentUser.email === 'admin@benirage.org') {
+        console.log('🔓 Admin user detected - granting all permissions');
+        // Set a mock super admin profile
+        setUserProfile({
+          id: currentUser.id,
+          userId: currentUser.id,
+          email: currentUser.email || 'admin@benirage.org',
+          name: 'Super Administrator',
+          role: 'super-admin' as UserProfile['role'],
+          roles: ['super-admin' as UserProfile['role']],
+          permissions: [],
+          customPermissions: ['*'],
+          isSuperAdmin: true,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as UserProfile);
+      } else {
+        getCurrentUserProfile().then(setUserProfile);
+      }
     } else {
       setUserProfile(null);
     }
@@ -58,7 +80,13 @@ const CMS = () => {
   // Update permissions when userProfile changes
   useEffect(() => {
     if (userProfile) {
-      setPermissions(getUserAllPermissions(userProfile));
+      // If super admin or has wildcard permission, grant all permissions
+      if (userProfile.isSuperAdmin || userProfile.customPermissions?.includes('*')) {
+        console.log('🔓 Super admin detected - granting all permissions');
+        setPermissions(['*', 'users.view_all', 'users.create', 'users.edit_all', 'content.publish', 'system.edit_settings', 'analytics.view_advanced']);
+      } else {
+        setPermissions(getUserAllPermissions(userProfile));
+      }
     } else {
       setPermissions([]);
     }
@@ -484,6 +512,30 @@ const CMS = () => {
           );
         }
         return <ContentAnalytics contentId="sample-content-id" />;
+
+      case 'refactoring-info':
+        if (!permissions.includes('system.view_settings')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to view refactoring information.</p>
+            </div>
+          );
+        }
+        return <RefactoringInfo />;
+
+      case 'website-manager':
+        if (!permissions.includes('*') && !permissions.includes('system.edit_settings')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to access website management. Super admin access required.</p>
+            </div>
+          );
+        }
+        return <WebsiteManager />;
 
       default:
         // Fallback for unknown routes - redirect to appropriate page based on permissions

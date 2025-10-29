@@ -48,11 +48,11 @@ export default defineConfig(({ mode }) => ({
         rewrite: (path) => path.replace(/^\/rest/, '/rest'),
         configure: (proxy, options) => {
           console.log('Proxy configured with options:', options);
-          proxy.on('error', (err, req, res) => {
-            console.log('proxy error', err, req.url, res.statusCode);
+          proxy.on('error', (err, req) => {
+            console.log('proxy error', err, req.url);
           });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to the Target:', req.method, req.url, res.statusCode);
+          proxy.on('proxyReq', (_proxyReq, req) => {
+            console.log('Sending Request to the Target:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req) => {
             console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
@@ -104,7 +104,11 @@ export default defineConfig(({ mode }) => ({
               return 'react-vendor';
             }
             if (id.includes('supabase')) {
-              return 'supabase-vendor';
+              // Split supabase into smaller chunks to avoid initialization issues
+              if (id.includes('supabase-js')) {
+                return 'supabase-core';
+              }
+              return 'supabase-utils';
             }
             if (id.includes('lucide-react')) {
               return 'icons-vendor';
