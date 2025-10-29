@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -3474,8 +3475,6 @@ export const subscribeToNotifications = (userId: string, callback: (payload: unk
     )
     .subscribe();
 };
-
-import { RealtimeChannel } from '@supabase/supabase-js';
 
 export const unsubscribeFromChannel = (channel: RealtimeChannel) => {
   supabase.removeChannel(channel);
