@@ -54,7 +54,7 @@ const Membership = () => {
     communicationConsent: false,
     profilePhoto: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
@@ -83,7 +83,7 @@ const Membership = () => {
     switch (step) {
       case 1:
         return !!(formData.firstName && formData.lastName && formData.email && formData.phone) &&
-               validateEmail(formData.email);
+          validateEmail(formData.email);
       case 2:
         return !!(formData.country && formData.district);
       case 3:
@@ -117,7 +117,7 @@ const Membership = () => {
 
   const handleSubmit = async (_e: React.FormEvent) => {
     _e.preventDefault();
-    
+
     if (!validateStep(6)) {
       alert('Please complete all required fields and accept the agreements.');
       return;
@@ -171,12 +171,12 @@ const Membership = () => {
         code_of_conduct_accepted: formData.codeOfConductAccepted,
         communication_consent: formData.communicationConsent,
         status: 'pending'
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-      
+
       if (result.success) {
         alert('Thank you for joining BENIRAGE! Your membership application has been submitted successfully. We will review your application and contact you within 5-7 business days.');
-        
+
         // Reset form
         setFormData({
           firstName: '', lastName: '', fatherName: '', motherName: '', email: '', phone: '', gender: '', dateOfBirth: '',
@@ -193,7 +193,7 @@ const Membership = () => {
       } else {
         throw new Error('Submission failed');
       }
-      
+
     } catch (error) {
       console.error('Submission error:', error);
       console.error('Full error details:', error);
@@ -722,11 +722,11 @@ const Membership = () => {
                   'Other'
                 ].map((language) => (
                   <label key={language} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.languages.includes(language)}
                       onChange={(e) => handleCheckboxChange('languages', language, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-sm text-clear-gray">{language}</span>
                   </label>
@@ -823,11 +823,11 @@ const Membership = () => {
                   'Leadership Development'
                 ].map((interest) => (
                   <label key={interest} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-golden/10 cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.interests.includes(interest)}
                       onChange={(e) => handleCheckboxChange('interests', interest, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-clear-gray text-sm">{interest}</span>
                   </label>
@@ -884,11 +884,11 @@ const Membership = () => {
                   'Agriculture & Environment'
                 ].map((skill) => (
                   <label key={skill} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.skills.includes(skill)}
                       onChange={(e) => handleCheckboxChange('skills', skill, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-sm text-clear-gray">{skill}</span>
                   </label>
@@ -978,11 +978,11 @@ const Membership = () => {
                   'No Financial Contribution (Time & Skills Only)'
                 ].map((support) => (
                   <label key={support} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-golden/10 cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.financialSupport.includes(support)}
                       onChange={(e) => handleCheckboxChange('financialSupport', support, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-clear-gray text-sm">{support}</span>
                   </label>
@@ -1098,14 +1098,14 @@ const Membership = () => {
               <h4 className="font-display text-lg font-semibold text-dark-blue">
                 Membership Agreements
               </h4>
-              
+
               <label className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.dataConsent}
                   onChange={(e) => handleInputChange('dataConsent', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Data Privacy Consent *</strong><br />
@@ -1114,12 +1114,12 @@ const Membership = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.termsAccepted}
                   onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Terms & Conditions *</strong><br />
@@ -1128,12 +1128,12 @@ const Membership = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.codeOfConductAccepted}
                   onChange={(e) => handleInputChange('codeOfConductAccepted', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Code of Conduct *</strong><br />
@@ -1142,11 +1142,11 @@ const Membership = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={formData.communicationConsent}
                   onChange={(e) => handleInputChange('communicationConsent', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Communication Consent (Optional)</strong><br />
@@ -1165,7 +1165,7 @@ const Membership = () => {
   return (
     <div>
       {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
         <div className="text-center">
           <Users className="w-16 h-16 text-white mx-auto mb-6 animate-float" />
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -1183,7 +1183,7 @@ const Membership = () => {
           <h2 className="text-4xl font-bold text-blue-900 mb-8">
             Membership Benefits
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="text-center hover:scale-105 transition-transform">
               <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -1238,7 +1238,7 @@ const Membership = () => {
                 <span className="text-sm text-clear-gray">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-golden to-yellow-400 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${(currentStep / totalSteps) * 100}%` }}
                 />
@@ -1257,7 +1257,7 @@ const Membership = () => {
                     </Button>
                   )}
                 </div>
-                
+
                 <div>
                   {currentStep < totalSteps ? (
                     <Button type="button" onClick={nextStep}>

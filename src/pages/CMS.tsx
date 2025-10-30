@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Shield } from 'lucide-react';
+import { Shield, MessageSquare } from 'lucide-react';
 import { isAuthenticated, getCurrentAuthUser, logout } from '../utils/auth';
 import { getCurrentUserProfile, getUserAllPermissions } from '../utils/rbac';
 import { SYSTEM_PERMISSIONS, CONTENT_PERMISSIONS, USER_PERMISSIONS, MEDIA_PERMISSIONS, ANALYTICS_PERMISSIONS } from '../types/permissions';
@@ -42,7 +42,7 @@ import WebsiteManager from '../components/cms/WebsiteManager';
 
 const CMS = () => {
   const [currentPage, setCurrentPage] = useState('');
-  const [pageParams, setPageParams] = useState<{ type?: string; id?: string; [key: string]: unknown }>({});
+  const [pageParams, setPageParams] = useState<{ type?: string; id?: string;[key: string]: unknown }>({});
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [currentUser, setCurrentUser] = useState(getCurrentAuthUser());
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -129,7 +129,7 @@ const CMS = () => {
     );
   }
 
-  const handleNavigate = (page: string, params?: { type?: string; id?: string; [key: string]: unknown }) => {
+  const handleNavigate = (page: string, params?: { type?: string; id?: string;[key: string]: unknown }) => {
     setCurrentPage(page);
     setPageParams(params || {});
   };
@@ -142,7 +142,7 @@ const CMS = () => {
 
       case 'content-guide':
         return <ContentGuide />;
-      
+
       case 'content-list':
         if (!permissions.includes('content.create_draft') && !permissions.includes('content.edit_own') && !permissions.includes('content.publish')) {
           return (
@@ -172,7 +172,7 @@ const CMS = () => {
           );
         }
         return <StoriesManager />;
-      
+
       case 'content-editor':
         if (!permissions.includes('content.create_draft') && !permissions.includes('content.edit_own')) {
           return (
@@ -187,12 +187,12 @@ const CMS = () => {
           <ContentEditor
             contentId={pageParams.id}
             contentType={pageParams.type || 'post'}
-            currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }}
+            currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string;[key: string]: unknown }}
             onSave={() => handleNavigate('content-list', { type: pageParams.type })}
             onCancel={() => handleNavigate('content-list', { type: pageParams.type })}
           />
         );
-      
+
       case 'media-library':
         if (!permissions.includes('media.edit_all') && !permissions.includes('content.create_draft')) {
           return (
@@ -204,9 +204,9 @@ const CMS = () => {
           );
         }
         return <MediaLibrary />;
-      
+
       case 'page-content':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -216,9 +216,9 @@ const CMS = () => {
           );
         }
         return <PageContentManager />;
-      
+
       case 'form-fields':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -228,9 +228,9 @@ const CMS = () => {
           );
         }
         return <FormFieldManager />;
-      
+
       case 'form-submissions':
-        if (! (permissions.includes(USER_PERMISSIONS.USERS_CREATE) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT))) {
+        if (!(permissions.includes(USER_PERMISSIONS.USERS_CREATE) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -239,10 +239,10 @@ const CMS = () => {
             </div>
           );
         }
-        return <FormSubmissionManager currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }} />;
-      
+        return <FormSubmissionManager currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string;[key: string]: unknown }} />;
+
       case 'resources-manager':
-        if (! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED)) && ! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_OWN) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL))) {
+        if (!(permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED)) && !(permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_OWN) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -252,7 +252,7 @@ const CMS = () => {
           );
         }
         return <ResourcesManager />;
-      
+
       case 'users':
         if (!permissions.includes('users.view_all')) {
           return (
@@ -263,10 +263,10 @@ const CMS = () => {
             </div>
           );
         }
-        return <UserManager currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }} />;
-      
+        return <UserManager currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string;[key: string]: unknown }} />;
+
       case 'user-groups':
-        if (! (permissions.includes(USER_PERMISSIONS.USERS_VIEW_ALL) || permissions.includes(USER_PERMISSIONS.USERS_CREATE) || permissions.includes(USER_PERMISSIONS.USERS_EDIT_ALL))) {
+        if (!(permissions.includes(USER_PERMISSIONS.USERS_VIEW_ALL) || permissions.includes(USER_PERMISSIONS.USERS_CREATE) || permissions.includes(USER_PERMISSIONS.USERS_EDIT_ALL))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -276,7 +276,7 @@ const CMS = () => {
           );
         }
         return <UserGroupManager />;
-      
+
       case 'roles':
         if (!permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_MANAGE_ROLES)) {
           return (
@@ -288,7 +288,7 @@ const CMS = () => {
           );
         }
         return <RoleManager />;
-      
+
       case 'permissions':
         if (!permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_MANAGE_PERMISSIONS)) {
           return (
@@ -300,9 +300,9 @@ const CMS = () => {
           );
         }
         return <PermissionManager />;
-      
+
       case 'categories':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -312,9 +312,9 @@ const CMS = () => {
           );
         }
         return <CategoryManager />;
-      
+
       case 'tags':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -325,43 +325,43 @@ const CMS = () => {
         }
         return <TagManager />;
 
-       case 'newsletter':
-         if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && ! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED))) {
-           return (
-             <div className="text-center py-12">
-               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-               <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-               <p className="text-gray-500">You don't have permission to manage newsletters.</p>
-             </div>
-           );
-         }
-         return <NewsletterManager />;
+      case 'newsletter':
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage newsletters.</p>
+            </div>
+          );
+        }
+        return <NewsletterManager />;
 
-       case 'seo':
-         if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && ! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED))) {
-           return (
-             <div className="text-center py-12">
-               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-               <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-               <p className="text-gray-500">You don't have permission to manage SEO.</p>
-             </div>
-           );
-         }
-         return <SeoManager />;
+      case 'seo':
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage SEO.</p>
+            </div>
+          );
+        }
+        return <SeoManager />;
 
-       case 'calendar':
-         if (! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED)) && ! (permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_OWN) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL)) && !permissions.includes(CONTENT_PERMISSIONS.CONTENT_PUBLISH)) {
-           return (
-             <div className="text-center py-12">
-               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-               <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-               <p className="text-gray-500">You don't have permission to access the content calendar.</p>
-             </div>
-           );
-         }
-         return <ContentCalendar />;
+      case 'calendar':
+        if (!(permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED)) && !(permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_OWN) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_EDIT_ALL)) && !permissions.includes(CONTENT_PERMISSIONS.CONTENT_PUBLISH)) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to access the content calendar.</p>
+            </div>
+          );
+        }
+        return <ContentCalendar />;
 
-       case 'analytics':
+      case 'analytics':
         if (!permissions.includes('analytics.view_basic')) {
           return (
             <div className="text-center py-12">
@@ -372,7 +372,7 @@ const CMS = () => {
           );
         }
         return <AdvancedAnalytics />;
-      
+
       case 'settings':
         if (!permissions.includes('system.edit_settings')) {
           return (
@@ -384,9 +384,9 @@ const CMS = () => {
           );
         }
         return <CMSSettings />;
-      
+
       case 'database':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -396,9 +396,9 @@ const CMS = () => {
           );
         }
         return <DatabaseManager />;
-      
+
       case 'chat-admin':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && ! (permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -409,8 +409,63 @@ const CMS = () => {
         }
         return <ChatManager />;
 
+      case 'comments-admin':
+        if (!(permissions.includes('system.edit_settings') || permissions.includes('analytics.view_basic') || permissions.includes('content.create_draft') || permissions.includes('*'))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to access comment moderation.</p>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Comment Moderation</h2>
+                <p className="text-gray-600">Manage and moderate user comments across all content</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="text-center py-12">
+                <MessageSquare className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Comment Management System</h3>
+                <p className="text-gray-600 mb-6">
+                  Monitor, approve, and moderate comments from users across all your content.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">Pending Comments</h4>
+                    <p className="text-2xl font-bold text-blue-600">0</p>
+                    <p className="text-sm text-blue-700">Awaiting moderation</p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-900 mb-2">Approved Comments</h4>
+                    <p className="text-2xl font-bold text-green-600">0</p>
+                    <p className="text-sm text-green-700">Live on website</p>
+                  </div>
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-red-900 mb-2">Flagged Comments</h4>
+                    <p className="text-2xl font-bold text-red-600">0</p>
+                    <p className="text-sm text-red-700">Require attention</p>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <p className="text-sm text-gray-500">
+                    Comments are automatically enabled for all content. Users can comment on articles, stories, and other content.
+                    <br />
+                    Use this panel to moderate comments and ensure community guidelines are followed.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'ads':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && ! (permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -420,9 +475,9 @@ const CMS = () => {
           );
         }
         return <AdManager />;
-      
+
       case 'advanced-features':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && ! (permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -432,9 +487,9 @@ const CMS = () => {
           );
         }
         return <AdvancedFeatures />;
-      
+
       case 'media-optimization':
-        if (! (permissions.includes(MEDIA_PERMISSIONS.MEDIA_UPLOAD) || permissions.includes(MEDIA_PERMISSIONS.MEDIA_EDIT_ALL) || permissions.includes(MEDIA_PERMISSIONS.MEDIA_DELETE_ALL)) && ! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(MEDIA_PERMISSIONS.MEDIA_UPLOAD) || permissions.includes(MEDIA_PERMISSIONS.MEDIA_EDIT_ALL) || permissions.includes(MEDIA_PERMISSIONS.MEDIA_DELETE_ALL)) && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -444,9 +499,9 @@ const CMS = () => {
           );
         }
         return <MediaOptimization />;
-      
+
       case 'security-audit':
-        if (! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -456,9 +511,9 @@ const CMS = () => {
           );
         }
         return <SecurityAudit />;
-      
+
       case 'performance':
-        if (! (permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED)) && ! (permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+        if (!(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED)) && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
             <div className="text-center py-12">
               <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -468,7 +523,7 @@ const CMS = () => {
           );
         }
         return <PerformanceMonitor />;
-      
+
       case 'advanced-users':
         if (!permissions.includes('users.view_all')) {
           return (
@@ -548,7 +603,7 @@ const CMS = () => {
     <CMSLayout
       currentPage={currentPage}
       onNavigate={handleNavigate}
-      currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string; [key: string]: unknown }}
+      currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string;[key: string]: unknown }}
       onLogout={handleLogout}
     >
       {renderCurrentPage()}

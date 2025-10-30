@@ -110,7 +110,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-blue-900 text-white sticky top-0 z-50 shadow-lg">
+    <header className="bg-blue-950 text-white sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center min-h-[4rem] py-3 sm:py-4">
           {/* Logo */}

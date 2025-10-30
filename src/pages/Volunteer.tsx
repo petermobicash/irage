@@ -27,55 +27,55 @@ const Volunteer = () => {
     location: '',
     dateOfBirth: '',
     gender: '',
-    
+
     // Program Interests
     programInterests: [] as string[],
     otherInterests: '',
-    
+
     // Identity & Legal
     nationality: '',
     idNumber: '',
     passportNumber: '',
     workPermit: '',
     address: '',
-    
+
     // Emergency Contact
     emergencyContact: '',
     emergencyPhone: '',
-    
+
     // Background
     education: '',
     occupation: '',
     experience: '',
-    
+
     // Languages
     languages: [] as string[],
     otherLanguages: '',
-    
+
     // Health Information
     healthConditions: '',
     medications: '',
-    
+
     // References
     referenceInfo: '',
-    
+
     // Availability
     availability: [] as string[],
     startDate: '',
     duration: '',
     hoursPerWeek: '',
-    
+
     // Skills
     skills: [] as string[],
     otherSkills: '',
-    
+
     // Agreements
     backgroundCheck: false,
     agreement: false,
     dataConsent: false,
     contractType: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
@@ -131,7 +131,7 @@ const Volunteer = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateStep(6)) {
       alert('Please complete all required fields and accept the agreements.');
       return;
@@ -179,7 +179,10 @@ const Volunteer = () => {
         location: sanitizedData.location,
         date_of_birth: sanitizedData.dateOfBirth,
         gender: sanitizedData.gender,
-        program_interests: formData.programInterests,
+        program_interests: formData.programInterests.reduce((acc, interest, index) => {
+          acc[`interest_${index}`] = interest;
+          return acc;
+        }, {} as Record<string, unknown>),
         other_interests: sanitizedData.otherInterests,
         nationality: sanitizedData.nationality,
         id_number: sanitizedData.idNumber,
@@ -191,16 +194,25 @@ const Volunteer = () => {
         education: sanitizedData.education,
         occupation: sanitizedData.occupation,
         experience: sanitizedData.experience,
-        languages: formData.languages,
+        languages: formData.languages.reduce((acc, lang, index) => {
+          acc[`lang_${index}`] = lang;
+          return acc;
+        }, {} as Record<string, unknown>),
         other_languages: sanitizedData.otherLanguages,
         health_conditions: sanitizedData.healthConditions,
         medications: sanitizedData.medications,
         reference_info: sanitizedData.referenceInfo,
-        availability: formData.availability,
+        availability: formData.availability.reduce((acc, avail, index) => {
+          acc[`availability_${index}`] = avail;
+          return acc;
+        }, {} as Record<string, unknown>),
         start_date: sanitizedData.startDate,
         duration: sanitizedData.duration,
         hours_per_week: sanitizedData.hoursPerWeek,
-        skills: formData.skills,
+        skills: formData.skills.reduce((acc, skill, index) => {
+          acc[`skill_${index}`] = skill;
+          return acc;
+        }, {} as Record<string, unknown>),
         other_skills: sanitizedData.otherSkills,
         background_check: formData.backgroundCheck,
         agreement: formData.agreement,
@@ -208,10 +220,10 @@ const Volunteer = () => {
         contract_type: sanitizedData.contractType,
         status: 'pending'
       });
-      
+
       if (result.success) {
         alert('Thank you for your interest in volunteering with BENIRAGE! Your application has been submitted successfully. We will review your application and contact you within 3-5 business days.');
-        
+
         // Reset form
         setFormData({
           firstName: '', lastName: '', email: '', phone: '', location: '', dateOfBirth: '',
@@ -226,7 +238,7 @@ const Volunteer = () => {
       } else {
         throw new Error('Submission failed');
       }
-      
+
     } catch (error) {
       console.error('Submission error:', error);
       alert('There was an error submitting your application. Please try again.');
@@ -386,11 +398,11 @@ const Volunteer = () => {
                   'Interfaith Dialogue & Unity'
                 ].map((interest) => (
                   <label key={interest} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-golden/10 cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.programInterests.includes(interest)}
                       onChange={(e) => handleCheckboxChange('programInterests', interest, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-clear-gray text-sm">{interest}</span>
                   </label>
@@ -620,11 +632,11 @@ const Volunteer = () => {
                   'Other'
                 ].map((language) => (
                   <label key={language} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.languages.includes(language)}
                       onChange={(e) => handleCheckboxChange('languages', language, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-sm text-clear-gray">{language}</span>
                   </label>
@@ -707,11 +719,11 @@ const Volunteer = () => {
                   'Remote/Online Only'
                 ].map((time) => (
                   <label key={time} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.availability.includes(time)}
                       onChange={(e) => handleCheckboxChange('availability', time, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-clear-gray text-xs">{time}</span>
                   </label>
@@ -799,11 +811,11 @@ const Volunteer = () => {
                   'Public Speaking'
                 ].map((skill) => (
                   <label key={skill} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.skills.includes(skill)}
                       onChange={(e) => handleCheckboxChange('skills', skill, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-sm text-clear-gray">{skill}</span>
                   </label>
@@ -875,13 +887,13 @@ const Volunteer = () => {
               <h4 className="font-display text-lg font-semibold text-dark-blue">
                 Volunteer Agreements
               </h4>
-              
+
               <label className="flex items-start space-x-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={formData.backgroundCheck}
                   onChange={(e) => handleInputChange('backgroundCheck', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Background Check Consent (Optional)</strong><br />
@@ -890,12 +902,12 @@ const Volunteer = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.agreement}
                   onChange={(e) => handleInputChange('agreement', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Volunteer Agreement *</strong><br />
@@ -904,12 +916,12 @@ const Volunteer = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.dataConsent}
                   onChange={(e) => handleInputChange('dataConsent', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Data Privacy Consent *</strong><br />
@@ -928,7 +940,7 @@ const Volunteer = () => {
   return (
     <div>
       {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-green-600 to-blue-600 text-white">
+      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
         <div className="text-center">
           <div className="text-6xl mb-6">🤝</div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -946,7 +958,7 @@ const Volunteer = () => {
           <h2 className="text-4xl font-bold text-blue-900 mb-8">
             Why Volunteer with BENIRAGE?
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="text-center hover:scale-105 transition-transform">
               <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -1113,7 +1125,7 @@ const Volunteer = () => {
                 <span className="text-sm text-clear-gray">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className={`progress-bar progress-bar-width-${currentStep}`}
                 />
               </div>
@@ -1131,7 +1143,7 @@ const Volunteer = () => {
                     </Button>
                   )}
                 </div>
-                
+
                 <div>
                   {currentStep < totalSteps ? (
                     <Button type="button" onClick={nextStep}>
@@ -1169,21 +1181,18 @@ const Volunteer = () => {
           <p className="text-xl text-blue-900/90 mb-12">
             Join hundreds of volunteers who are already making a difference
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="text-4xl mb-4">500+</div>
-              <h3 className="font-semibold mb-2">Lives Touched</h3>
+
               <p className="text-blue-900/80 text-sm">Through volunteer programs</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="text-4xl mb-4">50+</div>
-              <h3 className="font-semibold mb-2">Active Volunteers</h3>
+
               <p className="text-blue-900/80 text-sm">Contributing their time and skills</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-              <div className="text-4xl mb-4">25+</div>
-              <h3 className="font-semibold mb-2">Programs Supported</h3>
+
               <p className="text-blue-900/80 text-sm">Across all three pillars</p>
             </div>
           </div>

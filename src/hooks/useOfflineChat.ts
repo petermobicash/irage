@@ -98,7 +98,7 @@ export const useOfflineChat = (roomId?: string) => {
         }
       }
     }
-  }, [roomId, state.queuedMessages, state.sendingQueue]);
+  }, [roomId]);
 
   // Process queued messages when coming back online
   const processMessageQueue = useCallback(async () => {
@@ -167,7 +167,7 @@ export const useOfflineChat = (roomId?: string) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [roomId, processMessageQueue]);
+  }, [roomId]);
 
   // Add message to queue when offline
   const queueMessage = useCallback((message: string) => {

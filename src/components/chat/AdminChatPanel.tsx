@@ -25,35 +25,12 @@ const AdminChatPanel = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const checkAuthentication = useCallback(async () => {
-    try {
-      setAuthLoading(true);
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-
-      if (user) {
-        loadDashboardData();
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-    } finally {
-      setAuthLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuthentication();
-  }, [checkAuthentication]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       // Load chat rooms
       const { data: rooms } = await supabase
         .from('chat_rooms')
-        .select(`
-          *,
-          participants:chat_participants(count)
-        `)
+        .select('*')
         .order('last_activity', { ascending: false });
 
       // Load recent activity logs
@@ -80,7 +57,7 @@ const AdminChatPanel = () => {
         supabase.from('content_comments').select('*', { count: 'exact', head: true }),
         supabase.from('chat_messages').select('*', { count: 'exact', head: true }),
         supabase.from('chat_rooms').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('chat_participants').select('*', { count: 'exact', head: true }).eq('is_online', true)
+        supabase.from('chat_messages').select('*', { count: 'exact', head: true })
       ]);
 
       setChatRooms(rooms || []);
@@ -98,7 +75,27 @@ const AdminChatPanel = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const checkAuthentication = useCallback(async () => {
+    try {
+      setAuthLoading(true);
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+
+      if (user) {
+        loadDashboardData();
+      }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [loadDashboardData]);
+
+  useEffect(() => {
+    checkAuthentication();
+  }, [checkAuthentication]);
 
   const handleJoinRoom = (roomId: string) => {
     if (!currentUser) {
@@ -123,9 +120,9 @@ const AdminChatPanel = () => {
       // Handle authentication errors gracefully
       if (userError) {
         if (userError.message?.includes('Invalid Refresh Token') ||
-            userError.message?.includes('Refresh Token Not Found') ||
-            userError.message?.includes('Auth session missing') ||
-            userError.status === 403) {
+          userError.message?.includes('Refresh Token Not Found') ||
+          userError.message?.includes('Auth session missing') ||
+          userError.status === 403) {
           alert('Please log in to create chat rooms');
           return;
         }
@@ -289,11 +286,10 @@ const AdminChatPanel = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'bg-white text-blue-900 shadow-sm'
-                : 'text-gray-600 hover:text-blue-900'
-            }`}
+            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md font-medium transition-colors ${activeTab === tab.id
+              ? 'bg-white text-blue-900 shadow-sm'
+              : 'text-gray-600 hover:text-blue-900'
+              }`}
           >
             <tab.icon className="w-4 h-4" />
             <span>{tab.name}</span>
@@ -354,16 +350,14 @@ const AdminChatPanel = () => {
             <Card key={room.id} className="hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    room.room_type === 'admin' ? 'bg-red-100' :
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${room.room_type === 'admin' ? 'bg-red-100' :
                     room.room_type === 'support' ? 'bg-yellow-100' :
-                    'bg-blue-100'
-                  }`}>
-                    <MessageSquare className={`w-6 h-6 ${
-                      room.room_type === 'admin' ? 'text-red-600' :
+                      'bg-blue-100'
+                    }`}>
+                    <MessageSquare className={`w-6 h-6 ${room.room_type === 'admin' ? 'text-red-600' :
                       room.room_type === 'support' ? 'text-yellow-600' :
-                      'text-blue-600'
-                    }`} />
+                        'text-blue-600'
+                      }`} />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-blue-900">{room.name}</h3>
@@ -401,7 +395,7 @@ const AdminChatPanel = () => {
               Export Report
             </Button>
           </div>
-          
+
           <Card>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -450,7 +444,7 @@ const AdminChatPanel = () => {
       {activeTab === 'moderation' && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-blue-900">Moderation Logs</h3>
-          
+
           <Card>
             <div className="space-y-4">
               {moderationLogs.length > 0 ? (

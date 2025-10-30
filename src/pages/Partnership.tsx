@@ -25,7 +25,7 @@ const Partnership = () => {
     foundedYear: '',
     registrationNumber: '',
     website: '',
-    
+
     // Contact Person
     contactPerson: '',
     title: '',
@@ -33,50 +33,50 @@ const Partnership = () => {
     phone: '',
     alternateContact: '',
     alternateEmail: '',
-    
+
     // Location & Scope
     headquarters: '',
     operatingCountries: [] as string[],
     location: '',
-    
+
     // Organization Details
     description: '',
     mission: '',
     currentPrograms: '',
     targetBeneficiaries: '',
     annualBudget: '',
-    
+
     // Partnership Details
     partnershipType: [] as string[],
     otherPartnershipType: '',
     resources: [] as string[],
     otherResources: '',
-    
+
     // Collaboration Goals
     goals: '',
     timeline: '',
     expectedOutcomes: '',
     successMetrics: '',
-    
+
     // Experience & Capacity
     previousPartnerships: '',
     organizationalCapacity: '',
     referencesInfo: '',
-    
+
     // Financial & Legal
     financialContribution: '',
     legalRequirements: '',
-    
+
     // Expectations & Commitments
     expectations: '',
     commitments: '',
-    
+
     // Agreements
     dataConsent: false,
     termsAccepted: false,
     dueDiligenceConsent: false
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
@@ -159,7 +159,7 @@ const Partnership = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateStep(5)) {
       const errors = getStepValidationErrors(5);
       alert(`Please complete the following before submitting:\n\n${errors.join('\n')}`);
@@ -218,16 +218,25 @@ const Partnership = () => {
         alternate_contact: sanitizedData.alternateContact,
         alternate_email: sanitizedData.alternateEmail,
         headquarters: sanitizedData.headquarters,
-        operating_countries: formData.operatingCountries,
+        operating_countries: formData.operatingCountries.reduce((acc, country) => {
+          acc[country] = true;
+          return acc;
+        }, {} as Record<string, unknown>),
         location: sanitizedData.location,
         description: sanitizedData.description,
         mission: sanitizedData.mission,
         current_programs: sanitizedData.currentPrograms,
         target_beneficiaries: sanitizedData.targetBeneficiaries,
         annual_budget: sanitizedData.annualBudget,
-        partnership_type: formData.partnershipType,
+        partnership_type: formData.partnershipType.reduce((acc, type) => {
+          acc[type] = true;
+          return acc;
+        }, {} as Record<string, unknown>),
         other_partnership_type: sanitizedData.otherPartnershipType,
-        resources: formData.resources,
+        resources: formData.resources.reduce((acc, resource) => {
+          acc[resource] = true;
+          return acc;
+        }, {} as Record<string, unknown>),
         other_resources: sanitizedData.otherResources,
         goals: sanitizedData.goals,
         timeline: sanitizedData.timeline,
@@ -244,10 +253,10 @@ const Partnership = () => {
         due_diligence_consent: formData.dueDiligenceConsent,
         status: 'pending'
       });
-      
+
       if (result.success) {
         alert('Thank you for your interest in partnering with BENIRAGE! Your partnership proposal has been submitted successfully. Our partnerships team will review your application and contact you within 7-10 business days to discuss collaboration opportunities.');
-        
+
         // Reset form
         setFormData({
           organizationName: '',
@@ -293,7 +302,7 @@ const Partnership = () => {
       } else {
         throw new Error('Submission failed');
       }
-      
+
     } catch (error) {
       console.error('Submission error:', error);
       alert('There was an error submitting your application. Please try again.');
@@ -705,11 +714,11 @@ const Partnership = () => {
                   'Emergency Response & Relief'
                 ].map((type) => (
                   <label key={type} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-golden/10 cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.partnershipType.includes(type)}
                       onChange={(e) => handleCheckboxChange('partnershipType', type, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-clear-gray text-sm">{type}</span>
                   </label>
@@ -750,11 +759,11 @@ const Partnership = () => {
                   'Administrative Support'
                 ].map((resource) => (
                   <label key={resource} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-golden/10 cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={formData.resources.includes(resource)}
                       onChange={(e) => handleCheckboxChange('resources', resource, e.target.checked)}
-                      className="rounded border-gray-300 text-golden focus:ring-golden" 
+                      className="rounded border-gray-300 text-golden focus:ring-golden"
                     />
                     <span className="text-clear-gray text-sm">{resource}</span>
                   </label>
@@ -889,10 +898,10 @@ const Partnership = () => {
                 >
                   <option value="">Select contribution level</option>
                   <option value="no-financial">No financial contribution</option>
-                  <option value="small">Small ($1,000 - $5,000)</option>
-                  <option value="medium">Medium ($5,000 - $25,000)</option>
-                  <option value="large">Large ($25,000 - $100,000)</option>
-                  <option value="major">Major ($100,000+)</option>
+                  <option value="small">Small (1,000 - 5,000)</option>
+                  <option value="medium">Medium (5,000 - 25,000)</option>
+                  <option value="large">Large (25,000 - 100,000)</option>
+                  <option value="major">Major (100,000+)</option>
                   <option value="in-kind">In-kind contributions only</option>
                   <option value="to-discuss">To be discussed</option>
                 </select>
@@ -956,14 +965,14 @@ const Partnership = () => {
               <h4 className="font-display text-lg font-semibold text-dark-blue">
                 Partnership Agreements
               </h4>
-              
+
               <label className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.dataConsent}
                   onChange={(e) => handleInputChange('dataConsent', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Data Privacy & Information Sharing *</strong><br />
@@ -972,12 +981,12 @@ const Partnership = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.termsAccepted}
                   onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Partnership Terms & Conditions *</strong><br />
@@ -986,12 +995,12 @@ const Partnership = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   required
                   checked={formData.dueDiligenceConsent}
                   onChange={(e) => handleInputChange('dueDiligenceConsent', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden" 
+                  className="mt-1 rounded border-gray-300 text-golden focus:ring-golden"
                 />
                 <span className="text-sm text-dark-blue">
                   <strong>Due Diligence & Verification *</strong><br />
@@ -1010,7 +1019,7 @@ const Partnership = () => {
   return (
     <div>
       {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
         <div className="text-center">
           <div className="text-6xl mb-6">🤝</div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -1028,7 +1037,7 @@ const Partnership = () => {
           <h2 className="text-4xl font-bold text-blue-900 mb-8">
             Partnership Opportunities
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="text-center hover:scale-105 transition-transform">
               <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -1111,7 +1120,7 @@ const Partnership = () => {
                     </Button>
                   )}
                 </div>
-                
+
                 <div>
                   {currentStep < totalSteps ? (
                     <Button type="button" onClick={nextStep}>

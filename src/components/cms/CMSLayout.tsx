@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FileText, Users, Image, Settings, BarChart3, LogOut, Home, Shield, Key, UserCheck, MessageSquare, Zap, Mail, Search, Calendar, Database, Megaphone, BookOpen, Globe, RefreshCw } from 'lucide-react';
 import Button from '../ui/Button';
 import { getCurrentUserProfile, getUserAllPermissions } from '../../utils/rbac';
@@ -17,6 +17,18 @@ interface CMSLayoutProps {
   onLogout: () => void;
 }
 
+interface NavigationItem {
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  permission?: string | null;
+}
+
+interface NavigationSection {
+  title: string;
+  items: NavigationItem[];
+}
+
 const CMSLayout: React.FC<CMSLayoutProps> = ({
   children,
   currentPage,
@@ -26,123 +38,231 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
 }) => {
   const [permissions, setPermissions] = useState<string[]>([]);
   const [userRole, setUserRole] = useState<string>('guest');
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState<boolean>(true);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
 
   // Initialize permissions and role
   useEffect(() => {
     const initializePermissions = async () => {
-      if (currentUser) {
-        try {
-          // Get user profile
-          const profile = await getCurrentUserProfile();
+      if (!currentUser) {
+        setPermissions([]);
+        setUserRole('guest');
+        setIsLoadingPermissions(false);
+        return;
+      }
 
-          // Get user permissions using new RBAC system
-          if (profile) {
-            const userPermissions = await getUserAllPermissions(profile);
-            setPermissions(userPermissions);
+      setIsLoadingPermissions(true);
+      setPermissionsError(null);
 
-            // For role, we'll use a simple mapping based on permissions
-            // This is a simplified approach - in a real app you might want to store roles separately
-            if (userPermissions.includes('system.manage_permissions')) {
-              setUserRole('super-admin');
-            } else if (userPermissions.includes('content.edit_all')) {
-              setUserRole('content-manager');
-            } else if (userPermissions.includes('content.edit_own')) {
-              setUserRole('editor');
-            } else if (userPermissions.includes('content.create_draft')) {
-              setUserRole('contributor');
-            } else {
-              setUserRole('viewer');
-            }
-          } else {
-            setPermissions([]);
-            setUserRole('guest');
-          }
-        } catch (error) {
-          console.error('Error initializing permissions:', error);
+      try {
+        // Get user profile
+        const profile = await getCurrentUserProfile();
+
+        if (!profile) {
+          setPermissions([]);
           setUserRole('guest');
+          setIsLoadingPermissions(false);
+          return;
         }
+
+        // Get user permissions using new RBAC system
+        const userPermissions = await getUserAllPermissions(profile);
+        setPermissions(userPermissions);
+
+        // Determine role based on permissions hierarchy
+        const roleHierarchy: Array<{ permission: string; role: string }> = [
+          { permission: 'system.manage_permissions', role: 'super-admin' },
+          { permission: 'content.edit_all', role: 'content-manager' },
+          { permission: 'content.edit_own', role: 'editor' },
+          { permission: 'content.create_draft', role: 'contributor' }
+        ];
+
+        const determinedRole = roleHierarchy.find(({ permission }) =>
+          userPermissions.includes(permission as any)
+        )?.role || 'viewer';
+
+        setUserRole(determinedRole);
+      } catch (error) {
+        console.error('Error initializing permissions:', error);
+        setPermissionsError('Failed to load permissions. Please refresh the page.');
+        setPermissions([]);
+        setUserRole('guest');
+      } finally {
+        setIsLoadingPermissions(false);
       }
     };
 
     initializePermissions();
   }, [currentUser]);
 
-  const navigation = [
-    { id: 'dashboard', name: 'Dashboard', icon: BarChart3, permission: null },
-    // Content Management - for content creators, reviewers, publishers
-    ...((permissions.includes('content.create_draft') || permissions.includes('content.edit_own') || permissions.includes('content.edit_all') || permissions.includes('content.publish')) ? [
-      { id: 'content-list', name: 'Content', icon: FileText, permission: null },
-      { id: 'page-content', name: 'Page Content', icon: FileText, permission: null },
-      { id: 'stories', name: 'Stories', icon: BookOpen, permission: null },
-      { id: 'calendar', name: 'Calendar', icon: Calendar, permission: null }
-    ] : []),
+  // Helper function to check permissions with fallback
+  const hasPermission = (requiredPermissions: string[]): boolean => {
+    if (!requiredPermissions.length) return true;
+    if (requiredPermissions.includes('*')) return true;
+    return requiredPermissions.some(perm => permissions.includes(perm as any));
+  };
 
-    // Form Management - for membership managers and admins
-    ...(permissions.includes('membership.manage_applications') ? [
-      { id: 'form-submissions', name: 'Applications', icon: Users, permission: null }
-    ] : []),
+  // Helper function to create navigation items with permission checks
+  const createNavItems = (
+    items: Array<{ id: string; name: string; icon: React.ComponentType<{ className?: string }>; permission?: string | null }>,
+    requiredPermissions: string[]
+  ): NavigationItem[] => {
+    if (!hasPermission(requiredPermissions)) return [];
+    return items.map(item => ({
+      id: item.id,
+      name: item.name,
+      icon: item.icon,
+      permission: item.permission
+    }));
+  };
 
-    // Communications - for admins and content managers
-    ...(permissions.includes('system.edit_settings') || permissions.includes('analytics.view_basic') || permissions.includes('content.create_draft') ? [
-      { id: 'newsletter', name: 'Newsletter', icon: Mail, permission: null },
-      { id: 'seo', name: 'SEO', icon: Search, permission: null },
-      { id: 'chat-admin', name: 'Chat Management', icon: MessageSquare, permission: null }
-    ] : []),
+  // Memoized navigation sections for performance
+  const navigationSections: NavigationSection[] = useMemo(() => [
+    {
+      title: 'Overview',
+      items: createNavItems([
+        { id: 'dashboard', name: 'Dashboard', icon: BarChart3, permission: null }
+      ], [])
+    },
+    {
+      title: 'Content Management',
+      items: [
+        // Core content management features
+        ...createNavItems([
+          { id: 'content-list', name: 'All Content', icon: FileText, permission: null },
+          { id: 'page-content', name: 'Page Content', icon: FileText, permission: null },
+          { id: 'stories', name: 'Stories', icon: BookOpen, permission: null },
+          { id: 'calendar', name: 'Content Calendar', icon: Calendar, permission: null }
+        ], ['content.create_draft', 'content.edit_own', 'content.edit_all', 'content.publish', '*']),
 
-    // Media Library - for content creators and managers
-    ...(permissions.includes('media.edit_all') || permissions.includes('content.create_draft') ? [
-      { id: 'media-library', name: 'Media', icon: Image, permission: null }
-    ] : []),
+        // Content organization
+        ...createNavItems([
+          { id: 'categories', name: 'Categories', icon: FileText, permission: null },
+          { id: 'tags', name: 'Tags', icon: FileText, permission: null }
+        ], ['system.edit_settings', 'content.create_draft', '*']),
 
-    // Advertisement Management - for admins and marketing managers
-    ...(permissions.includes('system.edit_settings') || permissions.includes('analytics.view_basic') ? [
-      { id: 'ads', name: 'Advertisements', icon: Megaphone, permission: null }
-    ] : []),
+        // Media management
+        ...createNavItems([
+          { id: 'media-library', name: 'Media Library', icon: Image, permission: null }
+        ], ['media.edit_all', 'content.create_draft', '*'])
+      ]
+    },
+    {
+      title: 'User & Community Management',
+      items: [
+        // User management
+        ...createNavItems([
+          { id: 'users', name: 'Users', icon: UserCheck, permission: null },
+          { id: 'user-groups', name: 'User Groups', icon: Users, permission: null }
+        ], ['users.manage_all', 'system.manage_users', '*']),
 
-    // User Management - only for admins and user managers
-    ...((permissions.includes('users.manage_all') || permissions.includes('system.manage_users') || currentUser?.email === 'admin@benirage.org') ? [
-      { id: 'users', name: 'Users', icon: UserCheck, permission: null },
-      { id: 'user-groups', name: 'Groups', icon: Users, permission: null }
-    ] : []),
+        // Form and application management
+        ...createNavItems([
+          { id: 'form-submissions', name: 'Applications', icon: Users, permission: null },
+          { id: 'form-fields', name: 'Form Fields', icon: FileText, permission: null }
+        ], ['membership.manage_applications', '*']),
 
-    // Role & Permission Management - only for super admins
-    ...(permissions.includes('system.manage_roles') ? [
-      { id: 'roles', name: 'Roles', icon: Shield, permission: null }
-    ] : []),
-    ...(permissions.includes('system.manage_permissions') ? [
-      { id: 'permissions', name: 'Permissions', icon: Key, permission: null }
-    ] : []),
+        // Communication management
+        ...createNavItems([
+          { id: 'chat-admin', name: 'Chat Management', icon: MessageSquare, permission: null },
+          { id: 'comments-admin', name: 'Comment Moderation', icon: MessageSquare, permission: null }
+        ], ['system.edit_settings', 'analytics.view_basic', 'content.create_draft', '*'])
+      ]
+    },
+    {
+      title: 'Marketing & SEO',
+      items: [
+        // Marketing tools
+        ...createNavItems([
+          { id: 'newsletter', name: 'Newsletter', icon: Mail, permission: null },
+          { id: 'seo', name: 'SEO Management', icon: Search, permission: null },
+          { id: 'ads', name: 'Advertisements', icon: Megaphone, permission: null }
+        ], ['system.edit_settings', 'analytics.view_basic', 'content.create_draft', '*'])
+      ]
+    },
+    {
+      title: 'Analytics & Reports',
+      items: [
+        // Analytics and reporting
+        ...createNavItems([
+          { id: 'analytics', name: 'Analytics', icon: BarChart3, permission: null },
+          { id: 'content-analytics', name: 'Content Analytics', icon: BarChart3, permission: 'analytics.view_basic' }
+        ], ['analytics.view_basic', '*'])
+      ]
+    },
+    {
+      title: 'System Administration',
+      items: [
+        // Role & Permission Management
+        ...createNavItems([
+          { id: 'roles', name: 'Roles', icon: Shield, permission: null }
+        ], ['system.manage_roles', '*']),
+        ...createNavItems([
+          { id: 'permissions', name: 'Permissions', icon: Key, permission: null }
+        ], ['system.manage_permissions', '*']),
 
-    // Analytics - for managers and admins
-    ...(permissions.includes('analytics.view_basic') ? [
-      { id: 'analytics', name: 'Analytics', icon: BarChart3, permission: null }
-    ] : []),
+        // System settings
+        ...createNavItems([
+          { id: 'settings', name: 'Settings', icon: Settings, permission: null },
+          { id: 'database', name: 'Database', icon: Database, permission: null }
+        ], ['system.edit_settings', '*']),
 
-    // Settings - only for admins
-    ...(permissions.includes('system.edit_settings') ? [
-      { id: 'settings', name: 'Settings', icon: Settings, permission: null },
-      { id: 'database', name: 'Database', icon: Database, permission: null },
-      { id: 'refactoring-info', name: 'Refactoring Info', icon: RefreshCw, permission: null }
-    ] : []),
+        // Website management
+        ...createNavItems([
+          { id: 'website-manager', name: 'Website Manager', icon: Globe, permission: null }
+        ], ['*', 'system.manage_permissions'])
+      ]
+    },
+    {
+      title: 'Advanced Features',
+      items: [
+        // Advanced tools
+        ...createNavItems([
+          { id: 'advanced-features', name: 'Advanced Tools', icon: Zap, permission: null },
+          { id: 'ai-suggestions', name: 'AI Suggestions', icon: Zap, permission: 'content.edit_own' },
+          { id: 'performance', name: 'Performance', icon: BarChart3, permission: null },
+          { id: 'security-audit', name: 'Security Audit', icon: Shield, permission: null }
+        ], ['system.edit_settings', 'analytics.view_basic', '*']),
 
-    // Website Management - only for super admins
-    ...(permissions.includes('*') || permissions.includes('system.manage_permissions') ? [
-      { id: 'website-manager', name: 'Website Manager', icon: Globe, permission: null }
-    ] : []),
+        // Development tools
+        ...createNavItems([
+          { id: 'refactoring-info', name: 'System Info', icon: RefreshCw, permission: null },
+          { id: 'content-guide', name: 'Content Guide', icon: FileText, permission: null },
+          { id: 'deployment-guide', name: 'Deploy Guide', icon: Settings, permission: null }
+        ], ['system.edit_settings', '*'])
+      ]
+    }
+  ], [permissions, currentUser?.email]);
 
-    // Advanced Features - for admins and managers
-    ...(permissions.includes('system.edit_settings') || permissions.includes('analytics.view_basic') ? [
-      { id: 'advanced-features', name: 'Advanced', icon: Zap, permission: null },
-      { id: 'ai-suggestions', name: 'AI Suggestions', icon: Zap, permission: 'content.edit_own' },
-      { id: 'content-analytics', name: 'Content Analytics', icon: BarChart3, permission: 'analytics.view_basic' },
-      { id: 'chat-demo', name: 'Chat Demo', icon: MessageSquare, permission: null },
-      { id: 'system-test', name: 'System Test', icon: Settings, permission: null },
-      { id: 'content-guide', name: 'Content Guide', icon: FileText, permission: null },
-      { id: 'deployment-guide', name: 'Deploy Guide', icon: Settings, permission: null },
-      { id: 'performance', name: 'Performance', icon: BarChart3, permission: null },
-      { id: 'security-audit', name: 'Security', icon: Shield, permission: null }
-    ] : [])
-  ].filter(item => !item.permission || permissions.includes(item.permission));
+  // Loading state for permissions
+  if (isLoadingPermissions) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state for permissions
+  if (permissionsError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 mb-4">
+            <Shield className="w-12 h-12 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Permission Error</h2>
+          <p className="text-gray-600 mb-4">{permissionsError}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -151,18 +271,25 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <img src="/LOGO_CLEAR_stars.png" alt="BENIRAGE" className="w-10 h-10" />
+              <img
+                src="/LOGO_CLEAR_stars.png"
+                alt="BENIRAGE"
+                className="w-10 h-10"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
               <div>
                 <h1 className="text-xl font-bold text-blue-900">BENIRAGE CMS</h1>
-                <p className="text-sm text-gray-600">{userRole}</p>
+                <p className="text-sm text-gray-600 capitalize">{userRole.replace('-', ' ')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className="text-sm font-medium text-gray-900">{currentUser?.email}</div>
-                <div className="text-xs text-gray-500">{userRole}</div>
+                <div className="text-sm font-medium text-gray-900">{currentUser?.email || 'Unknown User'}</div>
+                <div className="text-xs text-gray-500 capitalize">{userRole.replace('-', ' ')}</div>
               </div>
-              <a href="/" target="_blank">
+              <a href="/" target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="sm" icon={Home}>
                   View Website
                 </Button>
@@ -179,27 +306,40 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
         {/* Sidebar - responsive width for better usability */}
         <div className="xl:w-72 lg:w-64 md:w-56 sm:w-48 bg-white shadow-sm min-h-screen border-r border-gray-200">
           <nav className="p-6">
-            <div className="space-y-3">
-              {navigation.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  className={`w-full flex items-center space-x-4 px-4 py-3.5 rounded-xl text-left transition-all duration-200 group ${
-                    currentPage === item.id
-                      ? 'bg-blue-50 text-blue-900 font-semibold shadow-sm border border-blue-100'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border border-transparent hover:border-gray-200'
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg transition-colors duration-200 ${
-                    currentPage === item.id
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'bg-gray-100 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-500'
-                  }`}>
-                    <item.icon className="w-5 h-5" />
+            <div className="space-y-6">
+              {navigationSections.map((section) => {
+                const visibleItems = section.items.filter(item => !item.permission || permissions.includes(item.permission));
+
+                if (visibleItems.length === 0) return null;
+
+                return (
+                  <div key={section.title}>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                      {section.title}
+                    </h3>
+                    <div className="space-y-1">
+                      {visibleItems.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => onNavigate(item.id)}
+                          className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 group ${currentPage === item.id
+                            ? 'bg-blue-50 text-blue-900 font-medium shadow-sm border border-blue-100'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border border-transparent hover:border-gray-200'
+                            }`}
+                        >
+                          <div className={`p-1.5 rounded-md transition-colors duration-200 ${currentPage === item.id
+                            ? 'bg-blue-100 text-blue-600'
+                            : 'bg-gray-100 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-500'
+                            }`}>
+                            <item.icon className="w-4 h-4" />
+                          </div>
+                          <span className="text-sm font-medium">{item.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <span className="text-sm font-medium">{item.name}</span>
-                </button>
-              ))}
+                );
+              })}
             </div>
           </nav>
         </div>
@@ -207,7 +347,12 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
         {/* Main Content - improved spacing and max-width */}
         <div className="flex-1 p-8 lg:p-10 xl:p-12">
           <div className="max-w-7xl mx-auto">
-            {children}
+            {children || (
+              <div className="text-center py-12">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Welcome to BENIRAGE CMS</h2>
+                <p className="text-gray-600">Select an option from the sidebar to get started.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

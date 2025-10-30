@@ -30,7 +30,7 @@ END $$;
 
 -- Index on user_profiles for faster lookups
 CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON public.user_profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON public.user_profiles(email);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON public.user_profiles(username);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_is_active ON public.user_profiles(is_active);
 
 -- Index on chat_messages for faster queries
@@ -57,20 +57,26 @@ ALTER TABLE public.content ENABLE ROW LEVEL SECURITY;
 -- ADD AUDIT LOGGING
 -- =====================================================
 
--- Create audit log table if it doesn't exist
+-- Create audit log table if it doesn't exist (using existing structure)
 CREATE TABLE IF NOT EXISTS public.audit_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    table_name TEXT NOT NULL,
-    operation TEXT NOT NULL,
-    user_id UUID REFERENCES auth.users(id),
-    old_data JSONB,
-    new_data JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    action TEXT NOT NULL,
+    resource TEXT NOT NULL,
+    resource_id TEXT,
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address INET,
+    user_agent TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    severity TEXT CHECK (severity IN ('low', 'medium', 'high', 'critical')) DEFAULT 'medium',
+    category TEXT CHECK (category IN ('authentication', 'user_management', 'group_management', 'permission_management', 'content_management', 'system')) DEFAULT 'system',
+    organization_id UUID
 );
 
-CREATE INDEX IF NOT EXISTS idx_audit_logs_table_name ON public.audit_logs(table_name);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON public.audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON public.audit_logs(resource);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON public.audit_logs(timestamp DESC);
 
 -- =====================================================
 -- VERIFY FUNCTIONS EXIST
@@ -88,11 +94,11 @@ BEGIN
         CREATE OR REPLACE FUNCTION public.handle_new_user()
         RETURNS TRIGGER AS $func$
         BEGIN
-            INSERT INTO public.user_profiles (user_id, email, full_name)
+            INSERT INTO public.user_profiles (user_id, username, full_name)
             VALUES (
                 NEW.id,
-                NEW.email,
-                COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)
+                COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
+                COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1))
             );
             RETURN NEW;
         END;

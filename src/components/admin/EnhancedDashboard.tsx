@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import {
   Users, FileText, MessageSquare, DollarSign, TrendingUp,
   Eye, Download, RefreshCw, AlertTriangle, Plus, Settings,
-  BarChart3, Activity, Bell, Filter, Check, X
+  BarChart3, Activity, Bell, Filter, Check, X, Image
 } from 'lucide-react';
 import EnhancedStatCard from './EnhancedStatCard';
 import AnalyticsCharts from './AnalyticsCharts';
@@ -283,11 +283,10 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
       sortable: true,
       render: (value, item) => (
         <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${
-            (item as RecentApplication).type === 'membership' ? 'bg-blue-500' :
-            (item as RecentApplication).type === 'volunteer' ? 'bg-green-500' :
-            (item as RecentApplication).type === 'contact' ? 'bg-purple-500' : 'bg-gray-500'
-          }`} />
+          <div className={`w-2 h-2 rounded-full ${(item as RecentApplication).type === 'membership' ? 'bg-blue-500' :
+              (item as RecentApplication).type === 'volunteer' ? 'bg-green-500' :
+                (item as RecentApplication).type === 'contact' ? 'bg-purple-500' : 'bg-gray-500'
+            }`} />
           <span className="font-medium">{value as string}</span>
         </div>
       )
@@ -302,12 +301,11 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
       header: 'Type',
       sortable: true,
       render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'membership' ? 'bg-blue-100 text-blue-800' :
-          value === 'volunteer' ? 'bg-green-100 text-green-800' :
-          value === 'contact' ? 'bg-purple-100 text-purple-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${value === 'membership' ? 'bg-blue-100 text-blue-800' :
+            value === 'volunteer' ? 'bg-green-100 text-green-800' :
+              value === 'contact' ? 'bg-purple-100 text-purple-800' :
+                'bg-gray-100 text-gray-800'
+          }`}>
           {(value as string).charAt(0).toUpperCase() + (value as string).slice(1)}
         </span>
       )
@@ -317,12 +315,11 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
       header: 'Status',
       sortable: true,
       render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-          value === 'approved' ? 'bg-green-100 text-green-800' :
-          value === 'rejected' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${value === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+            value === 'approved' ? 'bg-green-100 text-green-800' :
+              value === 'rejected' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'
+          }`}>
           {(value as string).charAt(0).toUpperCase() + (value as string).slice(1)}
         </span>
       )
@@ -435,11 +432,10 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as 'overview' | 'analytics' | 'applications' | 'activity')}
-                  className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
+                  className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
@@ -516,37 +512,185 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                 />
               </div>
 
-              {/* Quick Actions and Activity */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ActivityFeed onRefresh={handleRefresh} />
+              {/* Content Management Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <EnhancedStatCard
+                  title="Published Content"
+                  value={stats.totalContent}
+                  subtitle="Live articles & pages"
+                  icon={FileText}
+                  color="indigo"
+                  trend={{
+                    value: 15,
+                    isPositive: true,
+                    label: "vs last month"
+                  }}
+                  chartData={chartData.applications.slice(-7).map(d => ({ value: Math.floor(d.value * 0.6) }))}
+                  onClick={() => onNavigate('content-list')}
+                />
 
+                <EnhancedStatCard
+                  title="Media Files"
+                  value={Math.floor(stats.totalContent * 2.5)}
+                  subtitle="Images & documents"
+                  icon={Image}
+                  color="purple"
+                  trend={{
+                    value: 8,
+                    isPositive: true,
+                    label: "vs last month"
+                  }}
+                  chartData={chartData.applications.slice(-7).map(d => ({ value: Math.floor(d.value * 0.4) }))}
+                  onClick={() => onNavigate('media-library')}
+                />
+
+                <EnhancedStatCard
+                  title="Active Users"
+                  value={Math.floor(stats.totalMemberships * 0.7)}
+                  subtitle="Registered members"
+                  icon={Users}
+                  color="green"
+                  trend={{
+                    value: 12,
+                    isPositive: true,
+                    label: "vs last month"
+                  }}
+                  chartData={chartData.applications.slice(-7).map(d => ({ value: Math.floor(d.value * 0.8) }))}
+                  onClick={() => onNavigate('users')}
+                />
+
+                <EnhancedStatCard
+                  title="Stories Submitted"
+                  value={Math.floor(stats.totalContent * 0.3)}
+                  subtitle="Community stories"
+                  icon={MessageSquare}
+                  color="yellow"
+                  trend={{
+                    value: 22,
+                    isPositive: true,
+                    label: "vs last month"
+                  }}
+                  chartData={chartData.applications.slice(-7).map(d => ({ value: Math.floor(d.value * 0.3) }))}
+                  onClick={() => onNavigate('stories')}
+                />
+              </div>
+
+              {/* Content Management Quick Actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 <Card>
                   <div className="p-6">
-                    <h3 className="font-display text-xl font-semibold text-gray-900 mb-6">
-                      Quick Actions
+                    <h3 className="font-display text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                      Content Management
                     </h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       <Button
                         variant="outline"
                         icon={Plus}
                         onClick={() => onNavigate('content-editor')}
-                        className="justify-start"
+                        className="w-full justify-start"
                       >
-                        Create Content
+                        Create New Content
                       </Button>
                       <Button
                         variant="outline"
+                        icon={FileText}
+                        onClick={() => onNavigate('content-list')}
+                        className="w-full justify-start"
+                      >
+                        Manage All Content
+                      </Button>
+                      <Button
+                        variant="outline"
+                        icon={MessageSquare}
+                        onClick={() => onNavigate('stories')}
+                        className="w-full justify-start"
+                      >
+                        Review Stories
+                      </Button>
+                      <Button
+                        variant="outline"
+                        icon={Image}
+                        onClick={() => onNavigate('media-library')}
+                        className="w-full justify-start"
+                      >
+                        Media Library
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card>
+                  <div className="p-6">
+                    <h3 className="font-display text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Users className="w-5 h-5 mr-2 text-green-600" />
+                      User & Community
+                    </h3>
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
                         icon={Users}
-                        onClick={() => onNavigate('memberships')}
-                        className="justify-start"
+                        onClick={() => onNavigate('users')}
+                        className="w-full justify-start"
+                      >
+                        Manage Users
+                      </Button>
+                      <Button
+                        variant="outline"
+                        icon={FileText}
+                        onClick={() => onNavigate('form-submissions')}
+                        className="w-full justify-start"
                       >
                         Review Applications
                       </Button>
                       <Button
                         variant="outline"
+                        icon={MessageSquare}
+                        onClick={() => onNavigate('chat-admin')}
+                        className="w-full justify-start"
+                      >
+                        Chat Management
+                      </Button>
+                      <Button
+                        variant="outline"
+                        icon={Users}
+                        onClick={() => onNavigate('user-groups')}
+                        className="w-full justify-start"
+                      >
+                        User Groups
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card>
+                  <div className="p-6">
+                    <h3 className="font-display text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Settings className="w-5 h-5 mr-2 text-purple-600" />
+                      System & Analytics
+                    </h3>
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        icon={BarChart3}
+                        onClick={() => onNavigate('analytics')}
+                        className="w-full justify-start"
+                      >
+                        View Analytics
+                      </Button>
+                      <Button
+                        variant="outline"
+                        icon={Settings}
+                        onClick={() => onNavigate('settings')}
+                        className="w-full justify-start"
+                      >
+                        System Settings
+                      </Button>
+                      <Button
+                        variant="outline"
                         icon={Download}
-                        onClick={() => {/* Export functionality */}}
-                        className="justify-start"
+                        onClick={() => {/* Export functionality */ }}
+                        className="w-full justify-start"
                       >
                         Export Data
                       </Button>
@@ -554,13 +698,18 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                         variant="outline"
                         icon={Eye}
                         onClick={() => window.open('/', '_blank')}
-                        className="justify-start"
+                        className="w-full justify-start"
                       >
                         View Website
                       </Button>
                     </div>
                   </div>
                 </Card>
+              </div>
+
+              {/* Activity Feed */}
+              <div className="grid grid-cols-1 gap-8">
+                <ActivityFeed onRefresh={handleRefresh} />
               </div>
             </>
           )}
@@ -584,9 +733,9 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   onClick: async (item) => {
                     setSelectedApplication(item as unknown as RecentApplication);
                     const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
-                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
-                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
-                                  'partnership_applications';
+                      (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                        (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
+                          'partnership_applications';
                     const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
                     setFullApplicationData(data as Record<string, unknown>);
                     setIsViewModalOpen(true);
@@ -598,9 +747,9 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   icon: Download,
                   onClick: async (item) => {
                     const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
-                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
-                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
-                                  'partnership_applications';
+                      (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                        (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
+                          'partnership_applications';
                     const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
                     if (data) {
                       exportApplicationToCSV(data as Record<string, unknown>, (item as unknown as RecentApplication).type, `${(item as unknown as RecentApplication).type}_application_${(item as unknown as RecentApplication).id}.csv`);
@@ -613,9 +762,9 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   icon: Download,
                   onClick: async (item) => {
                     const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
-                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
-                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
-                                  'partnership_applications';
+                      (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                        (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
+                          'partnership_applications';
                     const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
                     if (data) {
                       exportApplicationToPDF(data as Record<string, unknown>, (item as unknown as RecentApplication).type, `${(item as unknown as RecentApplication).type}_application_${(item as unknown as RecentApplication).id}.pdf`);
@@ -629,9 +778,9 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   onClick: async (item) => {
                     setSelectedApplication(item as unknown as RecentApplication);
                     const table = (item as unknown as RecentApplication).type === 'membership' ? 'membership_applications' :
-                                  (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
-                                  (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
-                                  'partnership_applications';
+                      (item as unknown as RecentApplication).type === 'volunteer' ? 'volunteer_applications' :
+                        (item as unknown as RecentApplication).type === 'contact' ? 'contact_submissions' :
+                          'partnership_applications';
                     const { data } = await supabase.from(table).select('*').eq('id', (item as unknown as RecentApplication).id).single();
                     setFullApplicationData(data as Record<string, unknown>);
                     setEditFormData(data as Record<string, unknown>);
@@ -659,9 +808,9 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
                   onClick: async (items) => {
                     for (const item of items as unknown as RecentApplication[]) {
                       const table = item.type === 'membership' ? 'membership_applications' :
-                                    item.type === 'volunteer' ? 'volunteer_applications' :
-                                    item.type === 'contact' ? 'contact_submissions' :
-                                    'partnership_applications';
+                        item.type === 'volunteer' ? 'volunteer_applications' :
+                          item.type === 'contact' ? 'contact_submissions' :
+                            'partnership_applications';
                       const { data } = await supabase.from(table).select('*').eq('id', item.id).single();
                       if (data) {
                         exportApplicationToCSV(data as Record<string, unknown>, item.type, `${item.type}_application_${item.id}.csv`);
@@ -779,9 +928,9 @@ const EnhancedDashboard: React.FC<EnhancedDashboardProps> = ({ onNavigate }) => 
               setIsSaving(true);
               try {
                 const table = selectedApplication?.type === 'membership' ? 'membership_applications' :
-                              selectedApplication?.type === 'volunteer' ? 'volunteer_applications' :
-                              selectedApplication?.type === 'contact' ? 'contact_submissions' :
-                              'partnership_applications';
+                  selectedApplication?.type === 'volunteer' ? 'volunteer_applications' :
+                    selectedApplication?.type === 'contact' ? 'contact_submissions' :
+                      'partnership_applications';
                 await supabase.from(table).update(editFormData).eq('id', selectedApplication?.id);
                 setIsEditModalOpen(false);
                 loadDashboardData();

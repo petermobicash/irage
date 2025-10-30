@@ -43,10 +43,7 @@ const ChatManager: React.FC = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('chat_rooms')
-        .select(`
-          *,
-          chat_participants(*)
-        `)
+        .select('*')
         .order('last_activity', { ascending: false });
 
       if (error) throw error;
@@ -175,18 +172,16 @@ const ChatManager: React.FC = () => {
                 <div className="flex items-center space-x-3 mb-2">
                   <MessageSquare className="w-6 h-6 text-blue-600" />
                   <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    room.is_active
+                  <span className={`px-2 py-1 text-xs rounded-full ${room.is_active
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
-                  }`}>
+                    }`}>
                     {room.is_active ? 'Active' : 'Inactive'}
                   </span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    room.is_public
+                  <span className={`px-2 py-1 text-xs rounded-full ${room.is_public
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-purple-100 text-purple-800'
-                  }`}>
+                    }`}>
                     {room.is_public ? 'Public' : 'Private'}
                   </span>
                 </div>

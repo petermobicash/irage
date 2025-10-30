@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Heart, Reply, MoreHorizontal, Pin, User, Trash2 } from 'lucide-react';
-import { useComments } from '../../hooks/useComments';
 import { Comment } from '../../types/chat';
+import { useComments } from '../../hooks/useComments';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 
@@ -11,12 +11,14 @@ interface CommentSystemProps {
   showTitle?: boolean;
 }
 
-const CommentSystem: React.FC<CommentSystemProps> = ({ 
-  contentSlug, 
+const CommentSystem: React.FC<CommentSystemProps> = ({
+  contentSlug,
   allowComments = true,
-  showTitle = true 
+  showTitle = true
 }) => {
+  // Always define all hooks at the top level
   const { comments, loading, submitting, error, submitComment, reactToComment, deleteComment } = useComments(contentSlug);
+
   const [newComment, setNewComment] = useState('');
   const [commenterName, setCommenterName] = useState('');
   const [commenterEmail, setCommenterEmail] = useState('');
@@ -27,7 +29,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside - always call useEffect
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -113,11 +115,10 @@ const CommentSystem: React.FC<CommentSystemProps> = ({
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                !comment.author_id
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${!comment.author_id
                   ? 'bg-gradient-to-br from-gray-400 to-gray-600'
                   : 'bg-gradient-to-br from-blue-500 to-purple-600'
-              }`}>
+                }`}>
                 <span className="text-white font-semibold text-sm">
                   {!comment.author_id ? <User className="w-5 h-5" /> : comment.author_name.charAt(0).toUpperCase()}
                 </span>
@@ -401,7 +402,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({
       {/* Comments List */}
       <div className="space-y-6">
         {comments.length > 0 ? (
-          comments.map(comment => renderComment(comment))
+          comments.map((comment: Comment) => renderComment(comment))
         ) : (
           <Card className="text-center py-12">
             <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />

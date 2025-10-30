@@ -109,7 +109,7 @@ const Resources = () => {
   return (
     <div>
       {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
         <div className="text-center">
           <div className="text-6xl mb-6">📚</div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -139,11 +139,10 @@ const Resources = () => {
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                  activeCategory === category.id
+                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${activeCategory === category.id
                     ? 'bg-yellow-500 text-blue-900 shadow-lg scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-yellow-100 hover:text-yellow-600 hover:scale-105'
-                }`}
+                  }`}
               >
                 {category.name} ({category.count})
               </button>
@@ -157,8 +156,8 @@ const Resources = () => {
               {resources.filter(r => r.featured).map((resource, index) => (
                 <Card key={index} variant="premium" className="hover:scale-105 transition-transform">
                   <div className="relative mb-6 rounded-xl overflow-hidden">
-                    <img 
-                      src={resource.image} 
+                    <img
+                      src={resource.image}
                       alt={resource.title}
                       className="w-full h-48 object-cover"
                     />
@@ -173,9 +172,9 @@ const Resources = () => {
                     <h3 className="text-xl font-bold text-blue-900">
                       {resource.title}
                     </h3>
-                    
+
                     <p className="text-gray-600 leading-relaxed">{resource.description}</p>
-                    
+
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
                         {resource.type}
@@ -205,18 +204,18 @@ const Resources = () => {
                     <div className="w-16 h-16 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600">
                       <div className="text-2xl">
                         {resource.type.includes('PDF') ? '📄' :
-                         resource.type.includes('Video') ? '🎥' :
-                         resource.type.includes('Audio') ? '🎵' : '📚'}
+                          resource.type.includes('Video') ? '🎥' :
+                            resource.type.includes('Audio') ? '🎵' : '📚'}
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 space-y-3">
                       <h3 className="text-xl font-bold text-blue-900">
                         {resource.title}
                       </h3>
-                      
+
                       <p className="text-gray-600 leading-relaxed">{resource.description}</p>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4 text-sm text-gray-600">
                           <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
@@ -225,7 +224,7 @@ const Resources = () => {
                           {resource.size && <span>{resource.size}</span>}
                           {resource.duration && <span>{resource.duration}</span>}
                         </div>
-                        
+
                         <Button variant="outline" size="sm">
                           Access
                         </Button>
@@ -248,7 +247,7 @@ const Resources = () => {
           <p className="text-xl mb-8">
             Be the first to access new publications, videos, and learning materials
           </p>
-          
+
           <div className="max-w-md mx-auto">
             <form onSubmit={handleNewsletterSubmit} className="space-y-4">
               <div className="flex gap-4">

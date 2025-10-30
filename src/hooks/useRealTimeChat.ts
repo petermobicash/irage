@@ -398,19 +398,24 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
       return;
     }
 
+    let isMounted = true;
+
     const setupRealtimeSubscription = async () => {
       try {
+        if (!isMounted) return;
         setIsLoading(true);
 
         // Get current user
         const user = await getCurrentUser();
-        if (!user) {
+        if (!user || !isMounted) {
           setIsLoading(false);
           return;
         }
 
-        // Initialize presence
-        await initializePresence(user);
+        // Initialize presence (but don't await it to prevent blocking)
+        initializePresence(user).catch(err =>
+          console.warn('Presence initialization failed:', err)
+        );
 
         // Set up main chat channel
         channelRef.current = supabase.channel(getChannelName());
@@ -422,6 +427,8 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
             table: conversationId ? 'direct_messages' : groupId ? 'group_messages' : 'chat_messages',
             filter: conversationId ? `conversation_id=eq.${conversationId}` : groupId ? `group_id=eq.${groupId}` : undefined,
           }, (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+            if (!isMounted) return;
+            
             if (payload.eventType === 'INSERT') {
               setChatState(prev => ({
                 ...prev,
@@ -447,6 +454,8 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
             table: 'typing_indicators',
             filter: conversationId ? `conversation_id=eq.${conversationId}` : groupId ? `group_id=eq.${groupId}` : undefined,
           }, (payload: RealtimePostgresChangesPayload<TypingIndicator>) => {
+            if (!isMounted) return;
+            
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               setChatState(prev => {
                 const existingIndex = prev.typingUsers.findIndex(
@@ -471,6 +480,8 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
             }
           })
           .subscribe((status) => {
+            if (!isMounted) return;
+            
             setChatState(prev => ({
               ...prev,
               isConnected: status === 'SUBSCRIBED',
@@ -488,22 +499,26 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
           .eq('user_id', user.id)
           .single();
 
-        if (profile) {
+        if (profile && isMounted) {
           setChatState(prev => ({
             ...prev,
             currentUser: profile as UserProfile,
           }));
         }
 
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
 
       } catch (error) {
         console.error('Error setting up realtime subscription:', error);
-        setChatState(prev => ({
-          ...prev,
-          error: 'Failed to connect to chat',
-        }));
-        setIsLoading(false); // Ensure loading state is cleared on error
+        if (isMounted) {
+          setChatState(prev => ({
+            ...prev,
+            error: 'Failed to connect to chat',
+          }));
+          setIsLoading(false);
+        }
       }
     };
 
@@ -511,14 +526,17 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
 
     // Cleanup function
     return () => {
+      isMounted = false;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
       if (presenceChannelRef.current) {
         supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
       }
     };
-  }, [enabled, conversationId, groupId, getChannelName, initializePresence, loadMessages]);
+  }, [enabled, conversationId, groupId]);
 
   // Auto-cleanup typing indicators
   useEffect(() => {

@@ -51,7 +51,7 @@ const Donate = () => {
     method: 'card'
   });
 
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -335,11 +335,10 @@ const Donate = () => {
                   key={amount}
                   type="button"
                   onClick={() => handleInputChange('amount', amount.toString())}
-                  className={`p-4 border-2 rounded-xl font-semibold transition-all duration-300 ${
-                    formData.amount === amount.toString()
-                      ? 'border-yellow-500 bg-yellow-50 text-yellow-600'
-                      : 'border-gray-300 hover:border-yellow-500 hover:bg-yellow-50 text-blue-900'
-                  }`}
+                  className={`p-4 border-2 rounded-xl font-semibold transition-all duration-300 ${formData.amount === amount.toString()
+                    ? 'border-yellow-500 bg-yellow-50 text-yellow-600'
+                    : 'border-gray-300 hover:border-yellow-500 hover:bg-yellow-50 text-blue-900'
+                    }`}
                 >
                   ${amount}
                 </button>
@@ -351,7 +350,7 @@ const Donate = () => {
                 Custom Amount *
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></span>
                 <input
                   type="number"
                   id="customAmount"
@@ -737,7 +736,7 @@ const Donate = () => {
               <p className="text-yellow-700 text-sm mb-4">
                 You can dedicate this donation in honor or memory of someone special
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="dedicationName" className="block text-sm font-medium text-yellow-800 mb-2">
@@ -753,7 +752,7 @@ const Donate = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <label htmlFor="dedicationMessage" className="block text-sm font-medium text-yellow-800 mb-2">
                   Dedication Message
@@ -773,13 +772,13 @@ const Donate = () => {
               <h4 className="font-display text-lg font-semibold text-dark-blue">
                 Communication Preferences
               </h4>
-              
+
               <label className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={formData.newsletterSignup}
                   onChange={(e) => handleInputChange('newsletterSignup', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500" 
+                  className="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
                 />
                 <span className="text-sm text-blue-900">
                   <strong>Newsletter Subscription</strong><br />
@@ -788,11 +787,11 @@ const Donate = () => {
               </label>
 
               <label className="flex items-start space-x-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={formData.anonymousDonation}
                   onChange={(e) => handleInputChange('anonymousDonation', e.target.checked)}
-                  className="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500" 
+                  className="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
                 />
                 <span className="text-sm text-blue-900">
                   <strong>Anonymous Donation</strong><br />
@@ -811,7 +810,7 @@ const Donate = () => {
   return (
     <div>
       {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-yellow-500 to-orange-600 text-white">
+      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
         <div className="text-center">
           <Heart className="w-16 h-16 text-white mx-auto mb-6 animate-float" />
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -834,9 +833,9 @@ const Donate = () => {
                 <span className="text-sm text-clear-gray">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-yellow-500 to-orange-400 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                  style={{ width: `{(currentStep / totalSteps) * 100}%` }}
                 />
               </div>
             </div>
@@ -853,7 +852,7 @@ const Donate = () => {
                     </Button>
                   )}
                 </div>
-                
+
                 <div>
                   {currentStep < totalSteps ? (
                     <Button type="button" onClick={nextStep}>
@@ -891,7 +890,7 @@ const Donate = () => {
           <p className="text-xl mb-8">
             We believe in transparency and recognizing our generous supporters
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-blue-900/10 backdrop-blur-sm rounded-xl p-6">
               <Gift className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
@@ -900,7 +899,7 @@ const Donate = () => {
                 Receive official tax-deductible receipts for all donations
               </p>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
               <Users className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-3">Impact Reports</h3>
@@ -908,7 +907,7 @@ const Donate = () => {
                 Regular updates on how your donation is making a difference
               </p>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
               <Target className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-3">Donor Recognition</h3>

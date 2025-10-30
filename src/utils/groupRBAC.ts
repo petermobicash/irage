@@ -45,22 +45,20 @@ interface PermissionRow {
   name: string;
   slug: string;
   description: string;
-  category_id: string;
+  category: string;
   module: string;
   action: string;
   resource: string;
-  conditions: unknown;
   is_system_permission: boolean;
   order_index: number;
+  settings: Record<string, unknown>;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   created_by: string;
+  organization_id: string | null;
 }
 
-interface GroupPermissionRow {
-  permission_id: string;
-  permissions: PermissionRow[];
-}
 
 interface GroupUserRow {
   group_id: string;
@@ -559,23 +557,25 @@ export const getPermissions = async (filters?: PermissionFilters, pagination?: P
         name,
         slug,
         description,
-        category_id,
+        category,
         module,
         action,
         resource,
-        conditions,
         is_system_permission,
         order_index,
+        settings,
+        is_active,
         created_at,
         updated_at,
-        created_by
+        created_by,
+        organization_id
       `)
       .order('order_index', { ascending: true })
       .order('name', { ascending: true });
 
     // Apply filters
     if (filters?.categoryId) {
-      query = query.eq('category_id', filters.categoryId);
+      query = query.eq('category', filters.categoryId); // Use category instead of category_id
     }
 
     if (filters?.module) {
@@ -611,17 +611,17 @@ export const getPermissions = async (filters?: PermissionFilters, pagination?: P
     if (error) throw error;
 
     // Transform to match Permission interface
-    return (data || []).map((item: PermissionRow) => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       name: item.name,
       slug: item.slug,
       description: item.description,
-      categoryId: item.category_id,
+      categoryId: item.category, // Use category instead of category_id
       module: item.module,
       action: item.action,
       resource: item.resource,
-      conditions: item.conditions,
-      isActive: true, // All permissions are active by default
+      conditions: undefined, // This column doesn't exist in the actual database
+      isActive: item.is_active,
       isSystemPermission: item.is_system_permission,
       orderIndex: item.order_index,
       createdAt: item.created_at,
@@ -682,16 +682,18 @@ export const getGroupPermissions = async (groupId: string): Promise<Permission[]
           name,
           slug,
           description,
-          category_id,
+          category,
           module,
           action,
           resource,
-          conditions,
           is_system_permission,
           order_index,
+          settings,
+          is_active,
           created_at,
           updated_at,
-          created_by
+          created_by,
+          organization_id
         )
       `)
       .eq('group_id', groupId);
@@ -702,26 +704,30 @@ export const getGroupPermissions = async (groupId: string): Promise<Permission[]
     }
 
     // Transform to match Permission interface
-    return (groupPermData || []).map((item: GroupPermissionRow) => {
-      const perm = item.permissions[0];
+    return (groupPermData || []).map((item: any) => {
+      const perm = item.permissions; // permissions is an object, not an array
+      if (!perm) {
+        console.warn('Permission data is missing for item:', item);
+        return null;
+      }
       return {
         id: perm.id,
         name: perm.name,
         slug: perm.slug,
         description: perm.description,
-        categoryId: perm.category_id,
+        categoryId: perm.category, // Use category instead of category_id
         module: perm.module,
         action: perm.action,
         resource: perm.resource,
-        conditions: perm.conditions,
-        isActive: true, // All permissions are active by default
+        conditions: undefined, // This column doesn't exist in the actual database
+        isActive: perm.is_active,
         isSystemPermission: perm.is_system_permission,
         orderIndex: perm.order_index,
         createdAt: perm.created_at,
         updatedAt: perm.updated_at,
         createdBy: perm.created_by
       };
-    }) as Permission[];
+    }).filter(Boolean) as Permission[];
   } catch (error) {
     console.error('Error fetching group permissions:', error);
     return [];

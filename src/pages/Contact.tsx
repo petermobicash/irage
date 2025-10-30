@@ -23,7 +23,7 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
       alert('Please fill in all required fields.');
       return;
@@ -43,10 +43,10 @@ const Contact = () => {
         message: formData.message,
         status: 'new'
       });
-      
+
       if (result.success) {
         alert('Thank you for your message! We have received your inquiry and will get back to you within 24 hours.');
-        
+
         // Reset form
         setFormData({
           firstName: '', lastName: '', email: '', phone: '', subject: '', message: '',
@@ -55,7 +55,7 @@ const Contact = () => {
       } else {
         throw new Error('Submission failed');
       }
-      
+
     } catch (error) {
       console.error('Contact form error:', error);
       alert('There was an error submitting your message. Please try again or contact us directly at info@benirage.org');
@@ -107,7 +107,7 @@ const Contact = () => {
             <h3 className="text-xl font-bold text-blue-900 mb-3">
               Phone
             </h3>
-            <p className="text-yellow-600 font-semibold text-lg mb-2">(+250) 788 123 456</p>
+            <p className="text-yellow-600 font-semibold text-lg mb-2">(+250) 788 310 932</p>
             <p className="text-gray-600 text-sm mb-4">Call us during office hours</p>
             <a href="tel:+250788123456">
               <Button variant="outline" size="sm">
@@ -121,7 +121,7 @@ const Contact = () => {
             <h3 className="text-xl font-bold text-blue-900 mb-3">
               WhatsApp
             </h3>
-            <p className="text-yellow-600 font-semibold text-lg mb-2">(+250) 788 123 456</p>
+            <p className="text-yellow-600 font-semibold text-lg mb-2">(+250) 788 310 932</p>
             <p className="text-gray-600 text-sm mb-4">Quick messages and support</p>
             <a href="https://wa.me/250788123456" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm">
@@ -276,8 +276,8 @@ const Contact = () => {
               </div>
 
               <div className="text-center">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   size="lg"
                   disabled={isSubmitting}
                 >

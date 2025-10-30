@@ -7,12 +7,12 @@ const GetInvolved = () => {
     <div>
       {/* Hero Section */}
       <Section background="blue" padding="xl">
-        <div className="text-center">
+        <div className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-center">
           <div className="text-6xl mb-6">🤝</div>
-          <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-white px-4 mb-6">
             Get Involved
           </h1>
-          <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-4xl mx-auto">
+          <p className="text-xl md:text-2xl text-white px-4 mb-8 max-w-4xl mx-auto">
             BENIRAGE is a movement for everyone. Join us in building a world of spirit, wisdom, and culture.
           </p>
         </div>

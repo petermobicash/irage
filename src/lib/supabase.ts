@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('🔗 Get credentials from: https://supabase.com/dashboard → Settings → API');
 }
 
-// Create Supabase client with error handling
+// Create Supabase client with improved error handling and CORS support
 export const supabase = createClient(supabaseUrl || 'https://dummy.supabase.co', supabaseAnonKey || 'dummy-key', {
   auth: {
     persistSession: true,
@@ -24,17 +24,20 @@ export const supabase = createClient(supabaseUrl || 'https://dummy.supabase.co',
   },
   global: {
     headers: {
-      'X-Client-Info': 'benirage-website',
-      'apikey': supabaseAnonKey || ''
+      'X-Client-Info': 'benirage-website'
     }
   },
-  // For local development, ensure proper configuration
-  ...(supabaseUrl?.includes('127.0.0.1') && {
-    // Additional config for local development if needed
+  // Enhanced configuration for better CORS and network handling
+  ...(supabaseUrl && !supabaseUrl.includes('dummy') ? {
     rest: {
-      timeout: 10000
+      timeout: 30000 // Increase timeout for slow connections
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
     }
-  })
+  } : {})
 });
 
 // Database types for TypeScript
@@ -1492,32 +1495,52 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          slug: string;
           description: string | null;
-          category_id: string;
+          category: string;
+          module: string;
           action: string;
           resource: string;
           is_system_permission: boolean;
           order_index: number;
+          settings: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+          is_active: boolean;
+          created_by: string | null;
+          organization_id: string | null;
         };
         Insert: {
           id: string;
           name: string;
+          slug: string;
           description?: string | null;
-          category_id: string;
+          category: string;
+          module: string;
           action: string;
           resource: string;
           is_system_permission?: boolean;
           order_index?: number;
+          settings?: Record<string, unknown>;
+          is_active?: boolean;
+          created_by?: string | null;
+          organization_id?: string | null;
         };
         Update: {
           id?: string;
           name?: string;
+          slug?: string;
           description?: string | null;
-          category_id?: string;
+          category?: string;
+          module?: string;
           action?: string;
           resource?: string;
           is_system_permission?: boolean;
           order_index?: number;
+          settings?: Record<string, unknown>;
+          is_active?: boolean;
+          created_by?: string | null;
+          organization_id?: string | null;
         };
       };
       profiles: {
@@ -2265,6 +2288,87 @@ export interface Database {
           unsubscribe_token?: string | null;
           preferences?: Record<string, unknown> | null;
           source?: string | null;
+        };
+      };
+      groups: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          color: string;
+          icon: string;
+          parent_group_id: string | null;
+          order_index: number;
+          is_active: boolean;
+          is_system_group: boolean;
+          settings: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          name: string;
+          description?: string | null;
+          color?: string;
+          icon?: string;
+          parent_group_id?: string | null;
+          order_index?: number;
+          is_active?: boolean;
+          is_system_group?: boolean;
+          settings?: Record<string, unknown>;
+          created_by?: string | null;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          color?: string;
+          icon?: string;
+          parent_group_id?: string | null;
+          order_index?: number;
+          is_active?: boolean;
+          is_system_group?: boolean;
+          settings?: Record<string, unknown>;
+          created_by?: string | null;
+        };
+      };
+      group_users: {
+        Row: {
+          id: string;
+          group_id: string | null;
+          user_id: string | null;
+          assigned_by: string | null;
+          assigned_at: string;
+          is_active: boolean;
+        };
+        Insert: {
+          group_id?: string | null;
+          user_id?: string | null;
+          assigned_by?: string | null;
+          assigned_at?: string;
+          is_active?: boolean;
+        };
+        Update: {
+          group_id?: string | null;
+          user_id?: string | null;
+          assigned_by?: string | null;
+          assigned_at?: string;
+          is_active?: boolean;
+        };
+      };
+      group_permissions: {
+        Row: {
+          id: string;
+          group_id: string | null;
+          permission_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          group_id?: string | null;
+          permission_id?: string | null;
+        };
+        Update: {
+          group_id?: string | null;
+          permission_id?: string | null;
         };
       };
     };
@@ -3586,6 +3690,170 @@ export const unsubscribeFromNewsletter = async (email: string) => {
     return { success: true, data };
   } catch (error) {
     console.error('Error unsubscribing from newsletter:', error);
+    return { success: false, error };
+  }
+};
+
+// ===== GROUP MANAGEMENT =====
+
+export const getGroups = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*')
+      .eq('is_active', true)
+      .order('order_index');
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    return { success: false, error };
+  }
+};
+
+export const getGroupPermissions = async (groupId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('group_permissions')
+      .select(`
+        permission_id,
+        permissions!inner(
+          id,
+          name,
+          slug,
+          description,
+          category,
+          module,
+          action,
+          resource,
+          is_system_permission,
+          order_index,
+          settings,
+          is_active,
+          created_at,
+          updated_at,
+          created_by,
+          organization_id
+        )
+      `)
+      .eq('group_id', groupId);
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching group permissions:', error);
+    return { success: false, error };
+  }
+};
+
+export const assignPermissionToGroup = async (groupId: string, permissionId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('group_permissions')
+      .insert([{
+        group_id: groupId,
+        permission_id: permissionId
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error assigning permission to group:', error);
+    return { success: false, error };
+  }
+};
+
+export const removePermissionFromGroup = async (groupId: string, permissionId: string) => {
+  try {
+    const { error } = await supabase
+      .from('group_permissions')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('permission_id', permissionId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing permission from group:', error);
+    return { success: false, error };
+  }
+};
+
+export const getUserGroupsWithDetails = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('group_users')
+      .select(`
+        group_id,
+        assigned_at,
+        groups!inner(
+          id,
+          name,
+          description,
+          color,
+          icon
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('is_active', true);
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching user groups:', error);
+    return { success: false, error };
+  }
+};
+
+export const assignUserToGroup = async (userId: string, groupId: string, assignedBy?: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('group_users')
+      .insert([{
+        user_id: userId,
+        group_id: groupId,
+        assigned_by: assignedBy,
+        is_active: true
+      }])
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error assigning user to group:', error);
+    return { success: false, error };
+  }
+};
+
+export const removeUserFromGroup = async (userId: string, groupId: string) => {
+  try {
+    const { error } = await supabase
+      .from('group_users')
+      .update({ is_active: false })
+      .eq('user_id', userId)
+      .eq('group_id', groupId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing user from group:', error);
+    return { success: false, error };
+  }
+};
+
+export const getPermissions = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('permissions')
+      .select('*')
+      .order('order_index');
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('Error fetching permissions:', error);
     return { success: false, error };
   }
 };

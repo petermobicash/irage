@@ -74,10 +74,7 @@ const EnhancedAdminDashboard = () => {
       // Load chat rooms with participant counts
       const { data: rooms } = await supabase
         .from('chat_rooms')
-        .select(`
-          *,
-          participants:chat_participants(count)
-        `)
+        .select('*')
         .order('last_activity', { ascending: false });
 
       // Load recent activity logs
@@ -139,7 +136,7 @@ const EnhancedAdminDashboard = () => {
         supabase.from('content_comments').select('*', { count: 'exact', head: true }),
         supabase.from('chat_messages').select('*', { count: 'exact', head: true }),
         supabase.from('chat_rooms').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('chat_participants').select('*', { count: 'exact', head: true }).eq('is_online', true),
+        supabase.from('chat_messages').select('*', { count: 'exact', head: true }),
         supabase.from('email_notifications').select('*', { count: 'exact', head: true }).eq('status', 'pending')
       ]);
 
@@ -299,11 +296,10 @@ const EnhancedAdminDashboard = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md font-medium transition-colors ${
-              activeTab === tab.id
+            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md font-medium transition-colors ${activeTab === tab.id
                 ? 'bg-white text-blue-900 shadow-sm'
                 : 'text-gray-600 hover:text-blue-900'
-            }`}
+              }`}
           >
             <tab.icon className="w-4 h-4" />
             <span>{tab.name}</span>
@@ -333,14 +329,12 @@ const EnhancedAdminDashboard = () => {
               <Card key={guest.id} className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      guest.status === 'online' ? 'bg-green-100' :
-                      guest.status === 'away' ? 'bg-yellow-100' : 'bg-gray-100'
-                    }`}>
-                      <UserCheck className={`w-5 h-5 ${
-                        guest.status === 'online' ? 'text-green-600' :
-                        guest.status === 'away' ? 'text-yellow-600' : 'text-gray-600'
-                      }`} />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${guest.status === 'online' ? 'bg-green-100' :
+                        guest.status === 'away' ? 'bg-yellow-100' : 'bg-gray-100'
+                      }`}>
+                      <UserCheck className={`w-5 h-5 ${guest.status === 'online' ? 'text-green-600' :
+                          guest.status === 'away' ? 'text-yellow-600' : 'text-gray-600'
+                        }`} />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900">{guest.name}</h4>
@@ -356,11 +350,10 @@ const EnhancedAdminDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      guest.status === 'online' ? 'bg-green-100 text-green-800' :
-                      guest.status === 'away' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${guest.status === 'online' ? 'bg-green-100 text-green-800' :
+                        guest.status === 'away' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                      }`}>
                       {guest.status}
                     </span>
                     <Button variant="outline" size="sm">
@@ -397,14 +390,12 @@ const EnhancedAdminDashboard = () => {
                 emailNotifications.map((notification) => (
                   <div key={notification.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        notification.status === 'sent' ? 'bg-green-100' :
-                        notification.status === 'failed' ? 'bg-red-100' : 'bg-yellow-100'
-                      }`}>
-                        <Mail className={`w-5 h-5 ${
-                          notification.status === 'sent' ? 'text-green-600' :
-                          notification.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
-                        }`} />
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${notification.status === 'sent' ? 'bg-green-100' :
+                          notification.status === 'failed' ? 'bg-red-100' : 'bg-yellow-100'
+                        }`}>
+                        <Mail className={`w-5 h-5 ${notification.status === 'sent' ? 'text-green-600' :
+                            notification.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
+                          }`} />
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">
@@ -417,11 +408,10 @@ const EnhancedAdminDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        notification.status === 'sent' ? 'bg-green-100 text-green-800' :
-                        notification.status === 'failed' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${notification.status === 'sent' ? 'bg-green-100 text-green-800' :
+                          notification.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {notification.status}
                       </span>
                       <Button variant="ghost" size="sm">
@@ -495,16 +485,14 @@ const EnhancedAdminDashboard = () => {
             <Card key={room.id} className="hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    room.room_type === 'admin' ? 'bg-red-100' :
-                    room.room_type === 'support' ? 'bg-yellow-100' :
-                    'bg-blue-100'
-                  }`}>
-                    <MessageSquare className={`w-6 h-6 ${
-                      room.room_type === 'admin' ? 'text-red-600' :
-                      room.room_type === 'support' ? 'text-yellow-600' :
-                      'text-blue-600'
-                    }`} />
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${room.room_type === 'admin' ? 'bg-red-100' :
+                      room.room_type === 'support' ? 'bg-yellow-100' :
+                        'bg-blue-100'
+                    }`}>
+                    <MessageSquare className={`w-6 h-6 ${room.room_type === 'admin' ? 'text-red-600' :
+                        room.room_type === 'support' ? 'text-yellow-600' :
+                          'text-blue-600'
+                      }`} />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-blue-900">{room.name}</h3>

@@ -1,6 +1,9 @@
 -- Create RPC function to create content for comments
 -- This function allows creating content entries when they don't exist yet
 
+-- Drop existing function if it exists with different signature
+DROP FUNCTION IF EXISTS create_content_for_comments;
+
 CREATE OR REPLACE FUNCTION create_content_for_comments(
   p_title TEXT,
   p_slug TEXT,

@@ -136,14 +136,14 @@ const News = () => {
     }
   ];
 
-  const filteredNews = selectedCategory === 'all' 
-    ? recentNews 
+  const filteredNews = selectedCategory === 'all'
+    ? recentNews
     : recentNews.filter(news => news.category.toLowerCase() === selectedCategory);
 
   return (
     <div>
       {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-indigo-600 to-purple-600 text-white">
+      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
         <div className="text-center">
           <div className="text-6xl mb-6">📰</div>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -170,17 +170,16 @@ const News = () => {
           {upcomingEvents.map((event, index) => (
             <Card key={index} variant="premium" className="hover:scale-105 transition-transform">
               <div className="relative mb-6 rounded-xl overflow-hidden">
-                <img 
-                  src={event.image} 
+                <img
+                  src={event.image}
                   alt={event.title}
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute top-4 right-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    event.category === 'Spiritual' ? 'bg-purple-500 text-white' :
-                    event.category === 'Philosophy' ? 'bg-blue-500 text-white' :
-                    'bg-green-500 text-white'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${event.category === 'Spiritual' ? 'bg-purple-500 text-white' :
+                      event.category === 'Philosophy' ? 'bg-blue-500 text-white' :
+                        'bg-green-500 text-white'
+                    }`}>
                     {event.category}
                   </span>
                 </div>
@@ -190,9 +189,9 @@ const News = () => {
                 <h3 className="text-xl font-bold text-blue-900">
                   {event.title}
                 </h3>
-                
+
                 <p className="text-gray-600 leading-relaxed">{event.description}</p>
-                
+
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex items-center space-x-2">
                     <span>📅</span>
@@ -241,11 +240,10 @@ const News = () => {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                selectedCategory === category.id
+              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${selectedCategory === category.id
                   ? 'bg-yellow-500 text-blue-900 shadow-lg scale-105'
                   : 'bg-gray-100 text-gray-700 hover:bg-yellow-100 hover:text-yellow-600 hover:scale-105'
-              }`}
+                }`}
             >
               {category.name} ({category.count})
             </button>
@@ -257,8 +255,8 @@ const News = () => {
             <Card key={index} variant="premium" className="hover:scale-105 transition-transform">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="relative rounded-xl overflow-hidden">
-                  <img 
-                    src={article.image} 
+                  <img
+                    src={article.image}
                     alt={article.title}
                     className="w-full h-48 lg:h-32 object-cover"
                   />
@@ -268,14 +266,14 @@ const News = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="lg:col-span-3 space-y-4">
                   <h3 className="text-2xl font-bold text-blue-900">
                     {article.title}
                   </h3>
-                  
+
                   <p className="text-gray-600 leading-relaxed">{article.excerpt}</p>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-6 text-sm text-gray-600">
                       <div className="flex items-center space-x-1">
@@ -291,7 +289,7 @@ const News = () => {
                         <span>{article.views} views</span>
                       </div>
                     </div>
-                    
+
                     <Button variant="outline" size="sm">
                       Read More →
                     </Button>
@@ -312,7 +310,7 @@ const News = () => {
           <p className="text-xl mb-8">
             Get the latest news, event announcements, and exclusive content
           </p>
-          
+
           <div className="max-w-md mx-auto">
             <form onSubmit={handleSubscribe}>
               <div className="flex gap-4">

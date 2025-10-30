@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Comment, CommentReaction } from '../types/chat';
-import { initializeSinglePageContent } from '../utils/contentInitializer';
 
 interface CommentInsertData {
   content_id: string;
@@ -13,6 +12,7 @@ interface CommentInsertData {
   author_id?: string | null;
   author_name: string;
   author_email: string;
+  author_avatar?: string | null;
 }
 
 export const useComments = (contentSlug: string) => {
@@ -35,33 +35,22 @@ export const useComments = (contentSlug: string) => {
         .eq('slug', String(contentSlug))
         .maybeSingle();
 
-      if (contentError) {
+      if (contentError && contentError.code !== 'PGRST116') {
         console.error('Error fetching content:', contentError);
-        // Check if it's a CORS error
-        if (contentError.message?.includes('CORS') || contentError.message?.includes('NetworkError')) {
-          setError('Unable to connect to the server. Please check your internet connection and try again.');
-        } else {
-          setError('Error loading content. Please try refreshing the page.');
-        }
+        setError('Error loading content. Please try refreshing the page.');
         return;
       }
 
       if (contentData) {
         setContentId(contentData.id);
       } else {
-        // Content doesn't exist yet - try to create it automatically
-        console.log(`No content entry found for slug: ${contentSlug}, attempting to create...`);
-        const newContentId = await initializeSinglePageContent(contentSlug);
-        if (newContentId) {
-          setContentId(newContentId);
-          console.log(`✅ Created content entry for ${contentSlug} with ID: ${newContentId}`);
-        } else {
-          console.warn(`Failed to create content entry for slug: ${contentSlug}`);
-          setContentId(null);
-          setComments([]);
-          setLoading(false);
-          return;
-        }
+        // Content doesn't exist yet - this is normal for pages without comments
+        // Content will be created when the first comment is submitted
+        console.log(`No content entry found for slug: ${contentSlug}`);
+        setContentId(null);
+        setComments([]);
+        setLoading(false);
+        return;
       }
 
       const actualContentId = contentData?.id || contentId;
@@ -74,12 +63,7 @@ export const useComments = (contentSlug: string) => {
         .eq('status', 'published')
         .order('created_at', { ascending: true });
 
-      if (commentsError) {
-        console.warn('Error fetching comments:', commentsError);
-        // Don't throw error, just show empty comments
-        setComments([]);
-        return;
-      }
+      if (commentsError) throw commentsError;
 
       // Build threaded comment structure
       const commentMap = new Map<string, Comment>();
@@ -114,17 +98,7 @@ export const useComments = (contentSlug: string) => {
 
     } catch (err) {
       console.error('Error loading comments:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load comments';
-      
-      // Check if it's a CORS or network error
-      if (errorMessage.includes('CORS') || errorMessage.includes('NetworkError') || errorMessage.includes('fetch')) {
-        setError('Unable to connect to the server. This might be due to network issues or CORS configuration.');
-      } else {
-        setError(errorMessage);
-      }
-      
-      // Don't crash the app, just show empty comments
-      setComments([]);
+      setError(err instanceof Error ? err.message : 'Failed to load comments');
     } finally {
       setLoading(false);
     }
@@ -152,29 +126,55 @@ export const useComments = (contentSlug: string) => {
     }
 
     if (!contentId) {
-      // Try to create content entry automatically
-      console.log(`No content ID available for ${contentSlug}, attempting to create...`);
-      const newContentId = await initializeSinglePageContent(contentSlug);
-      if (newContentId) {
-        setContentId(newContentId);
-        console.log(`✅ Created content entry for ${contentSlug} with ID: ${newContentId}`);
-        // Continue with comment submission using the new content ID
-      } else {
-        setError('Comments are not available for this content. Please try again later.');
+      // Content doesn't exist, try to create it first
+      try {
+        // Set submitting state to prevent multiple simultaneous submissions
+        setSubmitting(true);
+
+        // Get current authenticated user (optional - comments now use provided name/email)
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Use raw SQL to avoid trigger issues for now
+        const { data: newContent, error: createError } = await supabase.rpc('create_content_for_comments', {
+          p_title: contentSlug.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          p_slug: contentSlug,
+          p_content: `Comments section for ${contentSlug}`,
+          p_type: 'page',
+          p_status: 'published',
+          p_author: commenterName,
+          p_author_id: user?.id ? String(user.id) : null
+        });
+
+        if (createError) {
+          console.error('Error creating content via RPC:', createError);
+          setError('Unable to initialize comments for this page. Please try again later.');
+          return;
+        }
+
+        if (!newContent?.id) {
+          console.error('Content creation succeeded but no ID returned:', newContent);
+          setError('Content creation failed. Please try again later.');
+          return;
+        }
+
+        console.log('Successfully created content with ID:', newContent.id);
+        setContentId(newContent.id);
+      } catch (createErr: unknown) {
+        console.error('Exception creating content:', createErr);
+        setError('Failed to initialize comments. Please refresh the page.');
         return;
+      } finally {
+        setSubmitting(false);
       }
     }
 
-    const actualContentId = contentId || await initializeSinglePageContent(contentSlug);
-    if (!actualContentId) {
-      setError('Comments are not available for this content. Please try again later.');
+    // Double-check that we have a valid contentId before proceeding
+    if (!contentId) {
+      setError('Unable to submit comment. Please refresh the page and try again.');
       return;
     }
 
     try {
-      setSubmitting(true);
-      setError(null); // Clear any previous errors
-
       // Validate required fields
       if (!commenterName.trim() || !commenterEmail.trim()) {
         setError('Name and email are required to submit a comment.');
@@ -192,7 +192,7 @@ export const useComments = (contentSlug: string) => {
       const { data: { user } } = await supabase.auth.getUser();
 
       const commentData: CommentInsertData = {
-        content_id: actualContentId,
+        content_id: contentId,
         parent_comment_id: parentId,
         comment_text: commentText,
         comment_type: commentType,
@@ -200,7 +200,8 @@ export const useComments = (contentSlug: string) => {
         status: 'published', // Auto-approve for now
         author_id: user?.id ? String(user.id) : null,
         author_name: commenterName.trim(),
-        author_email: commenterEmail.trim()
+        author_email: commenterEmail.trim(),
+        author_avatar: null // No avatar for comment system users
       };
 
       const { error } = await supabase
@@ -211,6 +212,9 @@ export const useComments = (contentSlug: string) => {
         // Handle foreign key constraint violations
         if (error.code === '23503') {
           console.error('Foreign key constraint violation:', error);
+          console.error('This means the content_id does not exist in the content table');
+          console.error('Content creation may have failed or there was a race condition');
+
           setError('Unable to submit comment. The content may not exist. Please refresh the page and try again.');
           return;
         }
@@ -218,6 +222,11 @@ export const useComments = (contentSlug: string) => {
         // Handle RLS policy violations specifically
         if (error.code === '42501') {
           console.error('RLS Policy violation inserting comment:', error);
+          console.error('This typically means:');
+          console.error('1. RLS policies need to be updated for content_comments table');
+          console.error('2. User may not have permission to comment on this content');
+          console.error('3. Consider checking user permissions and RLS policies');
+
           setError('Unable to submit comment due to permissions. Please try again or contact an administrator.');
           return;
         }
@@ -230,10 +239,8 @@ export const useComments = (contentSlug: string) => {
     } catch (err) {
       console.error('Error submitting comment:', err);
       setError(err instanceof Error ? err.message : 'Failed to submit comment');
-    } finally {
-      setSubmitting(false);
     }
-  }, [contentId, loadComments, contentSlug, submitting, error]);
+  }, [contentId, loadComments, contentSlug, error, submitting]);
 
   // React to comment
   const reactToComment = useCallback(async (
@@ -292,7 +299,6 @@ export const useComments = (contentSlug: string) => {
 
     } catch (err) {
       console.error('Error reacting to comment:', err);
-      // Don't crash the app for reaction errors
     }
   }, [loadComments]);
 

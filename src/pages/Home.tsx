@@ -22,7 +22,7 @@ const Home = () => {
     return (
       <div className="mobile-app">
         {/* Mobile Hero Section */}
-        <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white py-12 px-4 text-center">
+        <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-gold-600 text-white py-12 px-4 text-center">
           <div className="mb-6">
             <img src="/LOGO_CLEAR_stars.png" alt="BENIRAGE" className="w-16 h-16 mx-auto mb-4 object-contain" />
           </div>
@@ -35,24 +35,7 @@ const Home = () => {
             {t('home.tagline')}
           </p>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="text-center">
-              <div className="mobile-heading-2 text-yellow-400">500+</div>
-              <p className="mobile-caption text-white/80">Members</p>
-            </div>
-            <div className="text-center">
-              <div className="mobile-heading-2 text-yellow-400">15</div>
-              <p className="mobile-caption text-white/80">Schools</p>
-            </div>
-            <div className="text-center">
-              <div className="mobile-heading-2 text-yellow-400">50+</div>
-              <p className="mobile-caption text-white/80">Events</p>
-            </div>
-            <div className="text-center">
-              <div className="mobile-heading-2 text-yellow-400">1000+</div>
-              <p className="mobile-caption text-white/80">Lives Touched</p>
-            </div>
-          </div>
+
 
           <div className="space-y-3">
             <a href="/about" className="block">
@@ -82,7 +65,7 @@ const Home = () => {
           <div className="space-y-4">
             <MobileCard>
               <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-950 via-blue-900 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🌿</span>
                 </div>
                 <h3 className="mobile-card-title">
@@ -101,7 +84,7 @@ const Home = () => {
 
             <MobileCard>
               <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-950 via-blue-900 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🧠</span>
                 </div>
                 <h3 className="mobile-card-title">
@@ -120,7 +103,7 @@ const Home = () => {
 
             <MobileCard>
               <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-950 via-blue-900 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🌍</span>
                 </div>
                 <h3 className="mobile-card-title">
@@ -161,7 +144,7 @@ const Home = () => {
 
         {/* Mobile Call to Action */}
         <section className="mobile-section">
-          <MobileCard className="bg-gradient-to-r from-blue-900 to-purple-900 text-white">
+          <MobileCard className="bg-gradient-to-r from-blue-950 via-blue-900 to-gold-600 text-white">
             <h2 className="mobile-heading-2 text-white mb-4">
               {t('home.joinTitle')}
             </h2>
@@ -204,7 +187,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white flex items-center justify-center px-4 py-20">
+      <section className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-yellow-600 text-white flex items-center justify-center px-4 py-20">
         <div className="text-center max-w-4xl mx-auto">
           <div className="mb-8">
             <img src="/LOGO_CLEAR_stars.png" alt="BENIRAGE" className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-6 object-contain" />
@@ -218,24 +201,7 @@ const Home = () => {
             {t('home.tagline')}
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-yellow-400">500+</div>
-              <p className="text-white/80">Members</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-yellow-400">15</div>
-              <p className="text-white/80">Schools</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-yellow-400">50+</div>
-              <p className="text-white/80">Events</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-yellow-400">1000+</div>
-              <p className="text-white/80">Lives Touched</p>
-            </div>
-          </div>
+          <div className="mb-8"></div>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a href="/about">
@@ -266,18 +232,18 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-950 via-blue-900 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">🌿</span>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-blue-900 mb-4">
                 {t('home.spiritualGrounding')}
               </h3>
-              
+
               <p className="text-gray-600 leading-relaxed mb-6">
                 {t('home.spiritualDescription')}
               </p>
-              
+
               <a href="/spiritual">
                 <button className="border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 flex items-center mx-auto">
                   {t('home.discoverMore')}
@@ -287,18 +253,18 @@ const Home = () => {
             </div>
 
             <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-950 via-blue-900 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">🧠</span>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-blue-900 mb-4">
                 {t('home.humanPhilosophy')}
               </h3>
-              
+
               <p className="text-gray-600 leading-relaxed mb-6">
                 {t('home.philosophyDescription')}
               </p>
-              
+
               <a href="/philosophy">
                 <button className="border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 flex items-center mx-auto">
                   {t('home.discoverMore')}
@@ -308,18 +274,18 @@ const Home = () => {
             </div>
 
             <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-950 via-blue-800 to-gold-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">🌍</span>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-blue-900 mb-4">
                 {t('home.humanCulture')}
               </h3>
-              
+
               <p className="text-gray-600 leading-relaxed mb-6">
                 {t('home.cultureDescription')}
               </p>
-              
+
               <a href="/culture">
                 <button className="border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 flex items-center mx-auto">
                   {t('home.discoverMore')}
@@ -352,10 +318,10 @@ const Home = () => {
                 </button>
               </a>
             </div>
-            
+
             <div className="relative">
-              <img 
-                src="/imuhira.jpeg" 
+              <img
+                src="/imuhira.jpeg"
                 alt="BENIRAGE Community"
                 className="w-full h-96 object-cover rounded-2xl shadow-xl"
               />
@@ -365,7 +331,7 @@ const Home = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-blue-900 to-purple-900 text-white px-4">
+      <section className="py-20 bg-gradient-to-r from-blue-950 via-blue-800 to-gold-600 text-white px-4">
         <div className="text-center max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold mb-8">
             {t('home.joinTitle')}
@@ -373,7 +339,7 @@ const Home = () => {
           <p className="text-xl mb-12 leading-relaxed">
             {t('home.joinDescription')}
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a href="/membership">
               <button className="bg-yellow-500 hover:bg-yellow-400 text-blue-900 px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto">
@@ -401,7 +367,7 @@ const Home = () => {
             </p>
           </div>
           <CommentSystem contentSlug="home-page" allowComments={true} />
-           
+
         </div>
       </section>
     </div>

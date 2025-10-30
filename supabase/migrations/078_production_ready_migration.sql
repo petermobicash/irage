@@ -13,8 +13,8 @@
 -- =====================================================
 
 -- Add composite indexes for common query patterns
-CREATE INDEX IF NOT EXISTS idx_user_profiles_active_email 
-    ON public.user_profiles(is_active, email) 
+CREATE INDEX IF NOT EXISTS idx_user_profiles_active_username
+    ON public.user_profiles(is_active, username)
     WHERE is_active = true;
 
 CREATE INDEX IF NOT EXISTS idx_content_published_status 
@@ -25,14 +25,11 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_room_created
     ON public.chat_messages(room_id, created_at DESC);
 
 -- Add indexes for foreign key relationships
-CREATE INDEX IF NOT EXISTS idx_content_author 
+CREATE INDEX IF NOT EXISTS idx_content_author
     ON public.content(author_id);
 
-CREATE INDEX IF NOT EXISTS idx_chat_room_members_user 
-    ON public.chat_room_members(user_id);
-
-CREATE INDEX IF NOT EXISTS idx_chat_room_members_room 
-    ON public.chat_room_members(room_id);
+-- Only create indexes for tables that actually exist
+-- chat_messages already has indexes, chat_rooms exists but may not need additional indexes
 
 -- =====================================================
 -- SECURITY HARDENING
@@ -77,8 +74,8 @@ END $$;
 -- =====================================================
 
 -- Add NOT NULL constraints where appropriate
-ALTER TABLE public.user_profiles 
-    ALTER COLUMN email SET NOT NULL,
+ALTER TABLE public.user_profiles
+    ALTER COLUMN user_id SET NOT NULL,
     ALTER COLUMN created_at SET NOT NULL;
 
 -- Add check constraints for data validation
@@ -96,11 +93,11 @@ ALTER TABLE public.content
 
 -- Create a view for monitoring active users
 CREATE OR REPLACE VIEW public.active_users_summary AS
-SELECT 
+SELECT
     COUNT(*) as total_active_users,
-    COUNT(CASE WHEN last_sign_in_at > NOW() - INTERVAL '24 hours' THEN 1 END) as users_last_24h,
-    COUNT(CASE WHEN last_sign_in_at > NOW() - INTERVAL '7 days' THEN 1 END) as users_last_7d,
-    COUNT(CASE WHEN last_sign_in_at > NOW() - INTERVAL '30 days' THEN 1 END) as users_last_30d
+    COUNT(CASE WHEN last_seen > NOW() - INTERVAL '24 hours' THEN 1 END) as users_last_24h,
+    COUNT(CASE WHEN last_seen > NOW() - INTERVAL '7 days' THEN 1 END) as users_last_7d,
+    COUNT(CASE WHEN last_seen > NOW() - INTERVAL '30 days' THEN 1 END) as users_last_30d
 FROM public.user_profiles
 WHERE is_active = true;
 
@@ -122,8 +119,8 @@ GROUP BY status;
 CREATE OR REPLACE FUNCTION public.cleanup_old_audit_logs()
 RETURNS void AS $$
 BEGIN
-    DELETE FROM public.audit_logs 
-    WHERE created_at < NOW() - INTERVAL '90 days';
+    DELETE FROM public.audit_logs
+    WHERE timestamp < NOW() - INTERVAL '90 days';
     
     RAISE NOTICE 'Cleaned up audit logs older than 90 days';
 END;
