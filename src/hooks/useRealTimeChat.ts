@@ -536,7 +536,7 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
         presenceChannelRef.current = null;
       }
     };
-  }, [enabled, conversationId, groupId]);
+  }, [enabled, conversationId, groupId, getChannelName, initializePresence, loadMessages]);
 
   // Auto-cleanup typing indicators
   useEffect(() => {

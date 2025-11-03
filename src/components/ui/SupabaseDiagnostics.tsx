@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
-import { runDiagnostics, formatDiagnostics } from '../../utils/supabaseDiagnostics';
+import { runDiagnostics, formatDiagnostics, DiagnosticResult } from '../../utils/supabaseDiagnostics';
 
 interface SupabaseDiagnosticsProps {
     isVisible?: boolean;
@@ -12,9 +12,9 @@ export const SupabaseDiagnostics: React.FC<SupabaseDiagnosticsProps> = ({
     onClose
 }) => {
     const [diagnostics, setDiagnostics] = useState<{
-        connectivity: any;
-        cors: any;
-        auth: any;
+        connectivity: DiagnosticResult;
+        cors: DiagnosticResult;
+        auth: DiagnosticResult;
     } | null>(null);
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);

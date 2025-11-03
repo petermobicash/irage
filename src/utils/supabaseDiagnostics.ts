@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 export interface DiagnosticResult {
   success: boolean;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   suggestions?: string[];
 }
 
@@ -52,7 +52,7 @@ export async function testBasicConnectivity(): Promise<DiagnosticResult> {
     return {
       success: false,
       message: `Connection test failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
-      details: err,
+      details: err instanceof Error ? { message: err.message, stack: err.stack } : { error: String(err) },
       suggestions: [
         'Check your internet connection',
         'Try refreshing the page',
@@ -115,6 +115,7 @@ export async function testCORS(): Promise<DiagnosticResult> {
     return {
       success: false,
       message: `CORS test failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      details: err instanceof Error ? { message: err.message, stack: err.stack } : { error: String(err) },
       suggestions: [
         'Check your internet connection',
         'Verify CORS settings in your Supabase project dashboard',
@@ -161,6 +162,7 @@ export async function testAuthEndpoint(): Promise<DiagnosticResult> {
     return {
       success: false,
       message: `Authentication test failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      details: err instanceof Error ? { message: err.message, stack: err.stack } : { error: String(err) },
       suggestions: [
         'Check Supabase auth configuration',
         'Try refreshing the page'
@@ -189,24 +191,24 @@ export async function runDiagnostics(): Promise<{
 /**
  * Check if specific error is likely a CORS issue
  */
-export function isCORSError(error: any): boolean {
+export function isCORSError(error: unknown): boolean {
   if (!error) return false;
-  
-  const errorMessage = error.message || error.toString() || '';
-  
+
+  const errorMessage = (error as { message?: string })?.message || String(error);
+
   return (
     errorMessage.includes('CORS') ||
     errorMessage.includes('NetworkError') ||
     errorMessage.includes('Failed to fetch') ||
     errorMessage.includes('Cross-Origin') ||
-    (error.status === null && error.code === null)
+    ((error as { status?: unknown })?.status === null && (error as { code?: unknown })?.code === null)
   );
 }
 
 /**
  * Get troubleshooting suggestions based on error type
  */
-export function getTroubleshootingSuggestions(error: any): string[] {
+export function getTroubleshootingSuggestions(error: unknown): string[] {
   if (isCORSError(error)) {
     return [
       'Check your internet connection',
@@ -218,9 +220,9 @@ export function getTroubleshootingSuggestions(error: any): string[] {
       'Try accessing your Supabase URL directly to confirm it\'s accessible'
     ];
   }
-  
-  const errorMessage = error.message || '';
-  
+
+  const errorMessage = (error as { message?: string })?.message || '';
+
   if (errorMessage.includes('timeout')) {
     return [
       'Check your internet connection',
@@ -228,7 +230,7 @@ export function getTroubleshootingSuggestions(error: any): string[] {
       'Try again in a moment'
     ];
   }
-  
+
   if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
     return [
       'Check your Supabase API keys',
@@ -236,7 +238,7 @@ export function getTroubleshootingSuggestions(error: any): string[] {
       'Contact an administrator if the problem persists'
     ];
   }
-  
+
   return [
     'Please try refreshing the page',
     'If the problem persists, contact support'

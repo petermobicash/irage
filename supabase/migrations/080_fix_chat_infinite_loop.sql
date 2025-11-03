@@ -14,7 +14,7 @@ CREATE OR REPLACE FUNCTION public.update_user_presence(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path = ''
 AS $function$
 BEGIN
     -- Update or insert user presence
@@ -39,7 +39,7 @@ CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path = ''
 AS $function$
 BEGIN
     RETURN EXISTS (

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FileText, Users, Image, Settings, BarChart3, LogOut, Home, Shield, Key, UserCheck, MessageSquare, Zap, Mail, Search, Calendar, Database, Megaphone, BookOpen, Globe, RefreshCw } from 'lucide-react';
 import Button from '../ui/Button';
 import { getCurrentUserProfile, getUserAllPermissions } from '../../utils/rbac';
+import { Permission } from '../../types/permissions';
 
 interface User {
   id: string;
@@ -36,7 +37,7 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
   currentUser,
   onLogout
 }) => {
-  const [permissions, setPermissions] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [userRole, setUserRole] = useState<string>('guest');
   const [isLoadingPermissions, setIsLoadingPermissions] = useState<boolean>(true);
   const [permissionsError, setPermissionsError] = useState<string | null>(null);
@@ -70,15 +71,15 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
         setPermissions(userPermissions);
 
         // Determine role based on permissions hierarchy
-        const roleHierarchy: Array<{ permission: string; role: string }> = [
-          { permission: 'system.manage_permissions', role: 'super-admin' },
-          { permission: 'content.edit_all', role: 'content-manager' },
-          { permission: 'content.edit_own', role: 'editor' },
-          { permission: 'content.create_draft', role: 'contributor' }
+        const roleHierarchy: Array<{ permission: Permission; role: string }> = [
+          { permission: 'system.manage_permissions' as Permission, role: 'super-admin' },
+          { permission: 'content.edit_all' as Permission, role: 'content-manager' },
+          { permission: 'content.edit_own' as Permission, role: 'editor' },
+          { permission: 'content.create_draft' as Permission, role: 'contributor' }
         ];
 
         const determinedRole = roleHierarchy.find(({ permission }) =>
-          userPermissions.includes(permission as any)
+          userPermissions.includes(permission)
         )?.role || 'viewer';
 
         setUserRole(determinedRole);
@@ -99,7 +100,7 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
   const hasPermission = (requiredPermissions: string[]): boolean => {
     if (!requiredPermissions.length) return true;
     if (requiredPermissions.includes('*')) return true;
-    return requiredPermissions.some(perm => permissions.includes(perm as any));
+    return requiredPermissions.some(perm => permissions.includes(perm as Permission));
   };
 
   // Helper function to create navigation items with permission checks
@@ -232,7 +233,7 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
         ], ['system.edit_settings', '*'])
       ]
     }
-  ], [permissions, currentUser?.email]);
+  ], [permissions, currentUser?.email, createNavItems]);
 
   // Loading state for permissions
   if (isLoadingPermissions) {
@@ -308,7 +309,7 @@ const CMSLayout: React.FC<CMSLayoutProps> = ({
           <nav className="p-6">
             <div className="space-y-6">
               {navigationSections.map((section) => {
-                const visibleItems = section.items.filter(item => !item.permission || permissions.includes(item.permission));
+                const visibleItems = section.items.filter(item => !item.permission || permissions.includes(item.permission as Permission));
 
                 if (visibleItems.length === 0) return null;
 

@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION sync_user_on_auth_change()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = 'public'
+SET search_path = ''
 AS $$
 BEGIN
     -- Disable RLS for this operation since auth.uid() is not set in triggers
@@ -59,7 +59,7 @@ BEGIN
     RAISE NOTICE 'TRIGGER SEARCH PATH FIXED';
     RAISE NOTICE '========================================';
     RAISE NOTICE '✅ Fixed search_path in sync_user_on_auth_change trigger';
-    RAISE NOTICE '✅ Trigger now uses SET search_path = ''public''';
+    RAISE NOTICE '✅ Trigger now uses SET search_path = '''' (empty string)';
     RAISE NOTICE '✅ User creation should now work without errors';
     RAISE NOTICE '========================================';
 END $$;

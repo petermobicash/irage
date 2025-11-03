@@ -611,7 +611,7 @@ export const getPermissions = async (filters?: PermissionFilters, pagination?: P
     if (error) throw error;
 
     // Transform to match Permission interface
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: PermissionRow) => ({
       id: item.id,
       name: item.name,
       slug: item.slug,
@@ -704,8 +704,8 @@ export const getGroupPermissions = async (groupId: string): Promise<Permission[]
     }
 
     // Transform to match Permission interface
-    return (groupPermData || []).map((item: any) => {
-      const perm = item.permissions; // permissions is an object, not an array
+    return (groupPermData || []).map((item: { permission_id: string; permissions: PermissionRow[] }) => {
+      const perm = item.permissions[0]; // permissions is an array with one item
       if (!perm) {
         console.warn('Permission data is missing for item:', item);
         return null;
