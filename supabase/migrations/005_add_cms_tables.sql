@@ -140,6 +140,10 @@ CREATE TABLE IF NOT EXISTS categories (
 -- Enable RLS on categories table
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active categories" ON categories;
+DROP POLICY IF EXISTS "Authenticated users can manage categories" ON categories;
+
 -- Create policies for categories table
 CREATE POLICY "Anyone can view active categories" ON categories
     FOR SELECT USING (is_active = true);
@@ -165,6 +169,10 @@ CREATE TABLE IF NOT EXISTS tags (
 
 -- Enable RLS on tags table
 ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active tags" ON tags;
+DROP POLICY IF EXISTS "Authenticated users can manage tags" ON tags;
 
 -- Create policies for tags table
 CREATE POLICY "Anyone can view active tags" ON tags
@@ -202,6 +210,10 @@ CREATE TABLE IF NOT EXISTS cms_settings (
 -- Enable RLS on cms_settings table
 ALTER TABLE cms_settings ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view cms settings" ON cms_settings;
+DROP POLICY IF EXISTS "Super admins can manage cms settings" ON cms_settings;
+
 -- Create policies for cms_settings table
 CREATE POLICY "Anyone can view cms settings" ON cms_settings
     FOR SELECT USING (true);
@@ -232,6 +244,10 @@ CREATE TABLE IF NOT EXISTS page_content (
 -- Enable RLS on page_content table
 ALTER TABLE page_content ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active page content" ON page_content;
+DROP POLICY IF EXISTS "Authenticated users can manage page content" ON page_content;
+
 -- Create policies for page_content table
 CREATE POLICY "Anyone can view active page content" ON page_content
     FOR SELECT USING (is_active = true);
@@ -255,6 +271,10 @@ CREATE TABLE IF NOT EXISTS form_templates (
 
 -- Enable RLS on form_templates table
 ALTER TABLE form_templates ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active form templates" ON form_templates;
+DROP POLICY IF EXISTS "Authenticated users can manage form templates" ON form_templates;
 
 -- Create policies for form_templates table
 CREATE POLICY "Anyone can view active form templates" ON form_templates
@@ -289,6 +309,10 @@ CREATE TABLE IF NOT EXISTS form_fields (
 -- Enable RLS on form_fields table
 ALTER TABLE form_fields ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active form fields" ON form_fields;
+DROP POLICY IF EXISTS "Authenticated users can manage form fields" ON form_fields;
+
 -- Create policies for form_fields table
 CREATE POLICY "Anyone can view active form fields" ON form_fields
     FOR SELECT USING (is_active = true);
@@ -316,6 +340,11 @@ CREATE TABLE IF NOT EXISTS form_submissions (
 
 -- Enable RLS on form_submissions table
 ALTER TABLE form_submissions ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can submit forms" ON form_submissions;
+DROP POLICY IF EXISTS "Authenticated users can view their own submissions" ON form_submissions;
+DROP POLICY IF EXISTS "Authenticated users can manage form submissions" ON form_submissions;
 
 -- Create policies for form_submissions table
 CREATE POLICY "Anyone can submit forms" ON form_submissions
@@ -351,6 +380,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Enable RLS on users table
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Users can view their own profile" ON users;
+DROP POLICY IF EXISTS "Users can update their own profile" ON users;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON users;
+DROP POLICY IF EXISTS "Super admins can manage all users" ON users;
 
 -- Create policies for users table
 CREATE POLICY "Users can view their own profile" ON users
@@ -388,6 +423,10 @@ CREATE TABLE IF NOT EXISTS user_groups (
 -- Enable RLS on user_groups table
 ALTER TABLE user_groups ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active user groups" ON user_groups;
+DROP POLICY IF EXISTS "Authenticated users can manage user groups" ON user_groups;
+
 -- Create policies for user_groups table
 CREATE POLICY "Anyone can view active user groups" ON user_groups
     FOR SELECT USING (is_active = true);
@@ -418,6 +457,10 @@ CREATE TABLE IF NOT EXISTS roles (
 -- Enable RLS on roles table
 ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view active roles" ON roles;
+DROP POLICY IF EXISTS "Super admins can manage roles" ON roles;
+
 -- Create policies for roles table
 CREATE POLICY "Anyone can view active roles" ON roles
     FOR SELECT USING (is_active = true);
@@ -446,6 +489,10 @@ CREATE TABLE IF NOT EXISTS permissions (
 -- Enable RLS on permissions table
 ALTER TABLE permissions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view permissions" ON permissions;
+DROP POLICY IF EXISTS "Super admins can manage permissions" ON permissions;
+
 -- Create policies for permissions table
 CREATE POLICY "Anyone can view permissions" ON permissions
     FOR SELECT USING (true);
@@ -472,6 +519,10 @@ CREATE TABLE IF NOT EXISTS permission_categories (
 -- Enable RLS on permission_categories table
 ALTER TABLE permission_categories ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view permission categories" ON permission_categories;
+DROP POLICY IF EXISTS "Super admins can manage permission categories" ON permission_categories;
+
 -- Create policies for permission_categories table
 CREATE POLICY "Anyone can view permission categories" ON permission_categories
     FOR SELECT USING (is_active = true);
@@ -494,6 +545,10 @@ CREATE TABLE IF NOT EXISTS content_categories (
 -- Enable RLS on content_categories table
 ALTER TABLE content_categories ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view content categories" ON content_categories;
+DROP POLICY IF EXISTS "Authenticated users can manage content categories" ON content_categories;
+
 -- Create policies for content_categories table
 CREATE POLICY "Anyone can view content categories" ON content_categories
     FOR SELECT USING (true);
@@ -515,6 +570,10 @@ CREATE TABLE IF NOT EXISTS content_tags (
 
 -- Enable RLS on content_tags table
 ALTER TABLE content_tags ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view content tags" ON content_tags;
+DROP POLICY IF EXISTS "Authenticated users can manage content tags" ON content_tags;
 
 -- Create policies for content_tags table
 CREATE POLICY "Anyone can view content tags" ON content_tags
@@ -541,6 +600,10 @@ CREATE TABLE IF NOT EXISTS content_media (
 
 -- Enable RLS on content_media table
 ALTER TABLE content_media ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Anyone can view content media" ON content_media;
+DROP POLICY IF EXISTS "Authenticated users can manage content media" ON content_media;
 
 -- Create policies for content_media table
 CREATE POLICY "Anyone can view content media" ON content_media
@@ -622,6 +685,10 @@ BEGIN
 END;
 $$;
 
+-- Drop existing triggers if they exist and recreate
+DROP TRIGGER IF EXISTS update_tag_count_on_insert ON content_tags;
+DROP TRIGGER IF EXISTS update_tag_count_on_delete ON content_tags;
+
 -- Create triggers for tag count updates
 CREATE TRIGGER update_tag_count_on_insert
     AFTER INSERT ON content_tags
@@ -660,6 +727,9 @@ EXCEPTION
         RETURN NEW;
 END;
 $$;
+
+-- Drop existing trigger if it exists and recreate
+DROP TRIGGER IF EXISTS sync_user_profile_trigger ON user_profiles;
 
 -- Create trigger to sync user profiles
 CREATE TRIGGER sync_user_profile_trigger

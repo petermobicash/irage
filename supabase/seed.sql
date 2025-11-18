@@ -383,15 +383,15 @@ BEGIN
     SELECT id INTO author_group_id FROM groups WHERE name = 'Content Initiators' LIMIT 1;
     SELECT id INTO reviewer_group_id FROM groups WHERE name = 'Content Reviewers' LIMIT 1;
 
-    -- Get permission IDs
-    SELECT id INTO create_content_perm_id FROM permissions WHERE slug = 'create.content' LIMIT 1;
-    SELECT id INTO edit_content_perm_id FROM permissions WHERE slug = 'edit.content' LIMIT 1;
-    SELECT id INTO delete_content_perm_id FROM permissions WHERE slug = 'delete.content' LIMIT 1;
-    SELECT id INTO publish_content_perm_id FROM permissions WHERE slug = 'publish.content' LIMIT 1;
-    SELECT id INTO review_content_perm_id FROM permissions WHERE slug = 'review.content' LIMIT 1;
-    SELECT id INTO manage_users_perm_id FROM permissions WHERE slug = 'manage.users' LIMIT 1;
-    SELECT id INTO manage_groups_perm_id FROM permissions WHERE slug = 'manage.groups' LIMIT 1;
-    SELECT id INTO view_analytics_perm_id FROM permissions WHERE slug = 'view.analytics' LIMIT 1;
+    -- Get permission IDs (cast slug to text for comparison)
+    SELECT id INTO create_content_perm_id FROM permissions WHERE slug::text = 'create.content' LIMIT 1;
+    SELECT id INTO edit_content_perm_id FROM permissions WHERE slug::text = 'edit.content' LIMIT 1;
+    SELECT id INTO delete_content_perm_id FROM permissions WHERE slug::text = 'delete.content' LIMIT 1;
+    SELECT id INTO publish_content_perm_id FROM permissions WHERE slug::text = 'publish.content' LIMIT 1;
+    SELECT id INTO review_content_perm_id FROM permissions WHERE slug::text = 'review.content' LIMIT 1;
+    SELECT id INTO manage_users_perm_id FROM permissions WHERE slug::text = 'manage.users' LIMIT 1;
+    SELECT id INTO manage_groups_perm_id FROM permissions WHERE slug::text = 'manage.groups' LIMIT 1;
+    SELECT id INTO view_analytics_perm_id FROM permissions WHERE slug::text = 'view.analytics' LIMIT 1;
 
     -- Assign permissions to Super Administrators (full access)
     IF super_admin_group_id IS NOT NULL AND create_content_perm_id IS NOT NULL THEN

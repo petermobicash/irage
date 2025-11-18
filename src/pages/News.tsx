@@ -345,7 +345,7 @@ const News = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#0A3D5C] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#05294b] transition-all duration-300 transform hover:scale-105 text-xs lg:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-[#0A3D5C] text-white font-semibold py-3 lg:py-4 px-6 lg:px-8 rounded-lg hover:bg-[#05294b] transition-all duration-300 transform hover:scale-105 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                 </button>

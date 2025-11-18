@@ -144,20 +144,18 @@ ON public.typing_indicators
 FOR SELECT
 TO authenticated
 USING (
-    -- For direct messages
-    EXISTS (
+    -- For direct messages (when conversation_id is set)
+    (typing_indicators.conversation_id IS NOT NULL AND EXISTS (
         SELECT 1 FROM public.direct_messages dm
         WHERE dm.conversation_id = typing_indicators.conversation_id
-        AND typing_indicators.conversation_type = 'direct'
         AND (dm.sender_id = auth.uid()::text OR dm.receiver_id = auth.uid()::text)
-    ) OR
-    -- For group messages
-    EXISTS (
+    )) OR
+    -- For group messages (when group_id is set)
+    (typing_indicators.group_id IS NOT NULL AND EXISTS (
         SELECT 1 FROM public.group_users gu
-        WHERE gu.group_id::text = typing_indicators.conversation_id
-        AND typing_indicators.conversation_type = 'group'
+        WHERE gu.group_id::text = typing_indicators.group_id
         AND gu.user_id = auth.uid()
-    )
+    ))
 );
 
 -- Users can create their own typing indicators

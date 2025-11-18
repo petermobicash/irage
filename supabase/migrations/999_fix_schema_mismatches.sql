@@ -410,14 +410,36 @@ CREATE INDEX IF NOT EXISTS idx_newsletter_campaign_stats_campaign_id
 ON public.newsletter_campaign_stats(campaign_id);
 
 -- =====================================================
--- 7. CREATE TRIGGER TO UPDATE last_activity ON CHAT_ROOMS
+-- 7. ADD room_id COLUMN TO chat_messages IF MISSING
+-- =====================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'chat_messages'
+        AND column_name = 'room_id'
+    ) THEN
+        ALTER TABLE public.chat_messages
+        ADD COLUMN room_id UUID REFERENCES public.chat_rooms(id) ON DELETE SET NULL;
+        
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_room_id
+        ON public.chat_messages(room_id);
+    END IF;
+END $$;
+
+-- =====================================================
+-- 8. CREATE TRIGGER TO UPDATE last_activity ON CHAT_ROOMS
 -- =====================================================
 CREATE OR REPLACE FUNCTION update_chat_room_last_activity()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE public.chat_rooms
-    SET last_activity = NOW()
-    WHERE id = NEW.room_id;
+    -- Only update if room_id is not NULL
+    IF NEW.room_id IS NOT NULL THEN
+        UPDATE public.chat_rooms
+        SET last_activity = NOW()
+        WHERE id = NEW.room_id;
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -429,7 +451,7 @@ CREATE TRIGGER trigger_update_chat_room_activity
     EXECUTE FUNCTION update_chat_room_last_activity();
 
 -- =====================================================
--- 8. CREATE TRIGGER TO UPDATE newsletter_campaign_stats
+-- 9. CREATE TRIGGER TO UPDATE newsletter_campaign_stats
 -- =====================================================
 CREATE OR REPLACE FUNCTION initialize_campaign_stats()
 RETURNS TRIGGER AS $$
@@ -448,7 +470,7 @@ CREATE TRIGGER trigger_initialize_campaign_stats
     EXECUTE FUNCTION initialize_campaign_stats();
 
 -- =====================================================
--- 9. ADD MISSING COLUMNS TO USER_PROFILES
+-- 10. ADD MISSING COLUMNS TO USER_PROFILES
 -- =====================================================
 DO $$
 BEGIN
