@@ -184,8 +184,9 @@ const News = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {upcomingEvents.map((event, index) => (
-            <Card key={index} variant="premium" className="hover:scale-105 transition-transform">
-              <div className="relative mb-6 rounded-xl overflow-hidden">
+            <Card key={index} className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+              <div className="p-4 lg:p-6">
+                <div className="relative mb-6 rounded-xl overflow-hidden">
                 <img
                   src={event.image}
                   alt={event.title}
@@ -201,14 +202,14 @@ const News = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="text-lg lg:text-xl font-bold text-gray-900">
-                  {event.title}
-                </h3>
+                <div className="space-y-4">
+                  <h3 className="text-lg lg:text-xl font-bold text-gray-900">
+                    {event.title}
+                  </h3>
 
-                <p className="text-gray-600 leading-relaxed">{event.description}</p>
+                  <p className="text-gray-600 leading-relaxed text-xs lg:text-sm">{event.description}</p>
 
-                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-xs lg:text-sm text-gray-600">
                   <div className="flex items-center space-x-2">
                     <span>📅</span>
                     <span>{event.date}</span>
@@ -230,9 +231,10 @@ const News = () => {
                   </div>
                 </div>
 
-                <Button variant="primary" size="sm" className="w-full">
-                  Register for Event
-                </Button>
+                  <button className="w-full inline-flex items-center justify-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-[#0A3D5C] hover:from-yellow-500 hover:to-yellow-600 font-bold text-xs lg:text-sm px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                    Register for Event
+                  </button>
+                </div>
               </div>
             </Card>
           ))}
@@ -268,8 +270,9 @@ const News = () => {
 
         <div className="space-y-8">
           {filteredNews.map((article, index) => (
-            <Card key={index} variant="premium" className="hover:scale-105 transition-transform">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <Card key={index} className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+              <div className="p-4 lg:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="relative rounded-xl overflow-hidden">
                   <img
                     src={article.image}
@@ -284,14 +287,14 @@ const News = () => {
                 </div>
 
                 <div className="lg:col-span-3 space-y-4">
-                  <h3 className="text-lg lg:text-xl font-bold text-gray-900">
-                    {article.title}
-                  </h3>
+                    <h3 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {article.title}
+                    </h3>
 
-                  <p className="text-gray-600 leading-relaxed">{article.excerpt}</p>
+                    <p className="text-gray-600 leading-relaxed text-xs lg:text-sm">{article.excerpt}</p>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-6 text-sm text-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-6 text-xs lg:text-sm text-gray-600">
                       <div className="flex items-center space-x-1">
                         <span>📅</span>
                         <span>{article.date}</span>
@@ -306,9 +309,10 @@ const News = () => {
                       </div>
                     </div>
 
-                    <Button variant="outline" size="sm">
-                      Read More →
-                    </Button>
+                      <button className="inline-flex items-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-[#0A3D5C] hover:from-yellow-500 hover:to-yellow-600 font-bold text-xs lg:text-sm px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        Read More →
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -338,14 +342,13 @@ const News = () => {
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
-                <Button
-                  variant="secondary"
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-[#0A3D5C] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#05294b] transition-all duration-300 transform hover:scale-105 text-xs lg:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-                </Button>
+                </button>
               </div>
             </form>
           </div>
