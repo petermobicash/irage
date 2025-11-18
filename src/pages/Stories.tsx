@@ -398,39 +398,39 @@ const Stories = () => {
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 animate-fade-in-up animation-delay-300">
-              <Button
+              <button
                 onClick={() => setActiveTab('browse')}
-                variant={activeTab === 'browse' ? 'primary' : 'outline'}
-                size="lg"
-                className={activeTab === 'browse'
-                  ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
-                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'}
+                className={`group font-semibold py-3 lg:py-4 px-6 lg:px-8 rounded-2xl transition-all duration-300 flex items-center justify-center space-x-2 ${
+                  activeTab === 'browse'
+                    ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
+                    : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'
+                }`}
               >
-                <BookOpen className="w-5 h-5 mr-2" />
-                Browse Stories
-              </Button>
-              <Button
+                <BookOpen className="w-4 lg:w-5 h-4 lg:h-5" />
+                <span className="text-sm lg:text-base">Browse Stories</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('featured')}
-                variant={activeTab === 'featured' ? 'primary' : 'outline'}
-                size="lg"
-                className={activeTab === 'featured'
-                  ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
-                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'}
+                className={`group font-semibold py-3 lg:py-4 px-6 lg:px-8 rounded-2xl transition-all duration-300 flex items-center justify-center space-x-2 ${
+                  activeTab === 'featured'
+                    ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
+                    : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'
+                }`}
               >
-                <Heart className="w-5 h-5 mr-2" />
-                Featured Stories
-              </Button>
-              <Button
+                <Heart className="w-4 lg:w-5 h-4 lg:h-5" />
+                <span className="text-sm lg:text-base">Featured Stories</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('submit')}
-                variant={activeTab === 'submit' ? 'primary' : 'outline'}
-                size="lg"
-                className={activeTab === 'submit'
-                  ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
-                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'}
+                className={`group font-semibold py-3 lg:py-4 px-6 lg:px-8 rounded-2xl transition-all duration-300 flex items-center justify-center space-x-2 ${
+                  activeTab === 'submit'
+                    ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
+                    : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'
+                }`}
               >
-                <Plus className="w-5 h-5 mr-2" />
-                Share Your Story
-              </Button>
+                <Plus className="w-4 lg:w-5 h-4 lg:h-5" />
+                <span className="text-sm lg:text-base">Share Your Story</span>
+              </button>
             </div>
           </div>
         </div>
@@ -506,8 +506,8 @@ const Stories = () => {
             {filteredStories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredStories.map((story) => (
-                  <Card key={story.id} className="hover:shadow-lg transition-all duration-300 hover:scale-105">
-                    <div className="p-6">
+                  <Card key={story.id} className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+                    <div className="p-4 lg:p-6">
                       {story.is_featured && (
                         <div className="flex items-center mb-3">
                           <Heart className="w-4 h-4 text-red-500 mr-1" />
@@ -521,11 +521,11 @@ const Stories = () => {
                         {story.title}
                       </h3>
 
-                      <p className="text-gray-600 mb-4 line-clamp-3">
+                      <p className="text-gray-600 mb-4 line-clamp-3 text-xs lg:text-sm">
                         {story.content}
                       </p>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center justify-between text-xs lg:text-sm text-gray-500 mb-4">
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
@@ -570,13 +570,13 @@ const Stories = () => {
                       </div>
 
                       {story.author_location && (
-                        <div className="flex items-center text-sm text-gray-500 mb-4">
+                        <div className="flex items-center text-xs lg:text-sm text-gray-500 mb-4">
                           <MapPin className="w-4 h-4 mr-1" />
                           <span>{story.author_location}</span>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center justify-between text-xs lg:text-sm text-gray-500">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
                           <span>{new Date(story.submitted_at).toLocaleDateString()}</span>
@@ -585,26 +585,22 @@ const Stories = () => {
 
                       <div className="mt-4">
                         {story.media_type && story.media_type !== 'text' ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
+                          <button
                             onClick={() => setSelectedStory(story)}
+                            className="w-full inline-flex items-center justify-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-[#0A3D5C] hover:from-yellow-500 hover:to-yellow-600 font-bold text-xs lg:text-sm px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                           >
                             {story.media_type === 'audio' && <Volume2 className="w-4 h-4 mr-2" />}
                             {story.media_type === 'video' && <Video className="w-4 h-4 mr-2" />}
                             {story.media_type === 'mixed' && <Play className="w-4 h-4 mr-2" />}
                             Play {story.media_type === 'audio' ? 'Audio' : story.media_type === 'video' ? 'Video' : 'Media'}
-                          </Button>
+                          </button>
                         ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
+                          <button
                             onClick={() => handleStoryClick(story)}
+                            className="w-full inline-flex items-center justify-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-[#0A3D5C] hover:from-yellow-500 hover:to-yellow-600 font-bold text-xs lg:text-sm px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                           >
                             Read Full Story
-                          </Button>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -634,7 +630,7 @@ const Stories = () => {
           <div className="space-y-8">
             <div className="text-center mb-8">
               <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">⭐ Featured Stories</h2>
-              <p className="text-gray-600">
+              <p className="text-xs lg:text-sm text-gray-600">
                 Discover our community's most inspiring and cherished stories
               </p>
             </div>
@@ -642,8 +638,8 @@ const Stories = () => {
             {stories.filter(story => story.is_featured).length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {stories.filter(story => story.is_featured).map((story) => (
-                  <Card key={story.id} className="hover:shadow-lg transition-all duration-300">
-                    <div className="p-8">
+                  <Card key={story.id} className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+                    <div className="p-4 lg:p-6">
                       <div className="flex items-center mb-4">
                         <Heart className="w-6 h-6 text-red-500 mr-2" />
                         <span className="text-sm font-medium text-red-600 bg-red-50 px-3 py-1 rounded-full">
@@ -655,11 +651,11 @@ const Stories = () => {
                         {story.title}
                       </h3>
 
-                      <p className="text-gray-600 mb-6 leading-relaxed">
+                      <p className="text-gray-600 mb-6 leading-relaxed text-xs lg:text-sm">
                         {story.content}
                       </p>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center justify-between text-xs lg:text-sm text-gray-500 mb-4">
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
@@ -690,13 +686,13 @@ const Stories = () => {
                       </div>
 
                       {story.author_location && (
-                        <div className="flex items-center text-sm text-gray-500 mb-4">
+                        <div className="flex items-center text-xs lg:text-sm text-gray-500 mb-4">
                           <MapPin className="w-4 h-4 mr-1" />
                           <span>{story.author_location}</span>
                         </div>
                       )}
 
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-xs lg:text-sm text-gray-500">
                         <Calendar className="w-4 h-4 mr-1" />
                         <span>{new Date(story.submitted_at).toLocaleDateString()}</span>
                       </div>
@@ -718,12 +714,12 @@ const Stories = () => {
 
         {/* Submit Story Tab */}
         {activeTab === 'submit' && (
-          <Card className="max-w-4xl mx-auto">
-            <div className="p-8">
+          <Card className="max-w-4xl mx-auto bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500">
+            <div className="p-4 lg:p-6">
               <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6 text-center">
                 🌟 Share Your Story
               </h2>
-              <p className="text-gray-600 text-center mb-8">
+              <p className="text-xs lg:text-sm text-gray-600 text-center mb-8">
                 Every story has the power to inspire, teach, and connect us. Share your experience with our community.
               </p>
 
@@ -1023,21 +1019,20 @@ const Stories = () => {
                 </div>
 
                 <div className="text-center pt-6 border-t border-gray-200">
-                  <Button
+                  <button
                     type="submit"
-                    size="lg"
                     disabled={submitting}
-                    className="min-w-[200px] bg-gradient-to-r from-golden to-dark-blue hover:from-golden/90 hover:to-dark-blue/90"
+                    className="group bg-[#0A3D5C] text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 min-w-[200px] mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? (
-                      <div className="flex items-center space-x-2">
+                      <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Submitting Story...</span>
-                      </div>
+                        <span className="text-sm lg:text-base">Submitting Story...</span>
+                      </>
                     ) : (
-                      '📖 Share My Story'
+                      <span className="text-sm lg:text-base">📖 Share My Story</span>
                     )}
-                  </Button>
+                  </button>
                   <p className="text-xs text-gray-500 mt-3">
                     By submitting, you agree that your story may be shared publicly and you grant BENIRAGE permission to feature it.
                   </p>
