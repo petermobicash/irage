@@ -427,10 +427,10 @@ const Donate = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h3 className="font-display text-2xl font-semibold text-dark-blue mb-4">
+              <h3 className="font-display text-lg lg:text-xl font-semibold text-gray-900 mb-4">
                 👤 Donor Information
               </h3>
-              <p className="text-clear-gray">Your contact information for donation receipt</p>
+              <p className="text-xs lg:text-sm text-gray-700">Your contact information for donation receipt</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -574,10 +574,10 @@ const Donate = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h3 className="font-display text-2xl font-semibold text-dark-blue mb-4">
+              <h3 className="font-display text-lg lg:text-xl font-semibold text-gray-900 mb-4">
                 💳 Payment & Designation
               </h3>
-              <p className="text-clear-gray">Choose how and where your donation will be used</p>
+              <p className="text-xs lg:text-sm text-gray-700">Choose how and where your donation will be used</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -928,10 +928,10 @@ const Donate = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h3 className="font-display text-2xl font-semibold text-dark-blue mb-4">
+              <h3 className="font-display text-lg lg:text-xl font-semibold text-gray-900 mb-4">
                 💝 Dedication & Preferences
               </h3>
-              <p className="text-clear-gray">Optional dedication and communication preferences</p>
+              <p className="text-xs lg:text-sm text-gray-700">Optional dedication and communication preferences</p>
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -972,7 +972,7 @@ const Donate = () => {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-display text-lg font-semibold text-dark-blue">
+              <h4 className="font-display text-base lg:text-lg font-semibold text-gray-900">
                 Communication Preferences
               </h4>
 
@@ -1042,43 +1042,56 @@ const Donate = () => {
         </div>
       </div>
 
-      {/* Hero Section with Clear Value Proposition */}
+      {/* Hero Section - Enhanced with Home page style background */}
       <section
-        className="relative py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white overflow-hidden"
+        className="relative min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center overflow-hidden"
         data-section="hero"
         role="banner"
       >
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex justify-center mb-6">
+        {/* Dynamic Background - Dark Teal/Navy like Home page */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0A3D5C] via-[#0D4A6B] to-[#0A3D5C]">
+          <div className="absolute inset-0 bg-[url('/benirage.jpeg')] bg-cover bg-center opacity-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+        </div>
+        
+        {/* Floating Animated Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-white/5 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 bg-blue-400/10 rounded-full blur-xl animate-bounce"></div>
+          <div className="absolute bottom-40 left-32 w-40 h-40 bg-yellow-400/5 rounded-full blur-3xl animate-ping"></div>
+          <div className="absolute bottom-20 right-20 w-20 h-20 bg-yellow-400/10 rounded-full blur-lg animate-pulse"></div>
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-5xl mx-auto">
+            <div className="flex justify-center mb-6 animate-fade-in-up">
               <div className="relative">
                 <Heart
-                  className="w-20 h-20 text-white animate-pulse"
+                  className="w-16 lg:w-20 h-16 lg:h-20 text-yellow-400 animate-pulse"
                   role="img"
                   aria-label="Heart symbol representing love and care"
                 />
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-bold text-blue-900">✓</span>
+                  <span className="text-xs font-bold text-[#0A3D5C]">✓</span>
                 </div>
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 leading-tight animate-fade-in-up animation-delay-100">
               Transform Lives in
               <span className="block text-yellow-400">Rwanda Today</span>
             </h1>
             
-            <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
               Every donation creates lasting change. Support education, preserve culture, and build stronger communities.
-              <span className="block mt-2 text-lg text-yellow-200">95% of your gift goes directly to programs that matter.</span>
+              <span className="block mt-2 text-xs lg:text-sm text-yellow-200">95% of your gift goes directly to programs that matter.</span>
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in-up animation-delay-300">
               <Button
                 onClick={scrollToDonation}
                 size="lg"
-                className="bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold text-lg px-8 py-4 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                className="bg-yellow-400 hover:bg-yellow-500 text-[#0A3D5C] font-bold text-lg px-8 py-4 transform hover:scale-105 transition-all duration-200 shadow-lg"
                 icon={ArrowRight}
                 aria-describedby="donate-button-description"
               >
@@ -1090,7 +1103,7 @@ const Donate = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white hover:text-blue-900 text-lg px-8 py-4 transition-all duration-200"
+                className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 text-lg px-8 py-4 transition-all duration-200"
                 icon={Play}
                 aria-label="Watch video story about our impact"
               >
@@ -1099,16 +1112,16 @@ const Donate = () => {
             </div>
 
             {/* Quick Impact Stats with improved accessibility */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto" role="list" aria-label="Impact statistics">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto animate-fade-in-up animation-delay-400" role="list" aria-label="Impact statistics">
               {impactStats.map((stat, index) => (
-                <div key={index} className="text-center" >
+                <div key={index} className="text-center bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-all duration-300">
                   <div className="flex justify-center mb-2" aria-hidden="true">
                     <stat.icon className="w-8 h-8 text-yellow-400" />
                   </div>
                   <div className="text-2xl md:text-3xl font-bold text-yellow-400" aria-label={`${stat.number} ${stat.label}`}>
                     {stat.number}
                   </div>
-                  <div className="text-sm text-blue-100">{stat.label}</div>
+                  <div className="text-sm text-gray-200">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -1120,10 +1133,10 @@ const Donate = () => {
       <Section className="py-20 bg-gradient-to-b from-gray-50 to-white" data-section="testimonials">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-dark-blue mb-6">
+            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
               Real Impact, Real Stories
             </h2>
-            <p className="text-xl text-clear-gray max-w-3xl mx-auto">
+            <p className="text-xs lg:text-sm text-gray-700 max-w-3xl mx-auto">
               See how your donation creates lasting change in the lives of real people and communities
             </p>
           </div>
@@ -1214,10 +1227,10 @@ const Donate = () => {
       <Section className="py-20 bg-white" data-section="impact">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-dark-blue mb-6">
+            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
               Your Donation in Action
             </h2>
-            <p className="text-xl text-clear-gray max-w-3xl mx-auto">
+            <p className="text-xs lg:text-sm text-gray-700 max-w-3xl mx-auto">
               See exactly how your contribution makes a real difference in people's lives
             </p>
           </div>
@@ -1346,10 +1359,10 @@ const Donate = () => {
       <Section className="py-20 bg-gradient-to-b from-dark-blue to-blue-900 text-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-lg lg:text-xl font-bold text-white mb-6">
               Trust & Transparency
             </h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+            <p className="text-xs lg:text-sm text-gray-200 max-w-3xl mx-auto">
               We're committed to accountability and keeping you informed about your impact
             </p>
           </div>
@@ -1383,8 +1396,8 @@ const Donate = () => {
           {/* Contact Information */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 md:p-12">
             <div className="text-center mb-8">
-              <h3 className="text-3xl font-bold mb-4">Get In Touch</h3>
-              <p className="text-blue-100 text-lg">
+              <h3 className="text-lg lg:text-xl font-bold text-white mb-4">Get In Touch</h3>
+              <p className="text-xs lg:text-sm text-gray-200">
                 We're here to answer your questions and share more about our work
               </p>
             </div>

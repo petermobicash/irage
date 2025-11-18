@@ -142,26 +142,42 @@ const News = () => {
 
   return (
     <div>
-      {/* Hero */}
-      <Section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 text-white">
-        <div className="text-center">
-          <div className="text-6xl mb-6">📰</div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            News & Events
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Stay connected with our community activities, events, and insights
-          </p>
+      {/* Hero Section - Enhanced with Home page style background */}
+      <section className="relative min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center overflow-hidden">
+        {/* Dynamic Background - Dark Teal/Navy like Home page */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0A3D5C] via-[#0D4A6B] to-[#0A3D5C]">
+          <div className="absolute inset-0 bg-[url('/benirage.jpeg')] bg-cover bg-center opacity-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         </div>
-      </Section>
+        
+        {/* Floating Animated Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-white/5 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 bg-blue-400/10 rounded-full blur-xl animate-bounce"></div>
+          <div className="absolute bottom-40 left-32 w-40 h-40 bg-yellow-400/5 rounded-full blur-3xl animate-ping"></div>
+          <div className="absolute bottom-20 right-20 w-20 h-20 bg-yellow-400/10 rounded-full blur-lg animate-pulse"></div>
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">📰</div>
+            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+              News & <span className="text-yellow-400">Events</span>
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+              Stay connected with our community activities, events, and insights
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Upcoming Events */}
       <Section className="py-20 bg-white">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-blue-900 mb-6">
+          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
             Upcoming Events
           </h2>
-          <p className="text-xl text-gray-700">
+          <p className="text-xs lg:text-sm text-gray-700">
             Join us for transformative experiences and community gatherings
           </p>
         </div>
@@ -186,7 +202,7 @@ const News = () => {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-blue-900">
+                <h3 className="text-lg lg:text-xl font-bold text-gray-900">
                   {event.title}
                 </h3>
 
@@ -226,10 +242,10 @@ const News = () => {
       {/* Recent News */}
       <Section className="py-20 bg-gray-50">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-blue-900 mb-6">
+          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
             Recent News
           </h2>
-          <p className="text-xl text-gray-700">
+          <p className="text-xs lg:text-sm text-gray-700">
             Stay updated with our latest activities and community impact
           </p>
         </div>
@@ -268,7 +284,7 @@ const News = () => {
                 </div>
 
                 <div className="lg:col-span-3 space-y-4">
-                  <h3 className="text-2xl font-bold text-blue-900">
+                  <h3 className="text-lg lg:text-xl font-bold text-gray-900">
                     {article.title}
                   </h3>
 
@@ -304,10 +320,10 @@ const News = () => {
       {/* Newsletter Signup */}
       <Section className="py-20 bg-blue-900 text-blue-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">
+          <h2 className="text-lg lg:text-xl font-bold text-white mb-6">
             Stay in the Loop
           </h2>
-          <p className="text-xl mb-8">
+          <p className="text-xs lg:text-sm text-gray-200 mb-8">
             Get the latest news, event announcements, and exclusive content
           </p>
 

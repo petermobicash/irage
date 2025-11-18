@@ -6,13 +6,13 @@ const Privacy = () => {
       {/* Hero Section */}
       <Section background="white" padding="xl">
         <div className="text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">
+          <h1 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
             BENIRAGE Privacy Policy
           </h1>
-          <p className="text-lg text-gray-600 mb-4">
+          <p className="text-xs lg:text-sm text-gray-600 mb-4">
             Effective Date: October 21, 2025
           </p>
-          <p className="text-lg text-gray-600">
+          <p className="text-xs lg:text-sm text-gray-600">
             Last Updated: October 21, 2025
           </p>
         </div>

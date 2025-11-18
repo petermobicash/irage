@@ -369,46 +369,74 @@ const Stories = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-golden/10 to-dark-blue/10">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-dark-blue mb-4">
-            📖 Storytelling & Oral History
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Share and discover the rich tapestry of stories that connect us to our heritage,
-            wisdom, and shared human experience. Every voice matters in preserving our cultural legacy.
-          </p>
+    <div className="min-h-screen bg-white">
+      {/* Hero Section - Enhanced with Home page style background */}
+      <section className="relative min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center overflow-hidden">
+        {/* Dynamic Background - Dark Teal/Navy like Home page */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0A3D5C] via-[#0D4A6B] to-[#0A3D5C]">
+          <div className="absolute inset-0 bg-[url('/benirage.jpeg')] bg-cover bg-center opacity-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+        </div>
+        
+        {/* Floating Animated Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-white/5 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute top-40 right-32 w-24 h-24 bg-blue-400/10 rounded-full blur-xl animate-bounce"></div>
+          <div className="absolute bottom-40 left-32 w-40 h-40 bg-yellow-400/5 rounded-full blur-3xl animate-ping"></div>
+          <div className="absolute bottom-20 right-20 w-20 h-20 bg-yellow-400/10 rounded-full blur-lg animate-pulse"></div>
+        </div>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button
-              onClick={() => setActiveTab('browse')}
-              variant={activeTab === 'browse' ? 'primary' : 'outline'}
-              size="lg"
-            >
-              <BookOpen className="w-5 h-5 mr-2" />
-              Browse Stories
-            </Button>
-            <Button
-              onClick={() => setActiveTab('featured')}
-              variant={activeTab === 'featured' ? 'primary' : 'outline'}
-              size="lg"
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              Featured Stories
-            </Button>
-            <Button
-              onClick={() => setActiveTab('submit')}
-              variant={activeTab === 'submit' ? 'primary' : 'outline'}
-              size="lg"
-              className="bg-gradient-to-r from-golden to-dark-blue hover:from-golden/90 hover:to-dark-blue/90"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Share Your Story
-            </Button>
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="text-4xl lg:text-5xl mb-4 lg:mb-6 animate-fade-in-up">📖</div>
+            <h1 className="text-lg lg:text-xl font-bold text-white mb-4 animate-fade-in-up animation-delay-100">
+              Storytelling & <span className="text-yellow-400">Oral History</span>
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed animate-fade-in-up animation-delay-200">
+              Share and discover the rich tapestry of stories that connect us to our heritage,
+              wisdom, and shared human experience. Every voice matters in preserving our cultural legacy.
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-4 animate-fade-in-up animation-delay-300">
+              <Button
+                onClick={() => setActiveTab('browse')}
+                variant={activeTab === 'browse' ? 'primary' : 'outline'}
+                size="lg"
+                className={activeTab === 'browse'
+                  ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
+                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'}
+              >
+                <BookOpen className="w-5 h-5 mr-2" />
+                Browse Stories
+              </Button>
+              <Button
+                onClick={() => setActiveTab('featured')}
+                variant={activeTab === 'featured' ? 'primary' : 'outline'}
+                size="lg"
+                className={activeTab === 'featured'
+                  ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
+                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'}
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Featured Stories
+              </Button>
+              <Button
+                onClick={() => setActiveTab('submit')}
+                variant={activeTab === 'submit' ? 'primary' : 'outline'}
+                size="lg"
+                className={activeTab === 'submit'
+                  ? 'bg-yellow-400 text-[#0A3D5C] hover:bg-yellow-500 border-0'
+                  : 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20'}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Share Your Story
+              </Button>
+            </div>
           </div>
         </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-8">
 
         {/* Browse Stories Tab */}
         {activeTab === 'browse' && (
@@ -489,7 +517,7 @@ const Stories = () => {
                         </div>
                       )}
 
-                      <h3 className="text-xl font-bold text-dark-blue mb-3 line-clamp-2">
+                      <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                         {story.title}
                       </h3>
 
@@ -605,7 +633,7 @@ const Stories = () => {
         {activeTab === 'featured' && (
           <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-dark-blue mb-4">⭐ Featured Stories</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">⭐ Featured Stories</h2>
               <p className="text-gray-600">
                 Discover our community's most inspiring and cherished stories
               </p>
@@ -623,7 +651,7 @@ const Stories = () => {
                         </span>
                       </div>
 
-                      <h3 className="text-2xl font-bold text-dark-blue mb-4">
+                      <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
                         {story.title}
                       </h3>
 
@@ -692,7 +720,7 @@ const Stories = () => {
         {activeTab === 'submit' && (
           <Card className="max-w-4xl mx-auto">
             <div className="p-8">
-              <h2 className="text-3xl font-bold text-dark-blue mb-6 text-center">
+              <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6 text-center">
                 🌟 Share Your Story
               </h2>
               <p className="text-gray-600 text-center mb-8">
@@ -702,7 +730,7 @@ const Stories = () => {
               <form onSubmit={handleSubmitStory} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Story Title *
                     </label>
                     <input
@@ -716,7 +744,7 @@ const Stories = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Your Name *
                     </label>
                     <input
@@ -732,7 +760,7 @@ const Stories = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Email (Optional)
                     </label>
                     <input
@@ -745,7 +773,7 @@ const Stories = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Location (Optional)
                     </label>
                     <input
@@ -760,7 +788,7 @@ const Stories = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Story Type
                     </label>
                     <select
@@ -775,7 +803,7 @@ const Stories = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Category
                     </label>
                     <select
@@ -791,7 +819,7 @@ const Stories = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-dark-blue mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     Tags (Optional)
                   </label>
                   <input
@@ -804,7 +832,7 @@ const Stories = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-dark-blue mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     Your Story *
                   </label>
                   <textarea
@@ -819,7 +847,7 @@ const Stories = () => {
 
                 {/* Media Type Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-dark-blue mb-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
                     Media Type
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -888,7 +916,7 @@ const Stories = () => {
                 {/* File Upload Section */}
                 {(formData.media_type === 'audio' || formData.media_type === 'mixed') && (
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Audio File
                     </label>
                     <div className="flex items-center space-x-3">
@@ -914,7 +942,7 @@ const Stories = () => {
 
                 {(formData.media_type === 'video' || formData.media_type === 'mixed') && (
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Video File
                     </label>
                     <div className="flex items-center space-x-3">
@@ -940,7 +968,7 @@ const Stories = () => {
 
                 {(formData.media_type === 'mixed') && (
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Cover Image (Optional)
                     </label>
                     <div className="flex items-center space-x-3">
@@ -967,7 +995,7 @@ const Stories = () => {
                 {/* Transcript for audio/video content */}
                 {(formData.media_type === 'audio' || formData.media_type === 'video' || formData.media_type === 'mixed') && (
                   <div>
-                    <label className="block text-sm font-medium text-dark-blue mb-2">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
                       Transcript (Optional)
                     </label>
                     <textarea
