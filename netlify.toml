@@ -6,8 +6,6 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "9"
-  # Disable secrets scanning entirely - Supabase URL is a public value meant for client-side use
-  SECRETS_SCAN_ENABLED = "false"
 
 # Production build settings
 [context.production]
@@ -17,7 +15,6 @@
 [context.production.environment]
   NODE_ENV = "production"
   VITE_APP_VERSION = "1.0.0"
-  SECRETS_SCAN_ENABLED = "false"
   # Supabase Configuration - Add these as environment variables in Netlify UI
   # VITE_SUPABASE_URL = "https://sshguczouozvsdwzfcbx.supabase.co"
   # VITE_SUPABASE_ANON_KEY = "your_anon_key_here"
