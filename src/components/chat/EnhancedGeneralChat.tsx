@@ -1,35 +1,30 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import {
-  Send, MessageSquare, Users, Volume2, VolumeX, Reply, Smile,
-  Paperclip, MoreVertical, Search, X, Pin, Star, Mic, Settings, Shield,
-  Edit3, Trash2, Copy, Download, FileText, Play,
-  Sun, Moon, HelpCircle, Bell, BellOff, Maximize2, Minimize2,
-  MessageCircle, Loader
-} from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, MessageSquare, Users, Volume2, VolumeX, Reply, Heart, ThumbsUp, Smile, Paperclip, MoreVertical, Search, X, Pin, Star, Mic, Shield } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
+import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { supabase } from '../../lib/supabase';
+import { getCurrentUser, supabase } from '../../lib/supabase';
+import VoiceRecorder from './VoiceRecorder';
+import VoiceMessagePlayer from './VoiceMessagePlayer';
+import VideoCallButton from './VideoCallButton';
+import GuestChatEntry from './GuestChatEntry';
 import { usePermission } from '../../hooks/usePermissions';
-import { useToast } from '../../hooks/useToast';
 
 interface OnlineUser {
   id: string;
   display_name: string;
   username: string;
   avatar_url: string | null;
-  status: 'online' | 'away' | 'busy' | 'offline';
-  role: 'admin' | 'moderator' | 'member' | 'guest';
-  last_seen?: string;
-  is_typing?: boolean;
+  status: string;
+  role: string;
 }
 
 interface Attachment {
-  type: 'image' | 'file' | 'audio' | 'video' | 'voice';
+  type: 'image' | 'file' | 'audio' | 'video';
   url: string;
   name: string;
   size: number;
   duration?: number;
-  thumbnail?: string;
 }
 
 interface ChatMessage {
@@ -39,7 +34,7 @@ interface ChatMessage {
   sender_name: string;
   sender_avatar: string | null;
   message_text: string;
-  message_type: 'text' | 'image' | 'file' | 'system' | 'notification' | 'voice';
+  message_type: 'text' | 'image' | 'file' | 'system' | 'notification';
   reply_to_id: string | null;
   mentions: Record<string, unknown>;
   attachments: Attachment[];
@@ -47,177 +42,52 @@ interface ChatMessage {
   is_edited: boolean;
   is_deleted: boolean;
   is_pinned: boolean;
-  is_starred: boolean;
   message_status: 'sent' | 'delivered' | 'seen';
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   edited_at: string | null;
   deleted_at: string | null;
-  is_own_message?: boolean;
 }
 
 interface EnhancedGeneralChatProps {
   onClose?: () => void;
-  maximized?: boolean;
-  onMaximize?: () => void;
-  theme?: 'light' | 'dark';
-  onThemeChange?: (theme: 'light' | 'dark') => void;
 }
 
-const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({ 
-  onClose, 
-  maximized = false, 
-  onMaximize,
-  theme = 'light',
-  onThemeChange 
-}) => {
-  // Core state
+const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({ onClose }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [messageText, setMessageText] = useState('');
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(() => {
-    if (theme === 'dark' || theme === 'light') {
-      return theme;
-    }
-    return 'light';
-  });
-
-  // UI State
-  const [showParticipants, setShowParticipants] = useState(false);
-  const [showMessageSearch, setShowMessageSearch] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [showFileUploadProgress, setShowFileUploadProgress] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  // Message interaction state
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
-  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
-  const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [voiceMessageBlob, setVoiceMessageBlob] = useState<Blob | null>(null);
-  const [voiceMessageDuration, setVoiceMessageDuration] = useState<number>(0);
-
-  // User state
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
-
-  // Chat features state
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
+  const [authLoading, setAuthLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-
-  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFilters, setSearchFilters] = useState({
-    dateRange: 'all',
-    messageType: 'all',
-    user: 'all',
-    hasAttachments: false
-  });
+  const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
+  const [pinnedMessages, setPinnedMessages] = useState<ChatMessage[]>([]);
+  const [starredMessages, setStarredMessages] = useState<ChatMessage[]>([]);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [voiceMessageBlob, setVoiceMessageBlob] = useState<Blob | null>(null);
+  const [voiceMessageDuration, setVoiceMessageDuration] = useState<number>(0);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-  // Refs
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-
-  // Hooks
-  const { showToast } = useToast();
+  // Permission hooks for chat management
   const { hasPermission: canModerateChat } = usePermission('chat.moderate');
   const { hasPermission: canManageChat } = usePermission('chat.manage_settings');
+  const { hasPermission: canViewChatAnalytics } = usePermission('chat.view_analytics');
 
-  // Fetch and subscribe to messages
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-          .limit(100);
-
-        if (error) throw error;
-
-        const formattedMessages = data.map(message => ({
-          ...message,
-          is_own_message: message.sender_id === currentUser?.id
-        })).reverse();
-
-        setMessages(formattedMessages);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        showToast('Failed to load messages', 'error');
-      }
-    };
-
-    fetchMessages();
-
-    // Subscribe to real-time changes
-    const subscription = supabase
-      .channel('chat_messages')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chat_messages'
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newMessage = payload.new as ChatMessage;
-            newMessage.is_own_message = newMessage.sender_id === currentUser?.id;
-            setMessages(prev => [...prev, newMessage]);
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedMessage = payload.new as ChatMessage;
-            updatedMessage.is_own_message = updatedMessage.sender_id === currentUser?.id;
-            setMessages(prev =>
-              prev.map(msg =>
-                msg.id === updatedMessage.id ? updatedMessage : msg
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [currentUser?.id, showToast]);
-
-  // Get current user
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
-      
-      if (user) {
-        setUserInfo({
-          name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
-          email: user.email || ''
-        });
-      } else {
-        // For guest users, you might want to set a default or handle differently
-        setUserInfo({
-          name: 'Guest User',
-          email: 'guest@example.com'
-        });
-      }
-    };
-
-    getCurrentUser();
-  }, []);
-
-  // Enhanced online users with better real-time simulation
+  // Enhanced online users with better mock data for demo
   useEffect(() => {
     if (userInfo) {
       setOnlineUsers([
@@ -227,291 +97,47 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
           username: userInfo.email,
           avatar_url: null,
           status: 'online',
-          role: currentUser ? 'member' : 'guest',
-          is_typing: false
+          role: currentUser ? 'member' : 'guest'
         },
         {
-          id: 'moderator-1',
+          id: 'admin-user',
           display_name: 'Community Moderator',
           username: 'moderator',
           avatar_url: null,
           status: 'online',
-          role: 'moderator',
-          is_typing: false
+          role: 'moderator'
         },
         {
-          id: 'user-1',
+          id: 'user-2',
           display_name: 'Sarah Johnson',
           username: 'sarah_j',
           avatar_url: null,
           status: 'online',
-          role: 'member',
-          is_typing: true
-        },
-        {
-          id: 'user-2',
-          display_name: 'Ahmed Hassan',
-          username: 'ahmed_h',
-          avatar_url: null,
-          status: 'away',
-          role: 'member',
-          is_typing: false
-        },
-        {
-          id: 'user-3',
-          display_name: 'Maria Rodriguez',
-          username: 'maria_r',
-          avatar_url: null,
-          status: 'online',
-          role: 'member',
-          is_typing: false
+          role: 'member'
         }
       ]);
+    } else {
+      setOnlineUsers([]);
     }
   }, [currentUser, userInfo]);
 
-  // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  // Focus management
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+  // Handle typing indicator
+  const handleTyping = () => {
+    setIsTyping(true);
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
     }
-  }, []);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-          case 'k':
-            e.preventDefault();
-            setShowMessageSearch(true);
-            searchInputRef.current?.focus();
-            break;
-          case 'Enter':
-            e.preventDefault();
-            // Create a proper form event to send the message
-            {
-              const formEvent = new Event('submit', { bubbles: true, cancelable: true });
-              const sendMessageForm = document.querySelector('form');
-              if (sendMessageForm) {
-                sendMessageForm.dispatchEvent(formEvent);
-              }
-            }
-            break;
-          case '/':
-            // Keyboard shortcuts functionality not implemented yet
-            break;
-        }
-      } else if (e.key === 'Escape') {
-        setShowMessageSearch(false);
-        setShowEmojiPicker(false);
-        setShowVoiceRecorder(false);
-        setShowSettings(false);
-        setShowHelp(false);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Theme management
-  useEffect(() => {
-    if (onThemeChange) {
-      onThemeChange(currentTheme);
-    }
-    document.documentElement.setAttribute('data-theme', currentTheme);
-  }, [currentTheme, onThemeChange]);
-
-  // Notification system
-  useEffect(() => {
-    if (notificationsEnabled && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-    }
-  }, [notificationsEnabled]);
-
-  // Enhanced search functionality
-  const filteredMessages = useMemo(() => {
-    if (!searchQuery.trim()) return messages;
-
-    const query = searchQuery.toLowerCase();
-    return messages.filter(message => {
-      const matchesQuery = 
-        message.message_text.toLowerCase().includes(query) ||
-        message.sender_name.toLowerCase().includes(query) ||
-        message.attachments.some(att => att.name.toLowerCase().includes(query));
-
-      const matchesFilters = 
-        (searchFilters.messageType === 'all' || message.message_type === searchFilters.messageType) &&
-        (searchFilters.user === 'all' || message.sender_name === searchFilters.user) &&
-        (searchFilters.dateRange === 'all' || isDateInRange(message.created_at, searchFilters.dateRange)) &&
-        (!searchFilters.hasAttachments || message.attachments.length > 0);
-
-      return matchesQuery && matchesFilters;
-    });
-  }, [messages, searchQuery, searchFilters]);
-
-  const isDateInRange = (dateString: string, range: string): boolean => {
-    const messageDate = new Date(dateString);
-    const now = new Date();
-    
-    switch (range) {
-      case 'today':
-        return messageDate.toDateString() === now.toDateString();
-      case 'week':
-        {
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          return messageDate >= weekAgo;
-        }
-      case 'month':
-        {
-          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          return messageDate >= monthAgo;
-        }
-      default:
-        return true;
-    }
+    const timeout = setTimeout(() => {
+      setIsTyping(false);
+    }, 3000); // Stop typing indicator after 3 seconds of inactivity
+    setTypingTimeout(timeout);
   };
 
-  // Enhanced message handling
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((!messageText.trim() && !selectedFile && !voiceMessageBlob) || sending) return;
-
-    try {
-      setSending(true);
-      setConnectionStatus('connecting');
-
-      let attachments: Attachment[] = [];
-      let messageType: ChatMessage['message_type'] = 'text';
-
-      // Handle file upload
-      if (selectedFile) {
-        setShowFileUploadProgress(true);
-        const fileUrl = await handleFileUpload(selectedFile);
-        if (fileUrl) {
-          attachments = [{
-            type: getAttachmentType(selectedFile),
-            url: fileUrl,
-            name: selectedFile.name,
-            size: selectedFile.size,
-            thumbnail: selectedFile.type.startsWith('image/') ? await generateImageThumbnail(fileUrl) : undefined
-          }];
-          messageType = selectedFile.type.startsWith('image/') ? 'image' : 'file';
-        }
-        setSelectedFile(null);
-      }
-
-      // Handle voice message
-      if (voiceMessageBlob) {
-        const voiceUrl = await handleVoiceUpload(voiceMessageBlob);
-        if (voiceUrl) {
-          attachments = [{
-            type: 'voice',
-            url: voiceUrl,
-            name: `voice-message-${Date.now()}.webm`,
-            size: voiceMessageBlob.size,
-            duration: voiceMessageDuration
-          }];
-          messageType = 'voice';
-        }
-        setVoiceMessageBlob(null);
-        setVoiceMessageDuration(0);
-      }
-
-      const messageData = {
-        sender_id: currentUser?.id || null,
-        sender_name: userInfo?.name || 'User',
-        message_text: messageText.trim(),
-        message_type: messageType,
-        reply_to_id: replyingTo?.id || editingMessage?.reply_to_id || null,
-        attachments,
-        message_status: 'sent' as const,
-        metadata: {
-          timestamp: new Date().toISOString(),
-          client_id: currentUser?.id || 'guest',
-          message_length: messageText.trim().length,
-          user_email: userInfo?.email || '',
-          is_edited: !!editingMessage
-        },
-        room_id: null,
-        is_edited: !!editingMessage,
-        is_pinned: editingMessage?.is_pinned || false,
-        is_starred: editingMessage?.is_starred || false
-      };
-
-      const { error } = await supabase
-        .from('chat_messages')
-        .insert([messageData])
-        .select();
-
-      if (error) throw error;
-
-      setConnectionStatus('connected');
-      setMessageText('');
-      setReplyingTo(null);
-      setEditingMessage(null);
-      
-      if (editingMessage) {
-        showToast('Message updated successfully', 'success');
-      }
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setConnectionStatus('disconnected');
-      showToast('Failed to send message. Please try again.', 'error');
-    } finally {
-      setSending(false);
-      setShowFileUploadProgress(false);
-    }
-  };
-
-  const getAttachmentType = (file: File): Attachment['type'] => {
-    if (file.type.startsWith('image/')) return 'image';
-    if (file.type.startsWith('video/')) return 'video';
-    if (file.type.startsWith('audio/')) return 'audio';
-    return 'file';
-  };
-
-  const generateImageThumbnail = async (imageUrl: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve('');
-        return;
-      }
-      
-      const img = new window.Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = () => {
-        const maxSize = 100;
-        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
-        canvas.width = img.width * ratio;
-        canvas.height = img.height * ratio;
-        
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.8));
-      };
-      
-      img.onerror = () => resolve('');
-      img.src = imageUrl;
-    });
-  };
-
-  const handleFileUpload = async (file: File): Promise<string | null> => {
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
@@ -521,7 +147,9 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
         .from('chat-attachments')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
 
       const { data } = supabase.storage
         .from('chat-attachments')
@@ -530,353 +158,453 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
       return data.publicUrl;
     } catch (error) {
       console.error('Error uploading file:', error);
-      showToast('Failed to upload file', 'error');
+      alert('Failed to upload file. Please try again.');
       return null;
     }
   };
 
-  const handleVoiceUpload = async (blob: Blob): Promise<string | null> => {
+  // Handle voice message recording completion
+  const handleVoiceRecordingComplete = (audioBlob: Blob, duration: number) => {
+    setVoiceMessageBlob(audioBlob);
+    setVoiceMessageDuration(duration);
+    setShowVoiceRecorder(false);
+  };
+
+  // Handle voice message upload
+  const handleVoiceMessageUpload = async () => {
+    if (!voiceMessageBlob) return;
+
     try {
       const fileName = `voice-message-${Date.now()}.webm`;
       const filePath = `chat-attachments/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('chat-attachments')
-        .upload(filePath, blob);
+        .upload(filePath, voiceMessageBlob);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
 
       const { data } = supabase.storage
         .from('chat-attachments')
         .getPublicUrl(filePath);
 
-      return data.publicUrl;
+      // Create voice message
+      const voiceMessageData = {
+        sender_id: currentUser?.id || null,
+        sender_name: userInfo?.name || 'User',
+        message_text: '🎤 Voice message',
+        message_type: 'audio',
+        reply_to_id: replyingTo?.id || null,
+        attachments: [{
+          type: 'audio',
+          url: data.publicUrl,
+          name: fileName,
+          size: voiceMessageBlob.size,
+          duration: voiceMessageDuration
+        }],
+        message_status: 'sent',
+        metadata: {
+          timestamp: new Date().toISOString(),
+          client_id: currentUser?.id || 'guest',
+          message_length: 0,
+          audio_duration: voiceMessageDuration,
+          user_email: userInfo?.email || ''
+        },
+        room_id: null,
+      };
+
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert([voiceMessageData]);
+
+      if (error) {
+        throw error;
+      }
+
+      // Clear voice message data
+      setVoiceMessageBlob(null);
+      setVoiceMessageDuration(0);
+
     } catch (error) {
       console.error('Error uploading voice message:', error);
-      showToast('Failed to upload voice message', 'error');
-      return null;
+      alert('Failed to send voice message. Please try again.');
     }
   };
 
-  // Message actions
-  const handleEditMessage = (message: ChatMessage) => {
-    if (message.is_own_message) {
-      setEditingMessage(message);
-      setMessageText(message.message_text);
-      textareaRef.current?.focus();
+  // Handle pinning messages
+  const handlePinMessage = (message: ChatMessage) => {
+    if (pinnedMessages.some(m => m.id === message.id)) {
+      setPinnedMessages(prev => prev.filter(m => m.id !== message.id));
+    } else {
+      setPinnedMessages(prev => [...prev, message]);
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
-      try {
-        const { error } = await supabase
-          .from('chat_messages')
-          .update({ is_deleted: true })
-          .eq('id', messageId);
+  // Handle starring messages
+  const handleStarMessage = (message: ChatMessage) => {
+    if (starredMessages.some(m => m.id === message.id)) {
+      setStarredMessages(prev => prev.filter(m => m.id !== message.id));
+    } else {
+      setStarredMessages(prev => [...prev, message]);
+    }
+  };
 
-        if (error) throw error;
-        showToast('Message deleted', 'success');
-      } catch (error) {
-        console.error('Error deleting message:', error);
-        showToast('Failed to delete message', 'error');
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
+
+  // Load messages and set up real-time subscription
+  useEffect(() => {
+    // Load messages for both authenticated and anonymous users
+    loadMessages();
+    const cleanup = setupRealtimeSubscription();
+
+    // Set a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.log('Loading timeout reached, setting sample data');
+        setIsLoading(false);
+        setMessages([
+          {
+            id: '1',
+            room_id: null,
+            sender_id: 'demo-user',
+            sender_name: 'Demo User',
+            sender_avatar: null,
+            message_text: 'Welcome to the BENIRAGE community chat! 👋',
+            message_type: 'text',
+            reply_to_id: null,
+            mentions: {},
+            attachments: [],
+            reactions: {},
+            is_edited: false,
+            is_deleted: false,
+            is_pinned: false,
+            message_status: 'sent',
+            metadata: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            edited_at: null,
+            deleted_at: null,
+          }
+        ]);
+      }
+    }, 5000);
+
+    return () => {
+      cleanup();
+      clearTimeout(timeout);
+    };
+  }, [currentUser, isLoading]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Focus textarea when component is ready
+  useEffect(() => {
+    if (!isLoading && !authLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading, authLoading]);
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+    };
+  }, [typingTimeout]);
+
+  // Handle message search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const results = messages.filter(message =>
+      message.message_text.toLowerCase().includes(query) ||
+      message.sender_name.toLowerCase().includes(query)
+    );
+    setSearchResults(results);
+  }, [searchQuery, messages]);
+
+  const checkAuthentication = async () => {
+    try {
+      setAuthLoading(true);
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+
+      // Check if user has provided their information
+      let userInformation = null;
+
+      if (user) {
+        // For authenticated users, check if they have name and email in their profile
+        const displayName = user.user_metadata?.display_name || user.user_metadata?.full_name;
+        const email = user.email;
+
+        if (displayName && email) {
+          userInformation = { name: displayName, email: email };
+        }
+      } else {
+        // For anonymous users, check localStorage
+        const storedInfo = localStorage.getItem('benirage_chat_user_info');
+        if (storedInfo) {
+          try {
+            userInformation = JSON.parse(storedInfo);
+          } catch (e) {
+            console.error('Error parsing stored user info:', e);
+            localStorage.removeItem('benirage_chat_user_info');
+          }
+        }
+      }
+
+      setUserInfo(userInformation);
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      setCurrentUser(null);
+      setUserInfo(null);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleGuestInfoSubmit = (guestInfo: { name: string; email: string }) => {
+    // Store in localStorage for anonymous users
+    localStorage.setItem('benirage_chat_user_info', JSON.stringify(guestInfo));
+    setUserInfo(guestInfo);
+  };
+
+  const loadMessages = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Loading messages from database...');
+
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true })
+        .limit(50);
+
+      if (error) {
+        console.error('Database error loading messages:', error);
+        throw error;
+      }
+
+      console.log('Loaded messages:', data?.length || 0);
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      // For demo purposes, set some sample messages if DB fails
+      setMessages([
+        {
+          id: '1',
+          room_id: null,
+          sender_id: 'demo-user',
+          sender_name: 'Demo User',
+          sender_avatar: null,
+          message_text: 'Welcome to the BENIRAGE community chat! 👋',
+          message_type: 'text',
+          reply_to_id: null,
+          mentions: {},
+          attachments: [],
+          reactions: {},
+          is_edited: false,
+          is_deleted: false,
+          is_pinned: false,
+          message_status: 'sent',
+          metadata: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          edited_at: null,
+          deleted_at: null,
+        }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const setupRealtimeSubscription = () => {
+    try {
+      console.log('Setting up real-time subscription...');
+      const channel = supabase
+        .channel('general-chat')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chat_messages',
+          },
+          (payload) => {
+            console.log('New message received:', payload.new);
+            if (payload.new && !payload.new.is_deleted) {
+              setMessages(prev => [...prev, payload.new as ChatMessage]);
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'chat_messages',
+          },
+          (payload) => {
+            console.log('Message updated:', payload.new);
+            if (payload.new) {
+              setMessages(prev => prev.map(msg =>
+                String(msg.id) === String(payload.new.id) ? payload.new as ChatMessage : msg
+              ));
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+        });
+
+      return () => {
+        console.log('Cleaning up subscription...');
+        supabase.removeChannel(channel);
+      };
+    } catch (error) {
+      console.error('Error setting up real-time subscription:', error);
+      return () => {};
+    }
+  };
+
+  const handleSendMessage = async (e?: React.FormEvent<HTMLFormElement>) => {
+    if (e) {
+      e.preventDefault();
+    }
+    if ((!messageText.trim() && !selectedFile) || sending) return;
+
+    // Validate message length
+    if (messageText.trim().length > 1000) {
+      alert('Message is too long. Please keep it under 1000 characters.');
+      return;
+    }
+
+    try {
+      setSending(true);
+      setConnectionStatus('connecting');
+
+      let attachments: Attachment[] = [];
+      let messageType: 'text' | 'image' | 'file' = 'text';
+
+      if (selectedFile) {
+        const fileUrl = await handleFileUpload(selectedFile);
+        if (fileUrl) {
+          attachments = [{
+            type: selectedFile.type.startsWith('image/') ? 'image' : 'file',
+            url: fileUrl,
+            name: selectedFile.name,
+            size: selectedFile.size
+          }];
+          messageType = selectedFile.type.startsWith('image/') ? 'image' : 'file';
+        }
+        setSelectedFile(null);
+      }
+
+      // Use stored user information for both authenticated and anonymous users
+      const messageData = {
+        sender_id: currentUser?.id || null,
+        sender_name: userInfo?.name || 'User',
+        message_text: messageText.trim(),
+        message_type: messageType,
+        reply_to_id: replyingTo?.id || null,
+        attachments,
+        message_status: 'sent',
+        metadata: {
+          timestamp: new Date().toISOString(),
+          client_id: currentUser?.id || 'guest',
+          message_length: messageText.trim().length,
+          user_email: userInfo?.email || ''
+        },
+        room_id: null,
+      };
+
+      console.log('Sending message:', messageData);
+
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert([messageData])
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        setConnectionStatus('disconnected');
+
+        // Show user-friendly error message
+        if (error.code === '23502') {
+          alert('Failed to send message. Please check your connection and try again.');
+        } else {
+          alert(`Failed to send message: ${error.message}`);
+        }
+
+        return;
+      }
+
+      console.log('Message sent successfully:', data);
+      setConnectionStatus('connected');
+      setMessageText('');
+      setIsTyping(false);
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        setTypingTimeout(null);
+      }
+      setReplyingTo(null);
+
+      // Clear voice message data after successful send
+      setVoiceMessageBlob(null);
+      setVoiceMessageDuration(0);
+
+      // Show success feedback briefly
+      setTimeout(() => {
+        // Optional: Show a subtle success indicator
+      }, 1000);
+
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setConnectionStatus('disconnected');
+      alert('Failed to send message. Please check your internet connection and try again.');
+    } finally {
+      setSending(false);
+      setIsTyping(false);
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        setTypingTimeout(null);
       }
     }
   };
 
-  const handleCopyMessage = (message: ChatMessage) => {
-    navigator.clipboard.writeText(message.message_text);
-    showToast('Message copied to clipboard', 'success');
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   const handleReply = (message: ChatMessage) => {
     setReplyingTo(message);
-    textareaRef.current?.focus();
   };
 
-  const handlePinMessage = (message: ChatMessage) => {
-    // Toggle pin status logic here
-    showToast(message.is_pinned ? 'Message unpinned' : 'Message pinned', 'success');
-  };
-
-  const handleStarMessage = (message: ChatMessage) => {
-    // Toggle star status logic here
-    showToast(message.is_starred ? 'Message unstarred' : 'Message starred', 'success');
-  };
-
-  const handleSelectMessage = (messageId: string) => {
-    const newSelected = new Set(selectedMessages);
-    if (newSelected.has(messageId)) {
-      newSelected.delete(messageId);
-    } else {
-      newSelected.add(messageId);
-    }
-    setSelectedMessages(newSelected);
-  };
-
-  // Enhanced message rendering
-  const renderMessage = (message: ChatMessage) => {
-    const isOwnMessage = message.sender_id === currentUser?.id;
-
-    return (
-      <div 
-        key={message.id} 
-        className={`group relative ${isOwnMessage ? 'bg-gradient-to-br from-blue-50 to-indigo-50' : 'bg-white'} rounded-2xl p-1 hover:shadow-lg transition-all duration-300`}
-      >
-        {/* Message selection checkbox */}
-        {selectedMessages.size > 0 && (
-          <div className="absolute top-2 left-2 z-10">
-            <input
-              type="checkbox"
-              checked={selectedMessages.has(message.id)}
-              onChange={() => handleSelectMessage(message.id)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-          </div>
-        )}
-
-        <div className={`flex gap-3 ${isOwnMessage ? 'justify-end' : 'justify-start'} ${replyingTo ? 'ml-12' : ''}`}>
-          <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-xs lg:max-w-2xl`}>
-            {/* Sender info */}
-            {!isOwnMessage && !message.reply_to_id && (
-              <div className="flex items-center space-x-3 mb-2 px-1">
-                <div className="relative">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white">
-                    <span className="text-white text-sm font-semibold">
-                      {message.sender_name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  {message.sender_id !== 'demo-user' && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-800">{message.sender_name}</span>
-                  <span className="text-xs text-gray-500">{formatMessageTime(message.created_at)}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Reply context */}
-            {message.reply_to_id && (
-              <div className={`text-xs mb-2 px-3 py-2 rounded-md border-l-4 ${
-                isOwnMessage
-                  ? 'border-blue-400 bg-blue-50 text-blue-700'
-                  : 'border-gray-300 bg-gray-50 text-gray-600'
-              }`}>
-                <div className="flex items-center space-x-2">
-                  <Reply className="w-3 h-3" />
-                  <span className="font-medium">Replying to {message.sender_name}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Message content */}
-            <div className={`relative px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
-              isOwnMessage
-                ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'
-                : 'bg-white text-gray-900 border border-gray-200'
-            }`}>
-              {/* Attachments */}
-              {message.attachments && message.attachments.length > 0 && (
-                <div className="mb-3 space-y-2">
-                  {message.attachments.map((attachment, index) => (
-                    <div key={index} className="rounded-lg overflow-hidden">
-                      {attachment.type === 'image' ? (
-                        <div className="relative">
-                          <img
-                            src={attachment.url}
-                            alt={attachment.name}
-                            className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                            style={{ maxWidth: '300px', maxHeight: '300px' }}
-                            onClick={() => window.open(attachment.url, '_blank')}
-                          />
-                          {attachment.thumbnail && (
-                            <img
-                              src={attachment.thumbnail}
-                              alt=""
-                              className="absolute top-2 right-2 w-16 h-16 rounded-lg border-2 border-white shadow-lg"
-                            />
-                          )}
-                        </div>
-                      ) : attachment.type === 'video' ? (
-                        <video
-                          src={attachment.url}
-                          controls
-                          className="max-w-full h-auto rounded-lg"
-                          style={{ maxWidth: '400px' }}
-                        />
-                      ) : attachment.type === 'voice' ? (
-                        <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const audio = new Audio(attachment.url);
-                              audio.play();
-                            }}
-                            className="rounded-full p-2"
-                          >
-                            <Play className="w-4 h-4" />
-                          </Button>
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">Voice Message</div>
-                            <div className="text-xs text-gray-500">
-                              {attachment.duration ? `${Math.floor(attachment.duration / 60)}:${(attachment.duration % 60).toString().padStart(2, '0')}` : '0:00'}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
-                          <FileText className="w-8 h-8 text-gray-500" />
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{attachment.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {(attachment.size / 1024 / 1024).toFixed(1)} MB
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(attachment.url, '_blank')}
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Message text */}
-              <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                {message.message_text}
-              </div>
-
-              {/* Message status and edit indicator */}
-              {isOwnMessage && (
-                <div className="text-xs text-blue-100 mt-2 text-right opacity-75 flex items-center justify-end space-x-1">
-                  <span>{formatMessageTime(message.created_at)}</span>
-                  {message.is_edited && <span>(edited)</span>}
-                  <span className="ml-1">
-                    {message.message_status === 'sent' && '✅'}
-                    {message.message_status === 'delivered' && '✅✅'}
-                    {message.message_status === 'seen' && '👁️'}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Message actions */}
-            <div className={`flex items-center space-x-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
-              isOwnMessage ? 'justify-end' : 'justify-start'
-            }`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleReply(message)}
-                className="text-xs p-2 h-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                title="Reply"
-              >
-                <Reply className="w-3 h-3" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleCopyMessage(message)}
-                className="text-xs p-2 h-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                title="Copy"
-              >
-                <Copy className="w-3 h-3" />
-              </Button>
-
-              {isOwnMessage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEditMessage(message)}
-                  className="text-xs p-2 h-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                  title="Edit"
-                >
-                  <Edit3 className="w-3 h-3" />
-                </Button>
-              )}
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handlePinMessage(message)}
-                className={`text-xs p-2 h-auto rounded-full transition-colors ${
-                  message.is_pinned
-                    ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
-                title="Pin"
-              >
-                <Pin className="w-3 h-3" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleStarMessage(message)}
-                className={`text-xs p-2 h-auto rounded-full transition-colors ${
-                  message.is_starred
-                    ? 'text-yellow-500 hover:text-yellow-700 hover:bg-yellow-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
-                title="Star"
-              >
-                <Star className="w-3 h-3" />
-              </Button>
-
-              {(canModerateChat || isOwnMessage) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteMessage(message.id)}
-                  className="text-xs p-2 h-auto text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  const cancelReply = () => {
+    setReplyingTo(null);
   };
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Enhanced message rendering with date separators
-  const renderMessageWithDateSeparator = (message: ChatMessage, index: number, messages: ChatMessage[]) => {
-    const showDateSeparator = index === 0 ||
-      new Date(message.created_at).toDateString() !== new Date(messages[index - 1].created_at).toDateString();
-
-    return (
-      <div key={message.id}>
-        {/* Date separator */}
-        {showDateSeparator && (
-          <div className="flex items-center justify-center my-6">
-            <div className="bg-gradient-to-r from-blue-100 to-indigo-100 px-4 py-2 rounded-full border border-blue-200 shadow-sm">
-              <span className="text-sm font-medium text-blue-800">
-                {formatMessageDate(message.created_at)}
-              </span>
-            </div>
-          </div>
-        )}
-        
-        {/* Message content */}
-        {renderMessage(message)}
-      </div>
-    );
   };
 
   const formatMessageDate = (dateString: string) => {
@@ -894,30 +622,254 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
     }
   };
 
+  // Enhanced message rendering with improved typography
+  const renderMessage = (message: ChatMessage, isReply = false) => {
+    const isOwnMessage = message.sender_id === currentUser?.id;
+
+    // Group messages by date
+    const messageDate = formatMessageDate(message.created_at);
+
+    return (
+      <div key={message.id} id={`message-${message.id}`} className="group">
+        {/* Date separator */}
+        {!isReply && (
+          <div className="flex items-center justify-center mb-8">
+            <div className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 text-sm font-medium px-6 py-3 rounded-full shadow-sm">
+              {messageDate}
+            </div>
+          </div>
+        )}
+
+        <div className={`flex gap-4 ${isOwnMessage ? 'justify-end' : 'justify-start'} ${isReply ? 'ml-12' : ''}`}>
+          <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-xs lg:max-w-2xl chat-text-enhanced`}>
+            {!isOwnMessage && !isReply && (
+              <div className="flex items-center space-x-3 mb-3 px-1">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white">
+                    <span className="text-white text-sm font-semibold">
+                      {message.sender_name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  {message.sender_id !== 'demo-user' && (
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span className="chat-sender-name">{message.sender_name}</span>
+                  <span className="chat-timestamp">{formatMessageTime(message.created_at)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Reply context */}
+            {message.reply_to_id && (
+              <div className={`text-sm mb-3 px-4 py-3 rounded-md border-l-4 ${
+                isOwnMessage
+                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                  : 'border-gray-300 bg-gray-50 text-gray-600'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <Reply className="w-4 h-4" />
+                  <span className="font-medium chat-reply-context">Replying to a message</span>
+                </div>
+              </div>
+            )}
+
+            <div className={`relative px-5 py-4 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
+              isOwnMessage
+                ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'
+                : 'bg-white text-gray-900 border border-gray-200'
+            }`}>
+              {/* Attachments */}
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="mb-4">
+                  {message.attachments.map((attachment, index) => (
+                    <div key={index} className="mb-3">
+                      {attachment.type === 'image' ? (
+                        <img
+                          src={attachment.url}
+                          alt={attachment.name}
+                          className="max-w-full h-auto rounded-lg"
+                          style={{ maxWidth: '300px', maxHeight: '300px' }}
+                        />
+                      ) : attachment.type === 'audio' ? (
+                        <div className="max-w-xs">
+                          <VoiceMessagePlayer
+                            audioUrl={attachment.url}
+                            duration={attachment.duration}
+                            className="w-full"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
+                          <Paperclip className="w-5 h-5 text-gray-500" />
+                          <a
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline chat-attachment-filename"
+                          >
+                            {attachment.name}
+                          </a>
+                          <span className="chat-attachment-size">
+                            ({(attachment.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Enhanced message content with better formatting */}
+              <div className="chat-message-content" style={{ 
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word'
+              }}>
+                {message.message_text.split('\n').map((line, index) => (
+                  <React.Fragment key={index}>
+                    {line}
+                    {index < message.message_text.split('\n').length - 1 && <br />}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {/* Message timestamp for own messages */}
+              {isOwnMessage && (
+                <div className="chat-timestamp own-message mt-3 text-right opacity-75 flex items-center justify-end space-x-2">
+                  <span>{formatMessageTime(message.created_at)}</span>
+                  {message.is_edited && <span>(edited)</span>}
+                  <span className="ml-1">
+                    {message.message_status === 'sent' && '✅'}
+                    {message.message_status === 'delivered' && '✅✅'}
+                    {message.message_status === 'seen' && '👁️'}
+                  </span>
+                </div>
+              )}
+
+              {/* Message status indicator */}
+              {isOwnMessage && (
+                <div className="absolute -bottom-1 -right-1">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Enhanced message actions */}
+            {!isReply && (
+              <div className={`flex items-center space-x-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleReply(message)}
+                  className="text-xs p-2 h-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <Reply className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs p-2 h-auto text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                >
+                  <Heart className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs p-2 h-auto text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handlePinMessage(message)}
+                  className={`text-xs p-2 h-auto rounded-full transition-colors ${
+                    pinnedMessages.some(m => m.id === message.id)
+                      ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Pin className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleStarMessage(message)}
+                  className={`text-xs p-2 h-auto rounded-full transition-colors ${
+                    starredMessages.some(m => m.id === message.id)
+                      ? 'text-yellow-500 hover:text-yellow-700 hover:bg-yellow-50'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Star className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs p-2 h-auto text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (authLoading || isLoading) {
+    return (
+      <Card className="h-[600px] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="flex flex-col items-center justify-center p-8 space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-indigo-400 rounded-full animate-spin animation-delay-150"></div>
+          </div>
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2 chat-text-enhanced">Loading Chat</h3>
+            <p className="text-gray-600 chat-text-enhanced">Connecting to community...</p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Show guest entry form if user info is not available
+  if (!userInfo) {
+    return (
+      <div className="h-[600px] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <GuestChatEntry onJoinChat={handleGuestInfoSubmit} loading={authLoading} />
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex flex-col bg-white shadow-2xl border-0 overflow-hidden rounded-2xl ${
-      maximized ? 'h-screen' : 'h-[700px]'
-    }`}>
+    <div className="h-[600px] flex flex-col bg-white shadow-xl border-0 overflow-hidden rounded-2xl">
       {/* Enhanced Chat Header */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white">
+      <div className="flex items-center justify-between p-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white">
         <div className="flex items-center space-x-4">
           <div className="relative">
             <div className="w-4 h-4 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
             <div className="absolute inset-0 w-4 h-4 bg-green-300 rounded-full animate-ping opacity-75"></div>
           </div>
           <div>
-            <h3 className="font-bold text-lg flex items-center space-x-2">
-              <MessageSquare className="w-5 h-5" />
+            <h3 className="chat-header-title flex items-center space-x-2">
+              <MessageSquare className="w-6 h-6" />
               <span>General Discussion</span>
             </h3>
-            <p className="text-sm text-blue-100 flex items-center space-x-2">
+            <p className="chat-header-subtitle flex items-center space-x-2 mt-1">
               <span>Community chat</span>
               <span>•</span>
               <span className="flex items-center space-x-1">
-                <Users className="w-3 h-3" />
+                <Users className="w-4 h-4" />
                 <span>{onlineUsers.length} online</span>
               </span>
-              <span className={`px-2 py-1 rounded-full text-xs ${
+              <span className={`px-3 py-1 rounded-full text-xs ${
                 connectionStatus === 'connected'
                   ? 'bg-green-500 text-white'
                   : connectionStatus === 'connecting'
@@ -931,308 +883,207 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
         </div>
 
         <div className="flex items-center space-x-2">
-          {/* Show participants toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowParticipants(!showParticipants)}
-            className={`text-white hover:bg-white/20 rounded-full p-2 ${showParticipants ? 'bg-white/10' : 'bg-white/5'}`}
-            title="Show participants"
-          >
-            <Users className="w-4 h-4" />
-          </Button>
-
-          {/* Sound toggle */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={`text-white hover:bg-white/20 rounded-full p-2 ${soundEnabled ? 'bg-white/10' : 'bg-white/5'}`}
-            title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
 
-          {/* Notifications toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-            className={`text-white hover:bg-white/20 rounded-full p-2 ${notificationsEnabled ? 'bg-white/10' : 'bg-white/5'}`}
-            title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
-          >
-            {notificationsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
-          </Button>
-
-          {/* Theme toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentTheme(currentTheme === 'light' ? 'dark' : 'light')}
+          {/* Video Call Button */}
+          <VideoCallButton
+            conversationId={`general_${currentUser?.id || 'anonymous'}`}
+            participants={onlineUsers.map(u => u.id)}
             className="text-white hover:bg-white/20 rounded-full p-2"
-            title={`Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`}
-          >
-            {currentTheme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-          </Button>
+          />
 
-          {/* Settings */}
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowSettings(!showSettings)}
+            onClick={() => setShowParticipants(!showParticipants)}
             className="text-white hover:bg-white/20 rounded-full p-2"
-            title="Settings"
           >
-            <Settings className="w-4 h-4" />
+            <Users className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowMessageSearch(!showMessageSearch)}
+            className="text-white hover:bg-white/20 rounded-full p-2"
+          >
+            <Search className="w-4 h-4" />
           </Button>
 
-          {/* Admin panel */}
-          {(canModerateChat || canManageChat) && (
+          {/* Admin Panel Button - only show for users with chat management or analytics permissions */}
+          {(canModerateChat || canManageChat || canViewChatAnalytics) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowAdminPanel(!showAdminPanel)}
               className={`rounded-full p-2 ${showAdminPanel ? 'bg-white/20 text-white' : 'text-white hover:bg-white/20'}`}
-              title="Admin panel"
             >
               <Shield className="w-4 h-4" />
             </Button>
           )}
 
-          {/* Maximize/Minimize */}
-          {onMaximize && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMaximize}
-              className="text-white hover:bg-white/20 rounded-full p-2"
-              title={maximized ? 'Minimize' : 'Maximize'}
-            >
-              {maximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </Button>
-          )}
-
-          {/* Help */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowHelp(!showHelp)}
-            className={`text-white hover:bg-white/20 rounded-full p-2 ${showHelp ? 'bg-white/10' : 'bg-white/5'}`}
-            title="Help"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </Button>
-
-          {/* Close */}
           {onClose && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
               className="text-white hover:bg-white/20 rounded-full p-2 ml-2"
-              title="Close chat"
             >
-              <X className="w-4 h-4" />
+              ✕
             </Button>
           )}
         </div>
       </div>
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <div className="bg-gray-50 border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-bold text-gray-900 flex items-center space-x-2">
-              <Settings className="w-5 h-5" />
-              <span>Chat Settings</span>
-            </h4>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSettings(false)}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+      {/* Pinned Messages */}
+      {pinnedMessages.length > 0 && (
+        <div className="px-5 py-3 bg-blue-50 border-b border-blue-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <Pin className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800 chat-text-enhanced">Pinned Messages</span>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="sound-enabled"
-                checked={soundEnabled}
-                onChange={(e) => setSoundEnabled(e.target.checked)}
-                className="rounded"
-              />
-              <label htmlFor="sound-enabled" className="text-sm text-gray-700">Sound notifications</label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="notifications-enabled"
-                checked={notificationsEnabled}
-                onChange={(e) => setNotificationsEnabled(e.target.checked)}
-                className="rounded"
-              />
-              <label htmlFor="notifications-enabled" className="text-sm text-gray-700">Push notifications</label>
-            </div>
+          <div className="space-y-2">
+            {pinnedMessages.slice(0, 3).map((message) => (
+              <div
+                key={message.id}
+                className="p-3 bg-white rounded-lg text-sm text-gray-700 cursor-pointer hover:bg-gray-50 chat-text-enhanced"
+                onClick={() => {
+                  const messageElement = document.getElementById(`message-${message.id}`);
+                  if (messageElement) {
+                    messageElement.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                <span className="font-medium">{message.sender_name}:</span> {message.message_text.substring(0, 60)}...
+              </div>
+            ))}
+            {pinnedMessages.length > 3 && (
+              <div className="text-sm text-blue-600 cursor-pointer hover:underline">
+                +{pinnedMessages.length - 3} more pinned
+              </div>
+            )}
           </div>
         </div>
       )}
-
-      {/* Help Panel */}
-      {showHelp && (
-        <div className="bg-gray-50 border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-bold text-gray-900 flex items-center space-x-2">
-              <HelpCircle className="w-5 h-5" />
-              <span>Chat Help & Shortcuts</span>
-            </h4>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHelp(false)}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Keyboard Shortcuts */}
-            <div>
-              <h5 className="font-semibold text-gray-800 mb-3">Keyboard Shortcuts</h5>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Search messages</span>
-                  <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Ctrl + K</kbd>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Send message</span>
-                  <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Ctrl + Enter</kbd>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Close panels</span>
-                  <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Esc</kbd>
-                </div>
-              </div>
-            </div>
-
-            {/* Features */}
-            <div>
-              <h5 className="font-semibold text-gray-800 mb-3">Chat Features</h5>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>• <strong>File Attachments:</strong> Click the paperclip icon to upload images, videos, documents, and more</p>
-                <p>• <strong>Voice Messages:</strong> Click the microphone icon to record and send voice messages</p>
-                <p>• <strong>Reactions:</strong> Click any emoji to react to messages</p>
-                <p>• <strong>Reply:</strong> Click the reply icon to reply to a specific message</p>
-                <p>• <strong>Edit/Delete:</strong> Your own messages can be edited or deleted</p>
-                <p>• <strong>Pin/Star:</strong> Save important messages for later</p>
-              </div>
-            </div>
-
-            {/* Tips */}
-            <div>
-              <h5 className="font-semibold text-gray-800 mb-3">Tips</h5>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>• Messages support <strong>markdown formatting</strong> for rich text</p>
-                <p>• Use <strong>@mentions</strong> to notify specific users</p>
-                <p>• Press <strong>Enter</strong> to send, <strong>Shift+Enter</strong> for new line</p>
-                <p>• Character limit: <strong>2000</strong> characters per message</p>
-                <p>• Files up to <strong>10MB</strong> can be uploaded</p>
-              </div>
-            </div>
-
-            {/* Community Guidelines */}
-            <div>
-              <h5 className="font-semibold text-gray-800 mb-3">Community Guidelines</h5>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>• Be respectful and kind to all community members</p>
-                <p>• Keep discussions on-topic and constructive</p>
-                <p>• No spam, harassment, or inappropriate content</p>
-                <p>• Report any issues to moderators using the admin panel</p>
-                <p>• Follow the community rules and respect the platform</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main chat area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Messages area */}
-        <div className="flex-1 flex flex-col">
-          {/* Search bar */}
-          {showMessageSearch && (
-            <div className="p-4 border-b border-gray-200 bg-white">
-              <div className="flex items-center space-x-2 mb-3">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search messages... (Ctrl+K)"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 p-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowMessageSearch(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              {/* Search filters */}
-              <div className="flex items-center space-x-3">
-                <select
-                  value={searchFilters.messageType}
-                  onChange={(e) => setSearchFilters({...searchFilters, messageType: e.target.value})}
-                  className="text-sm border border-gray-300 rounded px-2 py-1"
-                >
-                  <option value="all">All types</option>
-                  <option value="text">Text</option>
-                  <option value="image">Images</option>
-                  <option value="file">Files</option>
-                  <option value="voice">Voice</option>
-                </select>
-                
-                <label className="flex items-center space-x-1 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={searchFilters.hasAttachments}
-                    onChange={(e) => setSearchFilters({...searchFilters, hasAttachments: e.target.checked})}
-                    className="rounded"
-                  />
-                  <span>Has attachments</span>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50/30 to-white">
-            {filteredMessages.length > 0 ? (
-              <>
-                {filteredMessages.map((message, index) =>
-                  renderMessageWithDateSeparator(message, index, filteredMessages)
+      {/* Message Search Overlay */}
+      {showMessageSearch && (
+        <div className="absolute top-20 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-20 max-h-96 overflow-hidden">
+          <div className="p-5">
+            <div className="flex items-center space-x-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  placeholder="Search messages..."
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowMessageSearch(false);
+                  setSearchQuery('');
+                }}
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full w-10 h-10 p-0"
+              >
+                ✕
+              </Button>
+            </div>
+
+            {/* Search Results */}
+            {searchQuery.trim() && (
+              <div className="mt-4 max-h-80 overflow-y-auto">
+                {searchResults.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="text-sm text-blue-600 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                      {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
+                    </div>
+                    {searchResults.map((message) => (
+                      <div
+                        key={message.id}
+                        id={`message-${message.id}`}
+                        className="p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200"
+                        onClick={() => {
+                          // Scroll to message
+                          const messageElement = document.getElementById(`message-${message.id}`);
+                          if (messageElement) {
+                            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                          setShowMessageSearch(false);
+                          setSearchQuery('');
+                        }}
+                      >
+                        <div className="flex items-center space-x-3 mb-2">
+                          <span className="font-semibold text-blue-800 text-sm">{message.sender_name}</span>
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                            {formatMessageTime(message.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {message.message_text.length > 120
+                            ? message.message_text.substring(0, 120) + '...'
+                            : message.message_text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 font-medium">No messages found</p>
+                    <p className="text-gray-400 text-sm mt-1">Try a different search term</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Initial search state */}
+            {!searchQuery.trim() && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-blue-500" />
+                </div>
+                <p className="text-gray-600 font-medium">Search Messages</p>
+                <p className="text-gray-400 text-sm mt-1">Find messages by content or sender</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+
+
+      <div className="flex flex-1 min-h-0">
+        {/* Enhanced Messages Area */}
+        <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-white">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-2 bg-gradient-to-b from-gray-50/30 to-white chat-messages-container">
+            {messages.length > 0 ? (
+              <>
+                {messages.map(message => renderMessage(message))}
+                {/* Scroll anchor */}
                 <div ref={messagesEndRef} className="h-4" />
               </>
             ) : (
@@ -1246,85 +1097,55 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                       <span className="text-white text-lg">💬</span>
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">Welcome to BENIRAGE Community Chat!</h3>
-                  <p className="text-gray-600 mb-2">
-                    {searchQuery ? 'No messages found matching your search.' : 'No messages yet. Be the first to start the conversation!'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Share your thoughts, ask questions, or connect with the community.
-                  </p>
+                  <h3 className="chat-welcome-title mb-4">Welcome to BENIRAGE Community Chat!</h3>
+                  <p className="chat-welcome-subtitle mb-3">No messages yet. Be the first to start the conversation!</p>
+                  <p className="chat-welcome-description">Share your thoughts, ask questions, or connect with the community. This is a safe space for meaningful discussions.</p>
+
+                  {/* Quick suggestions */}
+                  <div className="mt-8 flex flex-wrap gap-2 justify-center">
+                    <span className="px-4 py-2 bg-blue-100 text-blue-700 text-sm rounded-full">Share ideas</span>
+                    <span className="px-4 py-2 bg-green-100 text-green-700 text-sm rounded-full">Ask questions</span>
+                    <span className="px-4 py-2 bg-purple-100 text-purple-700 text-sm rounded-full">Connect</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Message input area */}
-          <div className="p-4 bg-gray-50 border-t border-gray-200">
-            {/* File upload progress */}
-            {showFileUploadProgress && (
-              <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          {/* Enhanced Reply indicator */}
+          {replyingTo && (
+            <div className="px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-200">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Loader className="w-4 h-4 animate-spin text-blue-600" />
-                  <span className="text-sm text-blue-800">Uploading file...</span>
-                </div>
-              </div>
-            )}
-
-            {/* Reply indicator */}
-            {replyingTo && (
-              <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Reply className="w-4 h-4 text-blue-600" />
-                    <div>
-                      <p className="text-sm font-medium text-blue-800">
+                  <div className="flex flex-col">
+                    <div className="flex items-center space-x-2">
+                      <Reply className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800 chat-text-enhanced">
                         Replying to {replyingTo.sender_name}
-                      </p>
-                      <p className="text-xs text-blue-600 truncate max-w-xs">
-                        "{replyingTo.message_text.length > 50
-                          ? replyingTo.message_text.substring(0, 50) + '...'
-                          : replyingTo.message_text}"
-                      </p>
+                      </span>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setReplyingTo(null)}
-                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Edit indicator */}
-            {editingMessage && (
-              <div className="mb-3 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Edit3 className="w-4 h-4 text-yellow-600" />
-                    <span className="text-sm font-medium text-yellow-800">
-                      Editing message
+                    <span className="text-sm text-blue-600 truncate max-w-xs mt-1 pl-6 chat-text-enhanced">
+                      "{replyingTo.message_text.length > 60
+                        ? replyingTo.message_text.substring(0, 60) + '...'
+                        : replyingTo.message_text}"
                     </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setEditingMessage(null);
-                      setMessageText('');
-                    }}
-                    className="text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 rounded-full p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={cancelReply}
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full p-2"
+                >
+                  ✕
+                </Button>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* User info for guests */}
+          {/* Enhanced Message Input */}
+          <div className="p-5 bg-gray-50 border-t border-gray-200">
+            {/* User info notice for guests */}
             {!currentUser && userInfo && (
               <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
                 <div className="flex items-start space-x-3">
@@ -1332,10 +1153,10 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                     <span className="text-green-600 text-sm">✅</span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-green-800 font-medium mb-1">
+                    <p className="text-sm text-green-800 font-medium mb-1 chat-text-enhanced">
                       Welcome to BENIRAGE Community Chat, {userInfo.name}!
                     </p>
-                    <p className="text-sm text-green-700">
+                    <p className="text-sm text-green-700 chat-text-enhanced">
                       You're connected and ready to participate in the community discussion.
                     </p>
                   </div>
@@ -1343,101 +1164,91 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
               </div>
             )}
 
-            {/* Message form */}
             <form onSubmit={handleSendMessage} className="space-y-3">
               <div className="flex items-end space-x-3">
                 <div className="flex-1 relative">
                   <textarea
                     ref={textareaRef}
                     value={messageText}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                       setMessageText(e.target.value);
+                      handleTyping();
                     }}
                     placeholder={
                       userInfo
                         ? `Share with the community, ${userInfo.name}...`
                         : "Share your thoughts..."
                     }
-                    rows={messageText.split('\n').length > 3 ? 3 : Math.max(1, messageText.split('\n').length + 1)}
-                    maxLength={2000}
+                    rows={messageText.split('\n').length > 3 ? 3 : messageText.split('\n').length + 1}
+                    maxLength={1000}
                     disabled={sending}
-                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 bg-white hover:border-gray-400 focus:bg-white shadow-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(e);
-                      }
-                    }}
+                    className="chat-enhanced-focus w-full px-5 py-4 pr-16 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 bg-white hover:border-gray-400 focus:bg-white shadow-sm chat-input-text"
+                    onKeyDown={handleKeyDown}
                   />
                   {/* Character count */}
-                  <div className="absolute bottom-2 right-3 text-xs text-gray-400">
-                    {messageText.length}/2000
+                  <div className="absolute bottom-3 right-4 chat-character-count">
+                    {messageText.length}/1000
                   </div>
                 </div>
 
-                {/* Action buttons */}
+                {/* Enhanced action buttons */}
                 <div className="flex items-center space-x-2">
-                  {/* File upload */}
                   <input
-                    ref={fileInputRef}
                     type="file"
-                    accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.rar"
-                    onChange={(e) => {
+                    accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       if (e.target.files && e.target.files[0]) {
                         setSelectedFile(e.target.files[0]);
                       }
                     }}
                     className="hidden"
+                    id="file-input"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                    title="Attach file"
+                    onClick={() => document.getElementById('file-input')?.click()}
+                    className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                   >
-                    <Paperclip className="w-4 h-4" />
+                    <Paperclip className="w-5 h-5" />
                   </Button>
 
-                  {/* Voice message */}
+                  {/* Voice Message Button */}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowVoiceRecorder(!showVoiceRecorder)}
-                    className={`p-2 rounded-full transition-colors ${
+                    className={`p-3 rounded-full transition-colors ${
                       showVoiceRecorder
                         ? 'text-red-500 bg-red-50 hover:bg-red-100'
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                     }`}
-                    title="Record voice message"
                   >
-                    <Mic className="w-4 h-4" />
+                    <Mic className="w-5 h-5" />
                   </Button>
 
-                  {/* Emoji picker */}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                    title="Emoji picker"
+                    className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                   >
-                    <Smile className="w-4 h-4" />
+                    <Smile className="w-5 h-5" />
                   </Button>
 
-                  {/* Send button */}
+                  {/* Send Button */}
                   <Button
                     type="submit"
                     size="sm"
-                    disabled={(!messageText.trim() && !selectedFile && !voiceMessageBlob) || sending || messageText.length > 2000}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
+                    disabled={(!messageText.trim() && !selectedFile && !voiceMessageBlob) || sending || messageText.length > 1000}
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     {sending ? (
                       <div className="flex items-center space-x-2">
-                        <Loader className="w-4 h-4 animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         <span>Sending</span>
                       </div>
                     ) : (
@@ -1449,34 +1260,36 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                   </Button>
                 </div>
               </div>
+
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex items-center space-x-2 chat-typing-text">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-100"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-200"></div>
+                  </div>
+                  <span>Someone is typing...</span>
+                </div>
+              )}
             </form>
 
-            {/* Voice recorder */}
+            {/* Voice Recorder */}
             {showVoiceRecorder && (
-              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-red-800">Recording voice message...</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowVoiceRecorder(false)}
-                    className="text-red-600 hover:text-red-800 p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-red-700">00:00</span>
-                </div>
+              <div className="mt-3">
+                <VoiceRecorder
+                  onRecordingComplete={handleVoiceRecordingComplete}
+                  onCancel={() => setShowVoiceRecorder(false)}
+                  maxDuration={300}
+                />
               </div>
             )}
 
-            {/* Voice message preview */}
+            {/* Voice Message Preview */}
             {voiceMessageBlob && (
-              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-800">Voice Message Ready</span>
+              <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-blue-800 chat-text-enhanced">Voice Message Ready</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1489,14 +1302,15 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
+                <VoiceMessagePlayer
+                  audioBlob={voiceMessageBlob}
+                  duration={voiceMessageDuration}
+                  className="mb-3"
+                />
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
-                    onClick={() => {
-                      // Send voice message by creating a proper form event
-                      const formEvent = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent;
-                      handleSendMessage(formEvent);
-                    }}
+                    onClick={handleVoiceMessageUpload}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     Send Voice Message
@@ -1515,10 +1329,10 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
               </div>
             )}
 
-            {/* Emoji picker */}
+            {/* Enhanced Emoji Picker */}
             {showEmojiPicker && (
-              <div className="mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                <div className="grid grid-cols-8 gap-2">
+              <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <div className="flex flex-wrap gap-2">
                   {[
                     '😀', '😂', '😊', '😍', '🤔', '👍', '👎', '❤️', '🔥', '🎉',
                     '😢', '😭', '😤', '😅', '🙄', '🤗', '😎', '🤩', '🥳', '👌',
@@ -1536,7 +1350,7 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                         setMessageText(prev => prev + emoji);
                         setShowEmojiPicker(false);
                       }}
-                      className="text-2xl hover:bg-gray-100 rounded p-1 transition-colors"
+                      className="chat-emoji-text hover:bg-gray-100 rounded p-2 transition-colors"
                     >
                       {emoji}
                     </button>
@@ -1545,7 +1359,7 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(false)}
-                  className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                  className="mt-3 text-sm text-gray-500 hover:text-gray-700 chat-text-enhanced"
                 >
                   Close
                 </button>
@@ -1554,18 +1368,18 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
           </div>
         </div>
 
-        {/* Participants sidebar */}
+        {/* Enhanced Participants Sidebar */}
         {showParticipants && (
           <div className="w-80 border-l border-gray-200 bg-white shadow-lg">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
+            <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-gray-900 flex items-center space-x-2">
+                <h4 className="chat-admin-title flex items-center space-x-2">
                   <Users className="w-5 h-5 text-blue-600" />
                   <span>Community Members</span>
                 </h4>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-sm"></div>
-                  <span className="text-sm font-semibold text-gray-700 bg-white px-2 py-1 rounded-full shadow-sm">
+                  <span className="text-sm font-semibold text-gray-700 bg-white px-3 py-1 rounded-full shadow-sm">
                     {onlineUsers.length}
                   </span>
                 </div>
@@ -1577,101 +1391,256 @@ const EnhancedGeneralChat: React.FC<EnhancedGeneralChatProps> = ({
                 <input
                   type="text"
                   placeholder="Search members..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                  value={searchTerm}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                  className="chat-enhanced-focus w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white chat-search-text"
                 />
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-96">
-              {onlineUsers.map(user => (
-                <div key={user.id} className="group flex items-center space-x-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 cursor-pointer">
-                  <div className="relative flex-shrink-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ring-2 ring-green-200 shadow-sm ${
-                      user.role === 'moderator'
-                        ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                        : user.role === 'admin'
-                        ? 'bg-gradient-to-br from-red-500 to-pink-600'
-                        : 'bg-gradient-to-br from-blue-500 to-cyan-600'
-                    }`}>
-                      <span className="text-white text-sm font-bold">
-                        {(user.display_name || user.username || 'U').charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-3 border-white rounded-full ${
-                      user.status === 'online' ? 'bg-green-400' :
-                      user.status === 'away' ? 'bg-yellow-400' :
-                      user.status === 'busy' ? 'bg-red-400' : 'bg-gray-400'
-                    } animate-pulse`}></div>
+            <div className="flex-1 overflow-y-auto p-5 space-y-3 max-h-96">
+              {onlineUsers.length > 0 ? (
+                onlineUsers
+                  .filter(user =>
+                    searchTerm === '' ||
+                    user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.username?.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map(user => (
+                    <div key={user.id} className="group flex items-center space-x-3 p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 cursor-pointer">
+                      <div className="relative flex-shrink-0">
+                        {user.avatar_url ? (
+                          <img
+                            src={user.avatar_url}
+                            alt={user.display_name || user.username || 'User'}
+                            className="w-12 h-12 rounded-full object-cover ring-2 ring-green-200 shadow-sm"
+                          />
+                        ) : (
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center ring-2 ring-green-200 shadow-sm ${
+                            user.role === 'moderator'
+                              ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                              : user.role === 'admin'
+                              ? 'bg-gradient-to-br from-red-500 to-pink-600'
+                              : 'bg-gradient-to-br from-blue-500 to-cyan-600'
+                          }`}>
+                            <span className="text-white text-sm font-bold">
+                              {(user.display_name || user.username || 'U').charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-3 border-white rounded-full animate-pulse shadow-lg"></div>
 
-                    {/* Role indicator */}
-                    {user.role === 'moderator' && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">★</span>
+                        {/* Role indicator */}
+                        {user.role === 'moderator' && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">★</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {user.display_name || user.username || 'Anonymous'}
-                      </p>
-                      {user.role === 'moderator' && (
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
-                          Mod
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <p className="text-xs text-gray-500 capitalize flex items-center space-x-1">
-                        <span className={`w-2 h-2 rounded-full ${
-                          user.status === 'online' ? 'bg-green-400' :
-                          user.status === 'away' ? 'bg-yellow-400' :
-                          user.status === 'busy' ? 'bg-red-400' : 'bg-gray-400'
-                        } animate-pulse`}></span>
-                        <span>{user.status}</span>
-                      </p>
-                      {user.role === 'guest' && (
-                        <span className="text-xs text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
-                          Guest
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <p className="chat-participant-name truncate">
+                            {user.display_name || user.username || 'Anonymous'}
+                          </p>
+                          {user.role === 'moderator' && (
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                              Mod
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <p className="chat-participant-status flex items-center space-x-1">
+                            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            <span>{user.status}</span>
+                          </p>
+                          {user.role === 'guest' && (
+                            <span className="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                              Guest
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                  {/* Action buttons */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full"
-                      title="Direct message"
-                    >
-                      <MessageCircle className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full"
-                      title="More options"
-                    >
-                      <MoreVertical className="w-3 h-3" />
-                    </Button>
-                  </div>
+                      {/* Action buttons */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="chat-text-enhanced text-gray-500">No users online</p>
+                  <p className="chat-text-enhanced text-xs text-gray-400 mt-1">Community members will appear here</p>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Community stats footer */}
-            <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="p-5 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
                   <p className="text-lg font-bold text-blue-600">{onlineUsers.length}</p>
-                  <p className="text-xs text-gray-600">Online</p>
+                  <p className="text-xs text-gray-600 chat-text-enhanced">Online</p>
                 </div>
                 <div>
                   <p className="text-lg font-bold text-green-600">{messages.length}</p>
-                  <p className="text-xs text-gray-600">Messages</p>
+                  <p className="text-xs text-gray-600 chat-text-enhanced">Messages</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Admin Panel */}
+        {showAdminPanel && (canModerateChat || canManageChat || canViewChatAnalytics) && (
+          <div className="w-80 border-l border-gray-200 bg-white shadow-lg">
+            <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-red-50 to-pink-50">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="chat-admin-title flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-red-600" />
+                  <span>Admin Panel</span>
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAdminPanel(false)}
+                  className="text-gray-500 hover:text-gray-700 p-1"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 max-h-96">
+              {/* Analytics Section */}
+              {canViewChatAnalytics && (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+                  <h5 className="font-semibold text-blue-800 mb-3 flex items-center space-x-2">
+                    <span>📊</span>
+                    <span>Chat Analytics</span>
+                  </h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{messages.length}</p>
+                      <p className="text-xs text-blue-700">Total Messages</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">{onlineUsers.length}</p>
+                      <p className="text-xs text-green-700">Active Users</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-600">{pinnedMessages.length}</p>
+                      <p className="text-xs text-purple-700">Pinned Messages</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-orange-600">{starredMessages.length}</p>
+                      <p className="text-xs text-orange-700">Starred Messages</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Moderation Tools */}
+              {(canModerateChat || canManageChat) && (
+                <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-xl border border-red-200">
+                  <h5 className="font-semibold text-red-800 mb-3 flex items-center space-x-2">
+                    <span>🛡️</span>
+                    <span>Moderation Tools</span>
+                  </h5>
+                  <div className="space-y-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full text-red-700 border-red-300 hover:bg-red-50"
+                      onClick={() => {
+                        if (messages.length > 0) {
+                          const confirmClear = window.confirm('Are you sure you want to clear all messages? This action cannot be undone.');
+                          if (confirmClear) {
+                            setMessages([]);
+                          }
+                        }
+                      }}
+                    >
+                      Clear All Messages
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full text-red-700 border-red-300 hover:bg-red-50"
+                      onClick={() => {
+                        setPinnedMessages([]);
+                        setStarredMessages([]);
+                      }}
+                    >
+                      Clear Pinned & Starred
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Chat Settings */}
+              {canManageChat && (
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                  <h5 className="font-semibold text-green-800 mb-3 flex items-center space-x-2">
+                    <span>⚙️</span>
+                    <span>Chat Settings</span>
+                  </h5>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-green-700">Sound Notifications</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSoundEnabled(!soundEnabled)}
+                        className={`p-1 ${soundEnabled ? 'text-green-600' : 'text-gray-400'}`}
+                      >
+                        {soundEnabled ? '🔊' : '🔇'}
+                      </Button>
+                    </div>
+                    <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
+                      Chat is currently {connectionStatus === 'connected' ? 'online' : 'offline'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Permission Info */}
+              <div className="bg-gray-50 p-3 rounded-lg border">
+                <h6 className="text-xs font-semibold text-gray-600 mb-2">Your Permissions</h6>
+                <div className="space-y-1">
+                  {canModerateChat && (
+                    <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full mr-1">
+                      Moderate Chat
+                    </span>
+                  )}
+                  {canManageChat && (
+                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full mr-1">
+                      Manage Settings
+                    </span>
+                  )}
+                  {canViewChatAnalytics && (
+                    <span className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full mr-1">
+                      View Analytics
+                    </span>
+                  )}
+                  {!canModerateChat && !canManageChat && !canViewChatAnalytics && (
+                    <span className="text-xs text-gray-500">Limited access</span>
+                  )}
                 </div>
               </div>
             </div>

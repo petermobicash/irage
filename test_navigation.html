@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Button Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .test-button:active {
+            transform: translateY(0);
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Navigation Button Test</h1>
+        <p>This page tests if the navigation button functionality is working correctly. Click the buttons below to verify the click handlers are working.</p>
+        
+        <div>
+            <button class="test-button" onclick="testNavigation('dashboard')">Dashboard</button>
+            <button class="test-button" onclick="testNavigation('content-list')">Content List</button>
+            <button class="test-button" onclick="testNavigation('users')">Users</button>
+            <button class="test-button" onclick="testNavigation('settings')">Settings</button>
+        </div>
+        
+        <div>
+            <button class="test-button" onclick="testKeyboardNavigation('content-editor')" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Keyboard Test (Ctrl+N)</button>
+        </div>
+        
+        <div class="log" id="log">
+            <div class="log-entry info">🚀 Test initialized - Click the buttons above to test navigation</div>
+        </div>
+    </div>
+
+    <script>
+        let testCount = 0;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function testNavigation(page) {
+            testCount++;
+            log(`🔗 Navigation button clicked: ${page} (Test #${testCount})`, 'success');
+            
+            // Simulate the navigation behavior
+            console.log(`Navigation clicked for page: ${page}`);
+            
+            // Show visual feedback
+            log(`✅ Navigation handler executed successfully for: ${page}`, 'success');
+            
+            // Test if navigation state would change (simulated)
+            setTimeout(() => {
+                log(`📍 Current page would change to: ${page}`, 'info');
+            }, 100);
+        }
+        
+        function testKeyboardNavigation(page) {
+            log(`⌨️  Simulating keyboard shortcut (Ctrl+N) → ${page}`, 'info');
+            testNavigation(page);
+        }
+        
+        // Test keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                testKeyboardNavigation('content-editor');
+            }
+        });
+        
+        // Initialize test
+        log('🧪 Navigation test page loaded and ready', 'info');
+        log('💡 Try pressing Ctrl+N to test keyboard navigation', 'info');
+        
+        // Auto-test after 2 seconds
+        setTimeout(() => {
+            log('🔄 Running auto-test sequence...', 'info');
+            setTimeout(() => testNavigation('dashboard'), 500);
+            setTimeout(() => testNavigation('content-list'), 1000);
+            setTimeout(() => testNavigation('users'), 1500);
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,13 +1,21 @@
 import { ReactNode } from 'react';
+import ResponsiveCard from './ResponsiveCard';
 
 interface ModernCardProps {
   children: ReactNode;
   className?: string;
-  variant?: 'default' | 'elevated' | 'outlined';
+  variant?: 'default' | 'elevated' | 'outlined' | 'modern';
   size?: 'sm' | 'md' | 'lg';
   hover?: boolean;
   onClick?: () => void;
   ariaLabel?: string;
+  showHeader?: boolean;
+  headerTitle?: string;
+  headerIcon?: React.ComponentType<{ className?: string }>;
+  footer?: ReactNode;
+  media?: ReactNode;
+  badge?: ReactNode;
+  action?: ReactNode;
 }
 
 const ModernCard = ({
@@ -17,38 +25,34 @@ const ModernCard = ({
   size = 'md',
   hover = true,
   onClick,
-  ariaLabel
+  ariaLabel,
+  showHeader = false,
+  headerTitle,
+  headerIcon: HeaderIcon,
+  footer,
+  media,
+  badge,
+  action
 }: ModernCardProps) => {
-  const baseClasses = 'card-modern transition-all duration-200';
-  
-  const variantClasses = {
-    default: '',
-    elevated: 'shadow-large',
-    outlined: 'border-2 border-gray-200'
-  };
-  
-  const sizeClasses = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8'
-  };
-  
-  const hoverClasses = hover ? 'hover-lift cursor-pointer' : '';
-  const clickableClasses = onClick ? 'cursor-pointer' : '';
-  
-  const finalClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${hoverClasses} ${clickableClasses} ${className}`.trim();
-  
-  const CardWrapper = onClick ? 'button' : 'div';
-  
+  // Legacy compatibility wrapper
   return (
-    <CardWrapper
-      className={finalClasses}
+    <ResponsiveCard
+      className={className}
+      variant={variant === 'default' ? 'modern' : variant}
+      size={size}
+      hover={hover}
       onClick={onClick}
-      aria-label={ariaLabel}
-      {...(onClick && { role: 'button', tabIndex: 0 })}
+      ariaLabel={ariaLabel}
+      showHeader={showHeader}
+      headerTitle={headerTitle}
+      headerIcon={HeaderIcon}
+      footer={footer}
+      media={media}
+      badge={badge}
+      action={action}
     >
       {children}
-    </CardWrapper>
+    </ResponsiveCard>
   );
 };
 

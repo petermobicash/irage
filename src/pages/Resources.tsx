@@ -127,10 +127,10 @@ const Resources = () => {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">📚</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               <span className="text-yellow-400">Resources</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-white mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
               Tools for personal and community growth in spirit, wisdom, and culture
             </p>
           </div>
@@ -141,10 +141,10 @@ const Resources = () => {
       <Section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+            <h2 className="content-section-header">
               Explore Our Resource Library
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Find exactly what you need for your spiritual and cultural journey
             </p>
           </div>

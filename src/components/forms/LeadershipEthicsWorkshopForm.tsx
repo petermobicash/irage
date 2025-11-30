@@ -4,6 +4,7 @@ import FormField from '../ui/FormField';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { useToast } from '../../hooks/useToast';
+import { createSafeChangeHandler } from '../../utils/safeEventHandlers';
 
 interface WorkshopFormData {
   firstName: string;
@@ -48,6 +49,11 @@ const LeadershipEthicsWorkshopForm = () => {
 
   const handleInputChange = <K extends keyof WorkshopFormData>(field: K, value: WorkshopFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Create safe change handlers for each field
+  const createFieldHandler = (field: keyof WorkshopFormData) => (value: any) => {
+    handleInputChange(field, value);
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -165,7 +171,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="First Name"
             type="text"
             value={formData.firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            onChange={createFieldHandler('firstName')}
             placeholder="Your first name"
             required
             error={errors.firstName}
@@ -174,7 +180,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="Last Name"
             type="text"
             value={formData.lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
+            onChange={createFieldHandler('lastName')}
             placeholder="Your last name"
             required
             error={errors.lastName}
@@ -186,7 +192,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="Email Address"
             type="email"
             value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
+            onChange={createFieldHandler('email')}
             placeholder="your.email@example.com"
             required
             error={errors.email}
@@ -195,7 +201,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="Phone/WhatsApp"
             type="tel"
             value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
+            onChange={createFieldHandler('phone')}
             placeholder="+250 ... or your country code"
             required
             error={errors.phone}
@@ -207,7 +213,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="Age"
             type="number"
             value={formData.age}
-            onChange={(e) => handleInputChange('age', e.target.value)}
+            onChange={createFieldHandler('age')}
             placeholder="Your age"
             min="18"
             max="65"
@@ -218,7 +224,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="Education Level"
             type="select"
             value={formData.educationLevel}
-            onChange={(e) => handleInputChange('educationLevel', e.target.value)}
+            onChange={createFieldHandler('educationLevel')}
             options={educationOptions}
             placeholder="Select your education level"
           />
@@ -230,14 +236,14 @@ const LeadershipEthicsWorkshopForm = () => {
             label="Current Role/Position"
             type="text"
             value={formData.currentRole}
-            onChange={(e) => handleInputChange('currentRole', e.target.value)}
+            onChange={createFieldHandler('currentRole')}
             placeholder="e.g., Student, Teacher, Manager"
           />
           <FormField
             label="Organization/Institution"
             type="text"
             value={formData.organization}
-            onChange={(e) => handleInputChange('organization', e.target.value)}
+            onChange={createFieldHandler('organization')}
             placeholder="School, company, or organization name"
           />
         </div>
@@ -247,7 +253,7 @@ const LeadershipEthicsWorkshopForm = () => {
           label="Leadership Experience"
           type="textarea"
           value={formData.leadershipExperience}
-          onChange={(e) => handleInputChange('leadershipExperience', e.target.value)}
+          onChange={createFieldHandler('leadershipExperience')}
           placeholder="Describe any leadership roles or experience you have (optional)"
           rows={3}
         />
@@ -257,7 +263,7 @@ const LeadershipEthicsWorkshopForm = () => {
           label="Why do you want to attend this workshop?"
           type="textarea"
           value={formData.whyAttend}
-          onChange={(e) => handleInputChange('whyAttend', e.target.value)}
+          onChange={createFieldHandler('whyAttend')}
           placeholder="What motivates you to develop ethical leadership skills?"
           required
           rows={4}
@@ -269,7 +275,7 @@ const LeadershipEthicsWorkshopForm = () => {
           label="What do you hope to gain from this workshop?"
           type="textarea"
           value={formData.expectations}
-          onChange={(e) => handleInputChange('expectations', e.target.value)}
+          onChange={createFieldHandler('expectations')}
           placeholder="What specific skills or knowledge do you want to develop?"
           rows={3}
         />
@@ -287,7 +293,7 @@ const LeadershipEthicsWorkshopForm = () => {
                   name="timeCommitment"
                   value={option}
                   checked={formData.timeCommitment === option}
-                  onChange={(e) => handleInputChange('timeCommitment', e.target.value)}
+                  onChange={createSafeChangeHandler(handleInputChange, 'timeCommitment')}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                 />
                 <span className="text-sm text-gray-700">{option}</span>
@@ -301,7 +307,7 @@ const LeadershipEthicsWorkshopForm = () => {
           label="Questions or Special Requirements"
           type="textarea"
           value={formData.questions}
-          onChange={(e) => handleInputChange('questions', e.target.value)}
+          onChange={createFieldHandler('questions')}
           placeholder="Any questions about the workshop or special accommodations needed?"
           rows={3}
         />
@@ -312,7 +318,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="I consent to BENIRAGE collecting and processing my personal information for workshop registration purposes."
             type="checkbox"
             value={formData.dataConsent}
-            onChange={(e) => handleInputChange('dataConsent', e.target.checked)}
+            onChange={createFieldHandler('dataConsent')}
             required
             error={errors.dataConsent}
           />
@@ -321,7 +327,7 @@ const LeadershipEthicsWorkshopForm = () => {
             label="I commit to attending the workshop sessions regularly and participating actively in the learning process."
             type="checkbox"
             value={formData.termsAccepted}
-            onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
+            onChange={createFieldHandler('termsAccepted')}
             required
             error={errors.termsAccepted}
           />

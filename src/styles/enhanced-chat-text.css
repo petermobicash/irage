@@ -1,0 +1,438 @@
+/**
+ * Enhanced Chat Text Styles - Optimized for Readability and User Experience
+ * Created to improve text quality in general chat functionality
+ */
+
+/* Import Inter font for optimal typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Chat-specific text enhancements */
+.chat-text-enhanced {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Enhanced message text - Primary improvement target */
+.chat-message-text {
+  font-size: 16px;
+  line-height: 1.7;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: #1f2937;
+}
+
+.chat-message-text.own-message {
+  color: #ffffff;
+}
+
+/* Enhanced sender name */
+.chat-sender-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.025em;
+  color: #374151;
+}
+
+/* Enhanced timestamp */
+.chat-timestamp {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+
+.chat-timestamp.own-message {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Enhanced message input text */
+.chat-input-text {
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: #374151;
+}
+
+/* Enhanced placeholder text */
+.chat-placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+/* Enhanced reply context */
+.chat-reply-context {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+/* Enhanced message actions text */
+.chat-action-text {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #6b7280;
+}
+
+/* Enhanced header text */
+.chat-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.025em;
+  color: #ffffff;
+}
+
+.chat-header-subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.01em;
+}
+
+/* Enhanced participant list text */
+.chat-participant-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #374151;
+  letter-spacing: 0.01em;
+}
+
+.chat-participant-status {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #6b7280;
+  text-transform: capitalize;
+}
+
+/* Enhanced search text */
+.chat-search-text {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #374151;
+}
+
+.chat-search-placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+/* Enhanced welcome/empty state text */
+.chat-welcome-title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1f2937;
+  letter-spacing: 0.025em;
+}
+
+.chat-welcome-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #6b7280;
+  letter-spacing: 0.01em;
+}
+
+.chat-welcome-description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #9ca3af;
+  letter-spacing: 0.01em;
+}
+
+/* Enhanced emoji and reaction text */
+.chat-emoji-text {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Enhanced attachment text */
+.chat-attachment-filename {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.chat-attachment-size {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #6b7280;
+}
+
+/* Enhanced notification text */
+.chat-notification-text {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+/* Enhanced typing indicator text */
+.chat-typing-text {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Enhanced character count text */
+.chat-character-count {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #9ca3af;
+}
+
+/* Enhanced admin panel text */
+.chat-admin-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1f2937;
+  letter-spacing: 0.025em;
+}
+
+.chat-admin-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.chat-admin-stats {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #6b7280;
+}
+
+/* Enhanced help and settings text */
+.chat-help-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1f2937;
+  letter-spacing: 0.025em;
+}
+
+.chat-help-content {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.chat-help-shortcut {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* Enhanced message content with better formatting */
+.chat-message-content {
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.chat-message-content strong {
+  font-weight: 600;
+  color: inherit;
+}
+
+.chat-message-content em {
+  font-style: italic;
+}
+
+.chat-message-content code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.chat-message-content.own-message code {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+/* Enhanced scroll behavior for chat */
+.chat-messages-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.chat-messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.chat-messages-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  border-radius: 4px;
+}
+
+.chat-messages-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+}
+
+/* Enhanced focus states for accessibility */
+.chat-enhanced-focus {
+  transition: all 0.2s ease-in-out;
+}
+
+.chat-enhanced-focus:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
+}
+
+/* Dark mode support for enhanced text */
+@media (prefers-color-scheme: dark) {
+  .chat-message-text {
+    color: #f3f4f6;
+  }
+  
+  .chat-sender-name {
+    color: #e5e7eb;
+  }
+  
+  .chat-timestamp {
+    color: #9ca3af;
+  }
+  
+  .chat-reply-context {
+    color: #9ca3af;
+  }
+  
+  .chat-participant-name {
+    color: #e5e7eb;
+  }
+  
+  .chat-search-text {
+    color: #e5e7eb;
+  }
+  
+  .chat-welcome-title {
+    color: #f9fafb;
+  }
+  
+  .chat-welcome-subtitle {
+    color: #d1d5db;
+  }
+  
+  .chat-welcome-description {
+    color: #9ca3af;
+  }
+  
+  .chat-attachment-filename {
+    color: #e5e7eb;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .chat-message-text {
+    color: #000000;
+    font-weight: 500;
+  }
+  
+  .chat-sender-name {
+    color: #000000;
+    font-weight: 700;
+  }
+  
+  .chat-message-content.own-message {
+    color: #ffffff;
+    background: #000000;
+  }
+  
+  .chat-message-text.own-message {
+    color: #ffffff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .chat-enhanced-focus {
+    transition: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .chat-message-text {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  
+  .chat-header-title {
+    font-size: 16px;
+  }
+  
+  .chat-header-subtitle {
+    font-size: 13px;
+  }
+  
+  .chat-welcome-title {
+    font-size: 18px;
+  }
+  
+  .chat-welcome-subtitle {
+    font-size: 15px;
+  }
+  
+  .chat-search-text {
+    font-size: 15px;
+  }
+}
+
+/* Print styles for chat */
+@media print {
+  .chat-message-content {
+    color: #000000 !important;
+    background: #ffffff !important;
+    font-size: 14px !important;
+  }
+  
+  .chat-message-text.own-message {
+    color: #000000 !important;
+  }
+  
+  .chat-message-content.own-message code {
+    background: #f0f0f0 !important;
+    color: #000000 !important;
+  }
+}

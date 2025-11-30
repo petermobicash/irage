@@ -3,9 +3,24 @@
 /* Import Inter font for modern typography */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
+/* Import responsive breakpoints support */
+@import './styles/responsive-breakpoints.css';
+
+/* Import content hierarchy standards */
+@import './styles/content-hierarchy.css';
+
+/* Import enhanced chat text styles */
+@import './styles/enhanced-chat-text.css';
+
+/* Import CMS Design System */
+@import './styles/cms-design-system.css';
+
 /* Essential Tailwind directives - These are processed by PostCSS, not ESLint */
+/* eslint-disable-next-line at-rule-no-unknown */
 @tailwind base;
+/* eslint-disable-next-line at-rule-no-unknown */
 @tailwind components;
+/* eslint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
 
 /* Modern CSS Reset & Base Styles */

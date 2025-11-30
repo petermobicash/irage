@@ -25,10 +25,10 @@ const Culture = () => {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">🌍</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Human <span className="text-yellow-400">Culture</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-white mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
               Culture is the memory of humanity and the soul of our people
             </p>
           </div>
@@ -38,10 +38,10 @@ const Culture = () => {
       {/* Cultural Programs */}
       <Section background="cultural" padding="xl">
         <div className="text-center mb-16">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+          <h2 className="content-section-header">
             Cultural Preservation Programs
           </h2>
-          <p className="text-xs lg:text-sm text-gray-700 max-w-3xl mx-auto">
+          <p className="content-body-text max-w-3xl mx-auto">
             Celebrating and preserving the rich tapestry of Rwandan culture
           </p>
         </div>

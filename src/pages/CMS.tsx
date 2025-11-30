@@ -5,8 +5,8 @@ import { getCurrentUserProfile, getUserAllPermissions } from '../utils/rbac';
 import { SYSTEM_PERMISSIONS, CONTENT_PERMISSIONS, USER_PERMISSIONS, MEDIA_PERMISSIONS, ANALYTICS_PERMISSIONS } from '../types/permissions';
 import type { UserProfile } from '../types/permissions';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
-import FigmaCMSLayout from '../components/cms/FigmaCMSLayout';
-import '../styles/figma-design-system.css';
+import ModernCMSLayout from '../components/cms/ModernCMSLayout';
+
 import ContentList from '../components/cms/ContentList';
 import ContentEditor from '../components/cms/ContentEditor';
 import MediaLibrary from '../components/cms/MediaLibrary';
@@ -31,15 +31,15 @@ import ChatManager from '../components/cms/ChatManager';
 import AdManager from '../components/cms/AdManager';
 import StoriesManager from '../components/cms/StoriesManager';
 import MediaOptimization from '../components/advanced/MediaOptimization';
-import SecurityAudit from '../components/advanced/SecurityAudit';
-import PerformanceMonitor from '../components/advanced/PerformanceMonitor';
 import AdvancedUserManagement from '../components/advanced/AdvancedUserManagement';
-import AdvancedFeatures from './AdvancedFeatures';
 import FigmaDashboard from '../components/cms/FigmaDashboard';
-import AIContentSuggestions from '../components/advanced/AIContentSuggestions';
 import ContentAnalytics from '../components/advanced/ContentAnalytics';
-import RefactoringInfo from '../components/cms/RefactoringInfo';
+
 import WebsiteManager from '../components/cms/WebsiteManager';
+import ProfessionalCMSDashboard from '../components/cms/ProfessionalCMSDashboard';
+import WorkflowManager from '../components/cms/WorkflowManager';
+import WorkflowDashboard from '../components/cms/WorkflowDashboard';
+import MembershipReports from '../components/cms/MembershipReports';
 
 const CMS = () => {
   const [currentPage, setCurrentPage] = useState('');
@@ -99,7 +99,7 @@ const CMS = () => {
     if (currentUser) {
       return 'dashboard';
     }
-    return 'content-guide'; // fallback for users with limited permissions
+    return 'dashboard'; // fallback for users with limited permissions
   }, [currentUser]);
 
   // Set initial page based on permissions after login
@@ -130,8 +130,10 @@ const CMS = () => {
   }
 
   const handleNavigate = (page: string, params?: { type?: string; id?: string;[key: string]: unknown }) => {
+    console.log(`📍 CMS Navigation: ${page}`, params);
     setCurrentPage(page);
     setPageParams(params || {});
+    console.log(`✅ Navigation completed to: ${page}`);
   };
 
   const renderCurrentPage = () => {
@@ -139,6 +141,201 @@ const CMS = () => {
 
       case 'dashboard':
         return <FigmaDashboard onNavigate={handleNavigate} />;
+
+      case 'pro-dashboard':
+        return <ProfessionalCMSDashboard onNavigate={handleNavigate} />;
+
+      case 'modern-content-list':
+        if (!permissions.includes('*') && !permissions.includes('content.create_draft') && !permissions.includes('content.edit_own') && !permissions.includes('content.publish')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage content.</p>
+            </div>
+          );
+        }
+        return <ContentList
+          contentType={pageParams.type}
+          onEdit={(id) => handleNavigate('content-editor', { id })}
+          onCreateNew={() => handleNavigate('content-editor', { type: pageParams.type || 'post' })}
+        />;
+
+      case 'modern-content-editor':
+        if (!permissions.includes('*') && !permissions.includes('content.create_draft') && !permissions.includes('content.edit_own')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to edit content.</p>
+            </div>
+          );
+        }
+        return (
+          <ContentEditor
+            contentId={pageParams.id}
+            contentType={pageParams.type || 'post'}
+            currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string;[key: string]: unknown }}
+            onSave={() => handleNavigate('content-list', { type: pageParams.type })}
+            onCancel={() => handleNavigate('content-list', { type: pageParams.type })}
+          />
+        );
+
+      case 'category-manager':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage categories.</p>
+            </div>
+          );
+        }
+        return <CategoryManager />;
+
+      case 'tag-manager':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage tags.</p>
+            </div>
+          );
+        }
+        return <TagManager />;
+
+      case 'story-manager':
+        if (!permissions.includes('*') && !permissions.includes('content.create_draft') && !permissions.includes('content.edit_own') && !permissions.includes('content.publish')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage stories.</p>
+            </div>
+          );
+        }
+        return <StoriesManager />;
+
+      case 'page-section-editor':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage page sections.</p>
+            </div>
+          );
+        }
+        return <PageContentManager />;
+
+      case 'workflow-manager':
+        if (!permissions.includes('*') && !permissions.includes('system.edit_settings')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage workflows.</p>
+            </div>
+          );
+        }
+        return <WorkflowManager />;
+
+      case 'workflow-dashboard':
+        if (!permissions.includes('*') && !permissions.includes('system.edit_settings')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to access workflow dashboard.</p>
+            </div>
+          );
+        }
+        return <WorkflowDashboard />;
+
+      case 'newsletter-manager':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage newsletters.</p>
+            </div>
+          );
+        }
+        return <NewsletterManager />;
+
+      case 'seo-manager':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_DRAFT) || permissions.includes(CONTENT_PERMISSIONS.CONTENT_CREATE_PUBLISHED))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage SEO.</p>
+            </div>
+          );
+        }
+        return <SeoManager />;
+
+      case 'ad-manager':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to access advertisement management.</p>
+            </div>
+          );
+        }
+        return <AdManager />;
+
+      case 'role-manager':
+        if (!permissions.includes('*') && !permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_MANAGE_ROLES)) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage roles.</p>
+            </div>
+          );
+        }
+        return <RoleManager />;
+
+      case 'permission-manager':
+        if (!permissions.includes('*') && !permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_MANAGE_PERMISSIONS)) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to manage permissions.</p>
+            </div>
+          );
+        }
+        return <PermissionManager />;
+
+      case 'database-manager':
+        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to access database management.</p>
+            </div>
+          );
+        }
+        return <DatabaseManager />;
+
+      case 'membership-reports':
+        if (!permissions.includes('*') && !permissions.includes('users.view_all')) {
+          return (
+            <div className="text-center py-12">
+              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
+              <p className="text-gray-500">You don't have permission to view membership reports.</p>
+            </div>
+          );
+        }
+        return <MembershipReports />;
 
       case 'content-guide':
         return <ContentGuide />;
@@ -476,18 +673,6 @@ const CMS = () => {
         }
         return <AdManager />;
 
-      case 'advanced-features':
-        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS)) && !(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED))) {
-          return (
-            <div className="text-center py-12">
-              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-              <p className="text-gray-500">You don't have permission to access advanced features.</p>
-            </div>
-          );
-        }
-        return <AdvancedFeatures />;
-
       case 'media-optimization':
         if (!permissions.includes('*') && !(permissions.includes(MEDIA_PERMISSIONS.MEDIA_UPLOAD) || permissions.includes(MEDIA_PERMISSIONS.MEDIA_EDIT_ALL) || permissions.includes(MEDIA_PERMISSIONS.MEDIA_DELETE_ALL)) && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
           return (
@@ -500,29 +685,9 @@ const CMS = () => {
         }
         return <MediaOptimization />;
 
-      case 'security-audit':
-        if (!permissions.includes('*') && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
-          return (
-            <div className="text-center py-12">
-              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-              <p className="text-gray-500">You don't have permission to access security audit.</p>
-            </div>
-          );
-        }
-        return <SecurityAudit />;
 
-      case 'performance':
-        if (!permissions.includes('*') && !(permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_BASIC) || permissions.includes(ANALYTICS_PERMISSIONS.ANALYTICS_VIEW_ADVANCED)) && !(permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_VIEW_SETTINGS) || permissions.includes(SYSTEM_PERMISSIONS.SYSTEM_EDIT_SETTINGS))) {
-          return (
-            <div className="text-center py-12">
-              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-              <p className="text-gray-500">You don't have permission to access performance monitoring.</p>
-            </div>
-          );
-        }
-        return <PerformanceMonitor />;
+
+
 
       case 'advanced-users':
         if (!permissions.includes('*') && !permissions.includes('users.view_all')) {
@@ -536,25 +701,7 @@ const CMS = () => {
         }
         return <AdvancedUserManagement />;
 
-      case 'ai-suggestions':
-        if (!permissions.includes('*') && !permissions.includes('content.edit_own')) {
-          return (
-            <div className="text-center py-12">
-              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-              <p className="text-gray-500">You don't have permission to access AI content suggestions.</p>
-            </div>
-          );
-        }
-        return (
-          <AIContentSuggestions
-            content="Sample content for AI suggestions"
-            title="Sample Title"
-            contentType="post"
-            contentId="sample-content-id"
-            onApplySuggestion={(suggestion) => console.log('Applied suggestion:', suggestion)}
-          />
-        );
+
 
       case 'content-analytics':
         if (!permissions.includes('*') && !permissions.includes('analytics.view_basic')) {
@@ -568,17 +715,7 @@ const CMS = () => {
         }
         return <ContentAnalytics contentId="sample-content-id" />;
 
-      case 'refactoring-info':
-        if (!permissions.includes('*') && !permissions.includes('system.view_settings')) {
-          return (
-            <div className="text-center py-12">
-              <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Access Restricted</h3>
-              <p className="text-gray-500">You don't have permission to view refactoring information.</p>
-            </div>
-          );
-        }
-        return <RefactoringInfo />;
+
 
       case 'website-manager':
         if (!permissions.includes('*') && !permissions.includes('system.edit_settings')) {
@@ -600,14 +737,14 @@ const CMS = () => {
   };
 
   return (
-    <FigmaCMSLayout
+    <ModernCMSLayout
       currentPage={currentPage}
       onNavigate={handleNavigate}
       currentUser={currentUser as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string;[key: string]: unknown }}
       onLogout={handleLogout}
     >
       {renderCurrentPage()}
-    </FigmaCMSLayout>
+    </ModernCMSLayout>
   );
 };
 

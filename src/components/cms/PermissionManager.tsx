@@ -409,7 +409,7 @@ const PermissionManager = () => {
                 label="Permission ID"
                 type="text"
                 value={formData.id || ''}
-                onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, id: value as string })}
                 placeholder="auto-generated"
                 disabled={editingId !== 'new'}
                 required
@@ -419,7 +419,7 @@ const PermissionManager = () => {
                 label="Permission Name"
                 type="text"
                 value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, name: value as string })}
                 required
               />
 
@@ -427,8 +427,8 @@ const PermissionManager = () => {
                 label="Action"
                 type="select"
                 value={formData.action || ''}
-                onChange={(e) => {
-                  const action = e.target.value;
+                onChange={(value) => {
+                  const action = value as string;
                   setFormData({
                     ...formData,
                     action,
@@ -443,8 +443,8 @@ const PermissionManager = () => {
                 label="Resource"
                 type="select"
                 value={formData.resource || ''}
-                onChange={(e) => {
-                  const resource = e.target.value;
+                onChange={(value) => {
+                  const resource = value as string;
                   setFormData({
                     ...formData,
                     resource,
@@ -459,7 +459,7 @@ const PermissionManager = () => {
                 label="Category"
                 type="select"
                 value={formData.category_id || ''}
-                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, category_id: value as string })}
                 options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
                 required
               />
@@ -468,7 +468,7 @@ const PermissionManager = () => {
                 label="Order Index"
                 type="number"
                 value={formData.order_index || 0}
-                onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) || 0 })}
+                onChange={(value) => setFormData({ ...formData, order_index: parseInt(value as string) || 0 })}
                 min="0"
               />
             </div>
@@ -477,7 +477,7 @@ const PermissionManager = () => {
               label="Description"
               type="textarea"
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(value) => setFormData({ ...formData, description: value as string })}
               rows={3}
               placeholder="Brief description of the permission..."
             />
@@ -527,7 +527,7 @@ const PermissionManager = () => {
                 label="Category ID"
                 type="text"
                 value={categoryFormData.id || ''}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, id: e.target.value })}
+                onChange={(value) => setCategoryFormData({ ...categoryFormData, id: value as string })}
                 placeholder="auto-generated"
                 disabled={editingId !== 'new'}
                 required
@@ -537,8 +537,8 @@ const PermissionManager = () => {
                 label="Category Name"
                 type="text"
                 value={categoryFormData.name || ''}
-                onChange={(e) => {
-                  const name = e.target.value;
+                onChange={(value) => {
+                  const name = value as string;
                   setCategoryFormData({
                     ...categoryFormData,
                     name,
@@ -552,15 +552,15 @@ const PermissionManager = () => {
                 label="Icon"
                 type="select"
                 value={categoryFormData.icon || ''}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, icon: e.target.value })}
-                options={icons.map(icon => ({ value: icon, label: icon }))}
+                onChange={(value) => setCategoryFormData({ ...categoryFormData, icon: value as string })}
+                options={icons.map((icon, index) => ({ value: `${icon}-${index}`, label: icon }))}
               />
 
               <FormField
                 label="Color"
                 type="select"
                 value={categoryFormData.color || ''}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, color: e.target.value })}
+                onChange={(value) => setCategoryFormData({ ...categoryFormData, color: value as string })}
                 options={colors}
               />
 
@@ -568,7 +568,7 @@ const PermissionManager = () => {
                 label="Order Index"
                 type="number"
                 value={categoryFormData.order_index || 0}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, order_index: parseInt(e.target.value) || 0 })}
+                onChange={(value) => setCategoryFormData({ ...categoryFormData, order_index: parseInt(value as string) || 0 })}
                 min="0"
               />
             </div>
@@ -577,7 +577,7 @@ const PermissionManager = () => {
               label="Description"
               type="textarea"
               value={categoryFormData.description || ''}
-              onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+              onChange={(value) => setCategoryFormData({ ...categoryFormData, description: value as string })}
               rows={3}
               placeholder="Brief description of the category..."
             />

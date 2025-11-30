@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Section from '../components/ui/Section';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import { useToast } from '../hooks/useToast';
 import { subscribeToNewsletter } from '../lib/supabase';
 
@@ -161,10 +160,10 @@ const News = () => {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">📰</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title">
               News & <span className="text-yellow-400">Events</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text" style={{color: 'var(--color-white)'}}>
               Stay connected with our community activities, events, and insights
             </p>
           </div>
@@ -174,10 +173,10 @@ const News = () => {
       {/* Upcoming Events */}
       <Section className="py-20 bg-white">
         <div className="text-center mb-16">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+          <h2 className="content-section-header">
             Upcoming Events
           </h2>
-          <p className="text-xs lg:text-sm text-gray-700">
+          <p className="content-body-text">
             Join us for transformative experiences and community gatherings
           </p>
         </div>
@@ -203,11 +202,11 @@ const News = () => {
               </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg lg:text-xl font-bold text-gray-900">
+                  <h3 className="content-subsection">
                     {event.title}
                   </h3>
 
-                  <p className="text-gray-600 leading-relaxed text-xs lg:text-sm">{event.description}</p>
+                  <p className="content-body-text" style={{color: 'var(--color-medium-gray)'}}>{event.description}</p>
 
                   <div className="space-y-2 text-xs lg:text-sm text-gray-600">
                   <div className="flex items-center space-x-2">
@@ -244,10 +243,10 @@ const News = () => {
       {/* Recent News */}
       <Section className="py-20 bg-gray-50">
         <div className="text-center mb-16">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+          <h2 className="content-section-header">
             Recent News
           </h2>
-          <p className="text-xs lg:text-sm text-gray-700">
+          <p className="content-body-text">
             Stay updated with our latest activities and community impact
           </p>
         </div>
@@ -287,11 +286,11 @@ const News = () => {
                 </div>
 
                 <div className="lg:col-span-3 space-y-4">
-                    <h3 className="text-lg lg:text-xl font-bold text-gray-900">
+                    <h3 className="content-subsection">
                       {article.title}
                     </h3>
 
-                    <p className="text-gray-600 leading-relaxed text-xs lg:text-sm">{article.excerpt}</p>
+                    <p className="content-body-text" style={{color: 'var(--color-medium-gray)'}}>{article.excerpt}</p>
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-6 text-xs lg:text-sm text-gray-600">
@@ -322,12 +321,12 @@ const News = () => {
       </Section>
 
       {/* Newsletter Signup */}
-      <Section className="py-20 bg-blue-900 text-blue-900">
+      <Section className="py-20 bg-blue-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-lg lg:text-xl font-bold text-white mb-6">
+          <h2 className="content-section-header">
             Stay in the Loop
           </h2>
-          <p className="text-xs lg:text-sm text-gray-200 mb-8">
+          <p className="content-body-text" style={{color: 'var(--color-white)'}}>
             Get the latest news, event announcements, and exclusive content
           </p>
 

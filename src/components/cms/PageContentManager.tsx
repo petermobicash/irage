@@ -69,7 +69,8 @@ const PageContentManager = () => {
     e.preventDefault();
     
     try {
-      if (editingId) {
+      if (editingId && editingId !== 'new') {
+        // Update existing content
         const { error } = await supabase
           .from('page_content')
           .update({
@@ -81,6 +82,7 @@ const PageContentManager = () => {
         if (error) throw error;
         showToast('Page content updated successfully', 'success');
       } else {
+        // Create new content
         const { error } = await supabase
           .from('page_content')
           .insert({

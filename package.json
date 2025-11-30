@@ -26,6 +26,8 @@
     "deploy:check": "npm run lint && npm run type-check && npm run build:production",
     "deploy": "npm run deploy:check && echo 'Build successful! Upload dist/ folder to your hosting platform.'",
     "start": "npm run dev",
+    "fix:content-tables": "node apply_content_tables_fix.js",
+    "test:content-tables": "node test_content_tables.js",
     "postinstall": "echo '🚀 BENIRAGE installation complete! Run npm run dev to start development server.'"
   },
   "dependencies": {

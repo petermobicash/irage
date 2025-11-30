@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { submitPartnershipApplication } from '../lib/supabase';
 import { Building, Handshake, Users, Target, Shield } from 'lucide-react';
-import Section from '../components/ui/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
@@ -61,7 +60,6 @@ const Partnership = () => {
     // Experience & Capacity
     previousPartnerships: '',
     organizationalCapacity: '',
-    referencesInfo: '',
 
     // Financial & Legal
     financialContribution: '',
@@ -289,7 +287,6 @@ const Partnership = () => {
           successMetrics: '',
           previousPartnerships: '',
           organizationalCapacity: '',
-          referencesInfo: '',
           financialContribution: '',
           legalRequirements: '',
           expectations: '',
@@ -1035,12 +1032,12 @@ const Partnership = () => {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="content-container text-center">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">🤝</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Partner <span className="text-yellow-400">With Us</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-gray-200 mb-8 animate-fade-in-up animation-delay-200">
               Collaborate with schools, NGOs, religious centers, and cultural institutions
             </p>
           </div>
@@ -1048,60 +1045,62 @@ const Partnership = () => {
       </section>
 
       {/* Partnership Types */}
-      <Section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-8">
+      <section className="content-section bg-white">
+        <div className="content-container text-center">
+          <h2 className="content-section-header">
             Partnership Opportunities
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
-                Educational Partnerships
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Collaborate with schools and universities on cultural education and research programs
-              </p>
-            </Card>
+          <div className="content-card-content">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="text-center hover:scale-105 transition-transform">
+                <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="content-subsection">
+                  Educational Partnerships
+                </h3>
+                <p className="content-body-text text-gray-600 leading-relaxed">
+                  Collaborate with schools and universities on cultural education and research programs
+                </p>
+              </Card>
 
-            <Card className="text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Handshake className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
-                Community Partnerships
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Work with NGOs, religious centers, and community organizations on shared initiatives
-              </p>
-            </Card>
+              <Card className="text-center hover:scale-105 transition-transform">
+                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Handshake className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="content-subsection">
+                  Community Partnerships
+                </h3>
+                <p className="content-body-text text-gray-600 leading-relaxed">
+                  Work with NGOs, religious centers, and community organizations on shared initiatives
+                </p>
+              </Card>
 
-            <Card className="text-center hover:scale-105 transition-transform">
-              <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
-                Strategic Alliances
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Form long-term partnerships for cultural preservation and spiritual development
-              </p>
-            </Card>
+              <Card className="text-center hover:scale-105 transition-transform">
+                <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Target className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="content-subsection">
+                  Strategic Alliances
+                </h3>
+                <p className="content-body-text text-gray-600 leading-relaxed">
+                  Form long-term partnerships for cultural preservation and spiritual development
+                </p>
+              </Card>
+            </div>
           </div>
         </div>
-      </Section>
+      </section>
 
       {/* Partnership Application Form */}
-      <Section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
+      <section className="content-section bg-gray-50">
+        <div className="content-container">
           <div className="text-center mb-12">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h2 className="content-section-header">
               Partnership Application
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Let's explore how we can work together to achieve our shared goals
             </p>
           </div>
@@ -1157,21 +1156,21 @@ const Partnership = () => {
                 <Shield className="w-5 h-5 text-green-600" />
                 <span className="font-medium text-green-800">Confidential Partnership Process</span>
               </div>
-              <p className="text-sm text-green-700">
+              <p className="content-small-text text-green-700">
                 All partnership discussions are conducted with strict confidentiality. We respect your organization's sensitive information and maintain professional standards throughout the evaluation process.
               </p>
             </div>
           </Card>
         </div>
-      </Section>
+      </section>
 
       {/* Call to Action */}
-      <Section className="py-20 bg-blue-900 text-blue-900">
-        <div className="text-center">
-          <h2 className="text-lg lg:text-xl font-bold text-white mb-8">
+      <section className="content-section bg-blue-900 text-blue-900">
+        <div className="content-container text-center">
+          <h2 className="content-section-header text-white">
             Transform Communities Together
           </h2>
-          <p className="text-xs lg:text-sm text-gray-200 mb-12 max-w-3xl mx-auto">
+          <p className="content-body-text text-gray-200 mb-12">
             Join our network of partners making a meaningful difference in spiritual and cultural development
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -1183,7 +1182,7 @@ const Partnership = () => {
             </Button>
           </div>
         </div>
-      </Section>
+      </section>
     </div>
   );
 };

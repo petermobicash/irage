@@ -391,7 +391,7 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
     }
   }, [chatState.currentUser]);
 
-  // Set up realtime subscriptions
+  // Set up realtime subscriptions with robust error handling
   useEffect(() => {
     if (!enabled) {
       setIsLoading(false);
@@ -405,6 +405,8 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
         if (!isMounted) return;
         setIsLoading(true);
 
+        console.log('🚀 Setting up real-time chat subscription...');
+
         // Get current user
         const user = await getCurrentUser();
         if (!user || !isMounted) {
@@ -414,12 +416,21 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
 
         // Initialize presence (but don't await it to prevent blocking)
         initializePresence(user).catch(err =>
-          console.warn('Presence initialization failed:', err)
+          console.warn('⚠️ Presence initialization failed:', err)
         );
 
-        // Set up main chat channel
-        channelRef.current = supabase.channel(getChannelName());
+        // Create enhanced channel with retry logic
+        const channelName = getChannelName();
+        console.log(`📡 Creating WebSocket channel: ${channelName}`);
+        
+        channelRef.current = supabase.channel(channelName, {
+          config: {
+            broadcast: { self: true },
+            presence: { key: user.id }
+          }
+        });
 
+        // Set up message subscriptions with retry logic
         channelRef.current
           .on('postgres_changes', {
             event: '*',
@@ -428,6 +439,8 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
             filter: conversationId ? `conversation_id=eq.${conversationId}` : groupId ? `group_id=eq.${groupId}` : undefined,
           }, (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
             if (!isMounted) return;
+            
+            console.log('📨 Received message update:', payload.eventType);
             
             if (payload.eventType === 'INSERT') {
               setChatState(prev => ({
@@ -478,16 +491,47 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
                 }
               });
             }
-          })
-          .subscribe((status) => {
-            if (!isMounted) return;
-            
+          });
+
+        // Subscribe with enhanced error handling
+        channelRef.current.subscribe(async (status) => {
+          if (!isMounted) return;
+          
+          console.log(`📡 WebSocket subscription status for ${channelName}:`, status);
+          
+          if (status === 'SUBSCRIBED') {
             setChatState(prev => ({
               ...prev,
-              isConnected: status === 'SUBSCRIBED',
-              error: status === 'CHANNEL_ERROR' ? 'Connection error' : null,
+              isConnected: true,
+              error: null,
             }));
-          });
+            console.log('✅ Successfully connected to WebSocket channel');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error(`❌ WebSocket connection error for ${channelName}`);
+            setChatState(prev => ({
+              ...prev,
+              isConnected: false,
+              error: 'Connection error - attempting to reconnect...',
+            }));
+            
+            // WebSocketManager handles reconnection automatically
+            console.log('🔄 WebSocket reconnection will be handled automatically...');
+          } else if (status === 'TIMED_OUT') {
+            console.warn(`⏰ WebSocket connection timed out for ${channelName}`);
+            setChatState(prev => ({
+              ...prev,
+              isConnected: false,
+              error: 'Connection timeout - please check your internet connection',
+            }));
+          } else if (status === 'CLOSED') {
+            console.log(`🔌 WebSocket connection closed for ${channelName}`);
+            setChatState(prev => ({
+              ...prev,
+              isConnected: false,
+              error: 'Connection closed',
+            }));
+          }
+        });
 
         // Load initial messages
         await loadMessages();
@@ -511,11 +555,12 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
         }
 
       } catch (error) {
-        console.error('Error setting up realtime subscription:', error);
+        console.error('❌ Error setting up real-time subscription:', error);
         if (isMounted) {
           setChatState(prev => ({
             ...prev,
-            error: 'Failed to connect to chat',
+            error: 'Failed to connect to chat: ' + (error as Error).message,
+            isConnected: false,
           }));
           setIsLoading(false);
         }
@@ -528,6 +573,7 @@ export const useRealTimeChat = (options: UseRealTimeChatOptions = {}) => {
     return () => {
       isMounted = false;
       if (channelRef.current) {
+        console.log('🧹 Cleaning up WebSocket channel');
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }

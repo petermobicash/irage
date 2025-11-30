@@ -8,18 +8,23 @@ import { useToast } from '../../hooks/useToast';
 interface ContentRevision {
   id: string;
   content_id: string;
-  version_number: number;
+  revision_number: number;
+  version_number?: number; // Database alias for revision_number
   title: string;
   content: string;
   excerpt?: string;
-  change_summary?: string;
-  author_name: string;
+  changes_summary?: string;
+  change_summary?: string; // Database alias for changes_summary
+  created_by: string;
+  author_name?: string; // Database alias for created_by
   created_at: string;
   is_current: boolean;
   diff_data?: unknown;
   word_count: number;
-  reading_time: number;
-  author_id?: string;
+  character_count?: number;
+  created_by_id?: string;
+  author_id?: string; // Database alias for created_by_id
+  reading_time?: number;
 }
 
 interface ContentVersioningProps {
@@ -43,7 +48,7 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
         .from('content_revisions')
         .select('*')
         .eq('content_id', contentId)
-        .order('version_number', { ascending: false });
+        .order('revision_number', { ascending: false });
 
       if (error) throw error;
       setRevisions(data || []);
@@ -64,37 +69,42 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const versionNumber = Math.max(...revisions.map(r => r.version_number), 0) + 1;
+      const revisionNumber = Math.max(...revisions.map(r => r.revision_number || 0), 0) + 1;
 
       const { error } = await supabase
         .from('content_revisions')
         .insert([{
           content_id: contentId,
-          version_number: versionNumber,
+          revision_number: revisionNumber,
           title: 'Current Version',
           content: currentContent,
-          change_summary: changesSummary,
-          author_name: user.email?.split('@')[0] || 'User',
-          author_id: user.id,
+          changes_summary: changesSummary,
+          created_by: user.email?.split('@')[0] || 'User',
+          created_by_id: user.id,
           word_count: currentContent.split(' ').length,
+          character_count: currentContent.length,
           reading_time: Math.ceil(currentContent.split(' ').length / 200),
           is_current: true
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error creating revision:', error);
+        throw error;
+      }
 
       // Mark previous revisions as not current
       await supabase
         .from('content_revisions')
         .update({ is_current: false })
         .eq('content_id', contentId)
-        .neq('version_number', versionNumber);
+        .neq('revision_number', revisionNumber);
 
       showToast('Revision created successfully', 'success');
       loadRevisions();
     } catch (error) {
       console.error('Error creating revision:', error);
-      showToast('Failed to create revision', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showToast(`Failed to create revision: ${errorMessage}`, 'error');
     }
   };
 
@@ -114,13 +124,17 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
   };
 
   const exportRevision = (revision: ContentRevision) => {
+    const versionNum = revision.version_number || revision.revision_number || 0;
+    const authorName = revision.author_name || revision.created_by || 'Anonymous';
+    const changeSummary = revision.change_summary || revision.changes_summary || '';
+    
     const exportData = {
-      version_number: revision.version_number,
+      version_number: versionNum,
       title: revision.title,
       content: revision.content,
-      author_name: revision.author_name,
+      author_name: authorName,
       created_at: revision.created_at,
-      change_summary: revision.change_summary
+      change_summary: changeSummary
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -194,6 +208,15 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
             const previousRevision = revisions[index + 1];
             const diff = previousRevision ? calculateDiff(previousRevision.content, revision.content) : null;
 
+            // Get version number with fallback
+            const versionNum = revision.version_number || revision.revision_number || 0;
+            // Get author name with fallback  
+            const authorName = revision.author_name || revision.created_by || 'Anonymous';
+            // Get change summary with fallback
+            const changeSummary = revision.change_summary || revision.changes_summary || '';
+            // Get reading time with fallback
+            const readTime = revision.reading_time || Math.ceil((revision.word_count || 0) / 200);
+
             return (
               <Card key={revision.id} className={`hover:shadow-lg transition-shadow ${
                 revision.is_current ? 'ring-2 ring-blue-500 bg-blue-50' : ''
@@ -203,12 +226,12 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                       revision.is_current ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
                     }`}>
-                      <span className="font-bold">v{revision.version_number}</span>
+                      <span className="font-bold">v{versionNum}</span>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h4 className="font-semibold text-blue-900">
-                          Version {revision.version_number}
+                          Version {versionNum}
                           {revision.is_current && (
                             <span className="ml-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs">
                               Current
@@ -216,20 +239,20 @@ const ContentVersioning: React.FC<ContentVersioningProps> = ({
                           )}
                         </h4>
                         <span className="text-sm text-gray-500">
-                          by {revision.author_name}
+                          by {authorName}
                         </span>
                         <span className="text-sm text-gray-500">
                           {formatTimeAgo(revision.created_at)}
                         </span>
                       </div>
                       
-                      {revision.change_summary && (
-                        <p className="text-gray-600 text-sm mb-2">{revision.change_summary}</p>
+                      {changeSummary && (
+                        <p className="text-gray-600 text-sm mb-2">{changeSummary}</p>
                       )}
 
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span>{revision.word_count} words</span>
-                        <span>{revision.reading_time} min read</span>
+                        <span>{revision.word_count || 0} words</span>
+                        <span>{readTime} min read</span>
                         {diff && (
                           <>
                             {diff.added > 0 && <span className="text-green-600">+{diff.added} words</span>}

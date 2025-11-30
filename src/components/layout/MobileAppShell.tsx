@@ -47,7 +47,7 @@ const MobileAppShell = ({
       </div>
 
       {/* Mobile Footer Content Area */}
-      <div className="bg-white border-t border-gray-200 py-4 px-4 fixed bottom-20 left-0 right-0 z-30 lg:hidden">
+      <div className="bg-white py-4 px-4 fixed bottom-20 left-0 right-0 z-30 lg:hidden">
         {/* Quick Contact Footer */}
         <div className="flex items-center justify-center space-x-4 text-sm">
           <a href="tel:+250788310932" className="flex items-center space-x-2 text-gray-600 hover:text-[#05294B] transition-colors">

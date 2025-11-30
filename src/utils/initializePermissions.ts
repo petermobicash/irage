@@ -66,7 +66,6 @@ export const initializePermissions = async (): Promise<PermissionInitResult> => 
           module: permission.module,
           action: permission.slug.split('.').pop() || 'manage',
           resource: permission.category,
-          conditions: {},
           is_active: true,
           is_system_permission: permission.isSystemPermission,
           order_index: permission.orderIndex,

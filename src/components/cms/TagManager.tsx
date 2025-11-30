@@ -42,10 +42,10 @@ const TagManager = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('content_tags')
+        .from('tags')
         .select(`
           *,
-          content_items(count)
+          content_tags(count)
         `)
         .order('name');
 
@@ -53,7 +53,7 @@ const TagManager = () => {
 
       const tagsWithCount = data?.map(tag => ({
         ...tag,
-        usage_count: tag.content_items?.[0]?.count || 0
+        usage_count: tag.content_tags?.[0]?.count || 0
       })) || [];
 
       setTags(tagsWithCount);
@@ -187,7 +187,7 @@ const TagManager = () => {
               <FormField
                 label="Tag Name"
                 value={formData.name || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(value) => setFormData(prev => ({ ...prev, name: value as string }))}
                 placeholder="Enter tag name"
                 required
                 type="text"
@@ -196,7 +196,7 @@ const TagManager = () => {
               <FormField
                 label="Color"
                 value={formData.color || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                onChange={(value) => setFormData(prev => ({ ...prev, color: value as string }))}
                 type="select"
                 options={colorOptions.map(color => color)}
               />
@@ -205,7 +205,7 @@ const TagManager = () => {
             <FormField
               label="Description"
               value={formData.description || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(value) => setFormData(prev => ({ ...prev, description: value as string }))}
               placeholder="Enter tag description (optional)"
               type="textarea"
             />

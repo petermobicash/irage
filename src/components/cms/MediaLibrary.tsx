@@ -180,52 +180,74 @@ const MediaLibrary = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Media Library</h1>
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+    <div className="relative">
+      {/* Background Image Overlay - Home Page Style */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{
+          backgroundImage: 'url(/benirage.jpeg)',
+          backgroundPosition: 'center'
+        }}
+      ></div>
+      
+      {/* Gradient Overlay - Home Page Colors */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[#0A3D5C]/95 via-[#0D4A6B]/95 to-[#0A3D5C]/95"></div>
+      
+      {/* Additional Gradient Overlay for Better Readability */}
+      <div className="fixed inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+      {/* Content Container */}
+      <div className="relative z-10 cms-mobile-space-y-4 cms-tablet-space-y-6 space-y-4 sm:space-y-6">
+        {/* Enhanced Responsive Header */}
+        <div className="cms-mobile-flex cms-mobile-flex-col cms-mobile-space-y-4 cms-tablet-flex-row cms-tablet-items-center cms-tablet-space-y-0 cms-tablet-justify-between flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:justify-between gap-4">
+          <h1 className="cms-mobile-text-xl cms-tablet-text-2xl font-bold text-white">Media Library</h1>
+        <div className="cms-mobile-flex cms-mobile-flex-col cms-mobile-space-y-3 cms-tablet-flex-row cms-tablet-items-center cms-tablet-space-x-4 cms-tablet-space-y-0 flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-4 gap-3 sm:gap-0">
+          {/* Search */}
+          <div className="cms-mobile-w-full cms-tablet-w-64 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cms-mobile-w-4 cms-mobile-h-4 cms-tablet-w-4 cms-tablet-h-4 w-4 h-4" />
             <input
               type="text"
               placeholder="Search media..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="cms-mobile-text-sm cms-tablet-text-base pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent cms-mobile-min-h-[44px]"
             />
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="cms-mobile-flex cms-mobile-justify-between cms-tablet-space-x-2 flex justify-between space-x-2">
             <button
               onClick={() => setShowCDNSettings(!showCDNSettings)}
-              className={`p-2 rounded ${showCDNSettings ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`cms-mobile-p-2 cms-tablet-p-2 p-2 rounded ${showCDNSettings ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
               title="CDN Settings"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="cms-mobile-w-5 cms-mobile-h-5 cms-tablet-w-4 cms-tablet-h-4 w-5 h-5 sm:w-4 sm:h-4" />
             </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
+            <div className="cms-mobile-flex cms-mobile-space-x-1 flex space-x-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`cms-mobile-p-2 cms-tablet-p-2 p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                title="Grid View"
+              >
+                <Grid className="cms-mobile-w-5 cms-mobile-h-5 cms-tablet-w-4 cms-tablet-h-4 w-5 h-5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`cms-mobile-p-2 cms-tablet-p-2 p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400'}`}
+                title="List View"
+              >
+                <List className="cms-mobile-w-5 cms-mobile-h-5 cms-tablet-w-4 cms-tablet-h-4 w-5 h-5 sm:w-4 sm:h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* CDN Settings Panel */}
+      {/* Enhanced Responsive CDN Settings Panel */}
       {showCDNSettings && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-green-800 mb-3">CDN Optimization Settings</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="cms-mobile-p-3 cms-tablet-p-4 bg-green-50 border border-green-200 rounded-lg cms-mobile-mb-4 cms-tablet-mb-6 mb-4 sm:mb-6">
+          <h3 className="cms-mobile-text-sm cms-tablet-text-base font-semibold text-green-800 cms-mobile-mb-2 cms-tablet-mb-3 mb-2 sm:mb-3">CDN Optimization Settings</h3>
+          <div className="cms-grid cms-mobile-grid-1 cms-tablet-grid-md-4 grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-green-700 mb-1">
+              <label className="cms-mobile-text-xs cms-tablet-text-sm block font-medium text-green-700 cms-mobile-mb-1 mb-1">
                 Quality ({cdnSettings.quality}%)
               </label>
               <input
@@ -234,47 +256,47 @@ const MediaLibrary = () => {
                 max="100"
                 value={cdnSettings.quality}
                 onChange={(e) => setCdnSettings(prev => ({ ...prev, quality: Number(e.target.value) }))}
-                className="w-full"
+                className="cms-mobile-w-full w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-green-700 mb-1">Format</label>
+              <label className="cms-mobile-text-xs cms-tablet-text-sm block font-medium text-green-700 cms-mobile-mb-1 mb-1">Format</label>
               <select
                 value={cdnSettings.format}
                 onChange={(e) => setCdnSettings(prev => ({ ...prev, format: e.target.value as 'webp' | 'jpg' | 'png' }))}
-                className="w-full px-3 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500"
+                className="cms-mobile-text-sm cms-tablet-text-sm w-full px-3 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500 cms-mobile-min-h-[44px]"
               >
                 <option value="webp">WebP</option>
                 <option value="jpg">JPEG</option>
                 <option value="png">PNG</option>
               </select>
             </div>
-            <div className="flex items-center">
-              <label className="flex items-center">
+            <div className="cms-mobile-flex cms-mobile-items-center flex items-center">
+              <label className="cms-mobile-flex cms-mobile-items-center flex items-center">
                 <input
                   type="checkbox"
                   checked={cdnSettings.enableThumbnails}
                   onChange={(e) => setCdnSettings(prev => ({ ...prev, enableThumbnails: e.target.checked }))}
-                  className="rounded border-green-300 text-green-600 focus:ring-green-500"
+                  className="cms-mobile-w-4 cms-mobile-h-4 rounded border-green-300 text-green-600 focus:ring-green-500 w-4 h-4"
                 />
-                <span className="ml-2 text-sm text-green-700">Generate Thumbnails</span>
+                <span className="cms-mobile-ml-2 cms-mobile-text-xs cms-tablet-text-sm ml-2 text-sm text-green-700">Thumbnails</span>
               </label>
             </div>
-            <div className="flex items-center">
-              <label className="flex items-center">
+            <div className="cms-mobile-flex cms-mobile-items-center flex items-center">
+              <label className="cms-mobile-flex cms-mobile-items-center flex items-center">
                 <input
                   type="checkbox"
                   checked={cdnSettings.enableResponsive}
                   onChange={(e) => setCdnSettings(prev => ({ ...prev, enableResponsive: e.target.checked }))}
-                  className="rounded border-green-300 text-green-600 focus:ring-green-500"
+                  className="cms-mobile-w-4 cms-mobile-h-4 rounded border-green-300 text-green-600 focus:ring-green-500 w-4 h-4"
                 />
-                <span className="ml-2 text-sm text-green-700">Responsive Images</span>
+                <span className="cms-mobile-ml-2 cms-mobile-text-xs cms-tablet-text-sm ml-2 text-sm text-green-700">Responsive</span>
               </label>
             </div>
           </div>
-          <div className="mt-3 text-sm text-green-600">
-            <p>Current bucket: <strong>{CDN_CONFIG.storageBucket}</strong></p>
-            <p>Base URL: <code className="bg-green-100 px-1 rounded">{CDN_CONFIG.baseUrl}</code></p>
+          <div className="cms-mobile-mt-2 cms-tablet-mt-3 mt-2 sm:mt-3 cms-mobile-text-xs cms-tablet-text-sm text-sm text-green-600">
+            <p>Bucket: <strong>{CDN_CONFIG.storageBucket}</strong></p>
+            <p>URL: <code className="cms-mobile-p-1 cms-tablet-p-1 bg-green-100 px-1 rounded">{CDN_CONFIG.baseUrl}</code></p>
           </div>
         </div>
       )}
@@ -484,6 +506,7 @@ const MediaLibrary = () => {
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 };

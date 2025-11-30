@@ -1,4 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// React Router v7 future flags to prevent warnings
+const router = {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }
+};
 import { Suspense, lazy, useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -116,7 +124,7 @@ function App() {
           onClose={() => removeToast(toast.id)}
         />
       ))}
-      <Router>
+      <Router {...router}>
         <div className={`${isMobile ? 'mobile-app' : 'min-h-screen bg-[#05294B]/95'}`}>
           <Routes>
             {/* CMS routes without header and footer */}

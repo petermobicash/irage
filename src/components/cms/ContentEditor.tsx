@@ -302,22 +302,39 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={onCancel} icon={ArrowLeft}>
-            Back
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-blue-900">
-              {contentId ? 'Edit' : 'Create'} {contentType}
-            </h2>
-            <p className="text-gray-600">
-              {contentId ? 'Update existing content' : 'Create new content for your website'}
-            </p>
+    <div className="relative">
+      {/* Background Image Overlay - Home Page Style */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{
+          backgroundImage: 'url(/benirage.jpeg)',
+          backgroundPosition: 'center'
+        }}
+      ></div>
+      
+      {/* Gradient Overlay - Home Page Colors */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[#0A3D5C]/95 via-[#0D4A6B]/95 to-[#0A3D5C]/95"></div>
+      
+      {/* Additional Gradient Overlay for Better Readability */}
+      <div className="fixed inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+      {/* Content Container */}
+      <div className="relative z-10 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={onCancel} icon={ArrowLeft}>
+              Back
+            </Button>
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                {contentId ? 'Edit' : 'Create'} {contentType}
+              </h2>
+              <p className="text-gray-300">
+                {contentId ? 'Update existing content' : 'Create new content for your website'}
+              </p>
+            </div>
           </div>
-        </div>
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
@@ -731,6 +748,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             </div>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   );

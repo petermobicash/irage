@@ -25,10 +25,10 @@ const Spiritual = () => {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">✨</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Spiritual <span className="text-yellow-400">Grounding</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-white mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
               At the heart of BENIRAGE is the call to nurture the spirit within each person
             </p>
           </div>
@@ -51,10 +51,10 @@ const Spiritual = () => {
       {/* Spiritual Programs */}
       <Section background="cultural" padding="xl">
         <div className="text-center mb-16">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+          <h2 className="content-section-header">
             Spiritual Programs
           </h2>
-          <p className="text-xs lg:text-sm text-gray-700 max-w-3xl mx-auto">
+          <p className="content-body-text max-w-3xl mx-auto">
             Transformative practices that nurture the soul and awaken inner wisdom
           </p>
         </div>
@@ -62,10 +62,10 @@ const Spiritual = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card variant="premium" className="text-center hover:scale-105 transition-transform">
             <div className="text-5xl mb-6">🧘</div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h3 className="content-subsection mb-4">
               Meditation & Mindfulness
             </h3>
-            <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+            <p className="content-body-text text-gray-600 leading-relaxed mb-6">
               Daily practices for inner peace and spiritual awakening through guided meditation and mindfulness exercises.
             </p>
             <Button variant="outline" size="sm">
@@ -75,10 +75,10 @@ const Spiritual = () => {
 
           <Card variant="premium" className="text-center hover:scale-105 transition-transform">
             <div className="text-5xl mb-6">💚</div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h3 className="content-subsection mb-4">
               Healing Circles
             </h3>
-            <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+            <p className="content-body-text text-gray-600 leading-relaxed mb-6">
               Community gatherings for emotional and spiritual healing through shared wisdom and support.
             </p>
             <Button variant="outline" size="sm">
@@ -88,10 +88,10 @@ const Spiritual = () => {
 
           <Card variant="premium" className="text-center hover:scale-105 transition-transform">
             <div className="text-5xl mb-6">🏔️</div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h3 className="content-subsection mb-4">
               Spiritual Retreats
             </h3>
-            <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+            <p className="content-body-text text-gray-600 leading-relaxed mb-6">
               Intensive weekend experiences for deep transformation and spiritual renewal.
             </p>
             <Button variant="outline" size="sm">
@@ -104,10 +104,10 @@ const Spiritual = () => {
       {/* Call to Action */}
       <Section background="blue" padding="xl">
         <div className="text-center">
-          <h2 className="text-lg lg:text-xl font-bold text-white mb-8">
+          <h2 className="content-section-header text-white mb-8">
             Begin Your Spiritual Journey
           </h2>
-          <p className="text-xs lg:text-sm text-gray-200 mb-12 max-w-3xl mx-auto">
+          <p className="content-body-text text-gray-200 mb-12 max-w-3xl mx-auto">
             Join our community of seekers and discover the peace that comes from spiritual grounding
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -125,10 +125,10 @@ const Spiritual = () => {
       <Section background="white" padding="xl">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+            <h2 className="content-section-header mb-6">
               Share Your Spiritual Journey
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Connect with others on the path of spiritual growth
             </p>
           </div>

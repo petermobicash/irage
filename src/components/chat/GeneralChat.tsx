@@ -644,8 +644,8 @@ const GeneralChat: React.FC<GeneralChatProps> = ({ onClose }) => {
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-800">{message.sender_name}</span>
-                  <span className="text-xs text-gray-500">{formatMessageTime(message.created_at)}</span>
+                  <span className="chat-sender-name">{message.sender_name}</span>
+                  <span className="chat-timestamp">{formatMessageTime(message.created_at)}</span>
                 </div>
               </div>
             )}
@@ -664,7 +664,7 @@ const GeneralChat: React.FC<GeneralChatProps> = ({ onClose }) => {
               </div>
             )}
 
-            <div className={`relative px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
+            <div className={`relative px-5 py-4 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md chat-text-enhanced ${
               isOwnMessage
                 ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'
                 : 'bg-white text-gray-900 border border-gray-200'
@@ -711,7 +711,7 @@ const GeneralChat: React.FC<GeneralChatProps> = ({ onClose }) => {
               )}
 
               {/* Message content with better formatting */}
-              <div className="text-sm leading-relaxed">
+              <div className="chat-message-content">
                 {message.message_text.split('\n').map((line, index) => (
                   <React.Fragment key={index}>
                     {line}
@@ -722,7 +722,7 @@ const GeneralChat: React.FC<GeneralChatProps> = ({ onClose }) => {
 
               {/* Message timestamp for own messages */}
               {isOwnMessage && (
-                <div className="text-xs text-blue-100 mt-2 text-right opacity-75 flex items-center justify-end space-x-1">
+                <div className="chat-timestamp own-message mt-3 text-right opacity-75 flex items-center justify-end space-x-2">
                   <span>{formatMessageTime(message.created_at)}</span>
                   {message.is_edited && <span>(edited)</span>}
                   <span className="ml-1">

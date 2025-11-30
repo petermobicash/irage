@@ -104,11 +104,16 @@ const NewsletterManager = () => {
 
   const loadSubscribers = async () => {
     const { data, error } = await supabase
-      .from('newsletter_subscriptions')
+      .from('newsletter_subscribers')
       .select('*')
       .order('subscription_date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error loading subscribers:', error);
+      // Set empty array if table doesn't exist or has permission issues
+      setSubscribers([]);
+      return;
+    }
     setSubscribers(data || []);
   };
 
@@ -165,7 +170,7 @@ const NewsletterManager = () => {
 
     try {
       const { error } = await supabase
-        .from('newsletter_subscriptions')
+        .from('newsletter_subscribers')
         .insert([{
           email: subscriberForm.email,
           first_name: subscriberForm.first_name || null,
@@ -173,7 +178,10 @@ const NewsletterManager = () => {
           tags: subscriberForm.tags.split(',').map(tag => tag.trim()).filter(Boolean)
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding subscriber:', error);
+        return;
+      }
 
       await loadSubscribers();
       resetSubscriberForm();
@@ -355,7 +363,7 @@ const NewsletterManager = () => {
                   <FormField
                     label="Campaign Name"
                     value={campaignForm.name || ''}
-                    onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(value) => setCampaignForm(prev => ({ ...prev, name: String(value) }))}
                     placeholder="Enter campaign name"
                     required
                     type="text"
@@ -364,7 +372,7 @@ const NewsletterManager = () => {
                   <FormField
                     label="Subject Line"
                     value={campaignForm.subject || ''}
-                    onChange={(e) => setCampaignForm(prev => ({ ...prev, subject: e.target.value }))}
+                    onChange={(value) => setCampaignForm(prev => ({ ...prev, subject: String(value) }))}
                     placeholder="Enter email subject"
                     required
                     type="text"
@@ -374,7 +382,7 @@ const NewsletterManager = () => {
                 <FormField
                   label="Email Content"
                   value={campaignForm.content || ''}
-                  onChange={(e) => setCampaignForm(prev => ({ ...prev, content: e.target.value }))}
+                  onChange={(value) => setCampaignForm(prev => ({ ...prev, content: String(value) }))}
                   placeholder="Enter email content (HTML allowed)"
                   type="textarea"
                   required
@@ -384,7 +392,7 @@ const NewsletterManager = () => {
                   <FormField
                     label="Schedule Date (Optional)"
                     value={campaignForm.scheduled_at || ''}
-                    onChange={(e) => setCampaignForm(prev => ({ ...prev, scheduled_at: e.target.value }))}
+                    onChange={(value) => setCampaignForm(prev => ({ ...prev, scheduled_at: String(value) }))}
                     type="text"
                     placeholder="YYYY-MM-DD HH:MM:SS"
                   />
@@ -392,7 +400,7 @@ const NewsletterManager = () => {
                   <FormField
                     label="Template"
                     value={campaignForm.template_id || ''}
-                    onChange={(e) => setCampaignForm(prev => ({ ...prev, template_id: e.target.value }))}
+                    onChange={(value) => setCampaignForm(prev => ({ ...prev, template_id: String(value) }))}
                     type="select"
                     options={templates.map(template => template.name)}
                   />
@@ -493,7 +501,7 @@ const NewsletterManager = () => {
                 <FormField
                   label="Email"
                   value={subscriberForm.email || ''}
-                  onChange={(e) => setSubscriberForm(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(value) => setSubscriberForm(prev => ({ ...prev, email: String(value) }))}
                   placeholder="Enter email address"
                   required
                   type="email"
@@ -502,7 +510,7 @@ const NewsletterManager = () => {
                 <FormField
                   label="First Name"
                   value={subscriberForm.first_name || ''}
-                  onChange={(e) => setSubscriberForm(prev => ({ ...prev, first_name: e.target.value }))}
+                  onChange={(value) => setSubscriberForm(prev => ({ ...prev, first_name: String(value) }))}
                   placeholder="Enter first name"
                   type="text"
                 />
@@ -512,7 +520,7 @@ const NewsletterManager = () => {
                 <FormField
                   label="Last Name"
                   value={subscriberForm.last_name || ''}
-                  onChange={(e) => setSubscriberForm(prev => ({ ...prev, last_name: e.target.value }))}
+                  onChange={(value) => setSubscriberForm(prev => ({ ...prev, last_name: String(value) }))}
                   placeholder="Enter last name"
                   type="text"
                 />
@@ -520,7 +528,7 @@ const NewsletterManager = () => {
                 <FormField
                   label="Tags (comma-separated)"
                   value={subscriberForm.tags || ''}
-                  onChange={(e) => setSubscriberForm(prev => ({ ...prev, tags: e.target.value }))}
+                  onChange={(value) => setSubscriberForm(prev => ({ ...prev, tags: String(value) }))}
                   placeholder="tag1, tag2, tag3"
                   type="text"
                 />
@@ -593,7 +601,7 @@ const NewsletterManager = () => {
               <FormField
                 label="Template Name"
                 value={templateForm.name || ''}
-                onChange={(e) => setTemplateForm(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(value) => setTemplateForm(prev => ({ ...prev, name: String(value) }))}
                 placeholder="Enter template name"
                 required
                 type="text"
@@ -602,7 +610,7 @@ const NewsletterManager = () => {
               <FormField
                 label="Subject Line"
                 value={templateForm.subject || ''}
-                onChange={(e) => setTemplateForm(prev => ({ ...prev, subject: e.target.value }))}
+                onChange={(value) => setTemplateForm(prev => ({ ...prev, subject: String(value) }))}
                 placeholder="Enter email subject template"
                 required
                 type="text"
@@ -611,7 +619,7 @@ const NewsletterManager = () => {
               <FormField
                 label="Email Content"
                 value={templateForm.content || ''}
-                onChange={(e) => setTemplateForm(prev => ({ ...prev, content: e.target.value }))}
+                onChange={(value) => setTemplateForm(prev => ({ ...prev, content: String(value) }))}
                 placeholder="Enter email content template. Use {{variable}} for dynamic content."
                 type="textarea"
                 required

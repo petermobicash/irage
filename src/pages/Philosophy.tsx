@@ -31,10 +31,10 @@ const Philosophy = () => {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">🧠</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Human <span className="text-yellow-400">Philosophy</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-white mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
               BENIRAGE embraces philosophy as a guide to life, not just abstract thinking
             </p>
           </div>
@@ -57,10 +57,10 @@ const Philosophy = () => {
       {/* Philosophical Principles */}
       <Section background="cultural" padding="xl">
         <div className="text-center mb-16">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+          <h2 className="content-section-header">
             Core Philosophical Principles
           </h2>
-          <p className="text-xs lg:text-sm text-gray-700 max-w-3xl mx-auto">
+          <p className="content-body-text max-w-3xl mx-auto">
             The wisdom traditions that guide our approach to life and community
           </p>
         </div>
@@ -68,10 +68,10 @@ const Philosophy = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card variant="premium" className="text-center hover:scale-105 transition-transform">
             <div className="text-5xl mb-6">🤝</div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h3 className="content-subsection mb-4">
               Ubuntu Philosophy
             </h3>
-            <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+            <p className="content-body-text text-gray-600 leading-relaxed mb-6">
               "I am because we are" - the interconnectedness of all humanity and our collective responsibility.
             </p>
             <Button variant="outline" size="sm">
@@ -81,10 +81,10 @@ const Philosophy = () => {
 
           <Card variant="premium" className="text-center hover:scale-105 transition-transform">
             <div className="text-5xl mb-6">👴</div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h3 className="content-subsection mb-4">
               Wisdom of Ancestors
             </h3>
-            <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+            <p className="content-body-text text-gray-600 leading-relaxed mb-6">
               Learning from the accumulated knowledge and wisdom of our forebears and cultural traditions.
             </p>
             <Button variant="outline" size="sm">
@@ -94,10 +94,10 @@ const Philosophy = () => {
 
           <Card variant="premium" className="text-center hover:scale-105 transition-transform">
             <div className="text-5xl mb-6">⚖️</div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h3 className="content-subsection mb-4">
               Ethical Leadership
             </h3>
-            <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+            <p className="content-body-text text-gray-600 leading-relaxed mb-6">
               Leading with integrity, compassion, and moral courage in all aspects of life.
             </p>
             <Button variant="outline" size="sm">
@@ -111,10 +111,10 @@ const Philosophy = () => {
       <Section background="white" padding="xl">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+            <h2 className="content-section-header">
               Youth Philosophy Programs
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Empowering the next generation with wisdom and critical thinking
             </p>
           </div>
@@ -126,10 +126,10 @@ const Philosophy = () => {
                 alt="Philosophy Cafe"
                 className="w-full h-48 object-cover rounded-xl mb-6"
               />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+              <h3 className="content-subsection mb-4">
                 Philosophy Cafes
               </h3>
-              <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+              <p className="content-body-text text-gray-600 leading-relaxed mb-6">
                 Informal discussions on life's big questions in a welcoming, supportive environment.
               </p>
               <div className="space-y-2 text-sm text-gray-600 mb-6">
@@ -152,10 +152,10 @@ const Philosophy = () => {
                 alt="Leadership Workshop"
                 className="w-full h-48 object-cover rounded-xl mb-6"
               />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+              <h3 className="content-subsection mb-4">
                 Leadership Ethics Workshop
               </h3>
-              <p className="text-xs lg:text-sm text-gray-600 leading-relaxed mb-6">
+              <p className="content-body-text text-gray-600 leading-relaxed mb-6">
                 Training ethical leaders for tomorrow through practical philosophy and real-world applications.
               </p>
               <div className="space-y-2 text-sm text-gray-600 mb-6">

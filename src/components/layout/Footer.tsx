@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react';
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin, 
-  Youtube, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Heart, 
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Mail,
+  Phone,
+  MapPin,
   Send,
   ArrowUp,
   ExternalLink,
-  
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { tNav } from '../../utils/i18n';
@@ -275,7 +273,7 @@ const Footer = () => {
             </div>
 
             {/* Social Media & Contact Section */}
-            <div className="mt-12 pt-8 border-t border-white/10">
+            <div className="mt-12 pt-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Social Media */}
                 <div>
@@ -357,7 +355,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/10 pt-8">
+        <div className="pt-8">
           <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
             {/* Copyright */}
             <div className="text-center lg:text-left">

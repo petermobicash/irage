@@ -29,7 +29,7 @@ auth: {
 Update the Supabase client configuration in [`src/lib/supabase.ts`](src/lib/supabase.ts):
 
 ```typescript
-export const supabase = createClient(supabaseUrl || 'https://dummy.supabase.co', supabaseAnonKey || 'dummy-key', {
+export const supabase = createClient('https://sshguczouozvsdwzfcbx.supabase.co', 'your-anon-key', {
   auth: {
     persistSession: true,      // ✅ Enable session persistence
     autoRefreshToken: true,    // ✅ Enable auto token refresh

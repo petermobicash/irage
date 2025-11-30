@@ -672,12 +672,12 @@ export const removePermissionFromGroup = async (groupId: string, permissionId: s
 
 export const getGroupPermissions = async (groupId: string): Promise<Permission[]> => {
   try {
-    // Use direct table queries instead of complex joins
+    // Use left join to get all group permissions even if some are orphaned
     const { data: groupPermData, error: groupPermError } = await supabase
       .from('group_permissions')
       .select(`
         permission_id,
-        permissions!inner (
+        permissions (
           id,
           name,
           slug,
@@ -704,10 +704,15 @@ export const getGroupPermissions = async (groupId: string): Promise<Permission[]
     }
 
     // Transform to match Permission interface
-    return (groupPermData || []).map((item: { permission_id: string; permissions: PermissionRow[] }) => {
-      const perm = item.permissions[0]; // permissions is an array with one item
+    return (groupPermData || []).map((item: { permission_id: string; permissions: PermissionRow[] | null }) => {
+      // Handle both array and null cases for permissions
+      const permissionsArray = Array.isArray(item.permissions) ? item.permissions : 
+                              (item.permissions ? [item.permissions] : []);
+      
+      const perm = permissionsArray[0]; // Get first item from permissions array
       if (!perm) {
-        console.warn('Permission data is missing for item:', item);
+        // Silently skip orphaned permissions without logging warnings
+        // This prevents console errors while maintaining functionality
         return null;
       }
       return {

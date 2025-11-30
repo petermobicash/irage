@@ -71,11 +71,28 @@ const FormFieldManager = () => {
         .order('page_id', { ascending: true })
         .order('order_index', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        // Handle schema cache issues gracefully
+        if (error.code === 'PGRST204') {
+          console.warn('Schema cache issue detected, retrying...');
+          // Add a small delay and retry
+          setTimeout(() => {
+            fetchFormFields();
+          }, 1000);
+          return;
+        }
+        throw error;
+      }
       setFormFields(data || []);
     } catch (error) {
       console.error('Error fetching form fields:', error);
-      showToast('Failed to load form fields', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errorMessage.includes('status') || errorMessage.includes('page_id')) {
+        showToast('Schema update needed. Please contact administrator.', 'warning');
+      } else {
+        showToast('Failed to load form fields', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,26 +106,61 @@ const FormFieldManager = () => {
     e.preventDefault();
     
     try {
+      // Prepare data with null checks for missing fields
+      const submitData = {
+        ...formData,
+        page_id: formData.page_id || 'contact',
+        status: formData.status || 'published',
+        updated_by: 'Current User' // Replace with actual user
+      };
+
       if (editingId) {
         const { error } = await supabase
           .from('form_fields')
-          .update({
-            ...formData,
-            updated_by: 'Current User' // Replace with actual user
-          })
-          .eq('id', editingId);
+          .update(submitData)
+          .eq('id', editingId)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          // Handle specific schema errors
+          if (error.code === 'PGRST204' && error.message.includes('status')) {
+            console.warn('Status column not available, retrying without status...');
+            const { error: retryError } = await supabase
+              .from('form_fields')
+              .update({
+                ...submitData,
+                status: undefined // Remove status field
+              })
+              .eq('id', editingId);
+            
+            if (retryError) throw retryError;
+          } else {
+            throw error;
+          }
+        }
         showToast('Form field updated successfully', 'success');
       } else {
         const { error } = await supabase
           .from('form_fields')
-          .insert({
-            ...formData,
-            updated_by: 'Current User' // Replace with actual user
-          });
+          .insert(submitData)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          // Handle specific schema errors
+          if (error.code === 'PGRST204' && error.message.includes('status')) {
+            console.warn('Status column not available, retrying without status...');
+            const { error: retryError } = await supabase
+              .from('form_fields')
+              .insert({
+                ...submitData,
+                status: undefined // Remove status field
+              });
+            
+            if (retryError) throw retryError;
+          } else {
+            throw error;
+          }
+        }
         showToast('Form field created successfully', 'success');
       }
 
@@ -116,7 +168,8 @@ const FormFieldManager = () => {
       fetchFormFields();
     } catch (error) {
       console.error('Error saving form field:', error);
-      showToast('Failed to save form field', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showToast(`Failed to save form field: ${errorMessage}`, 'error');
     }
   };
 

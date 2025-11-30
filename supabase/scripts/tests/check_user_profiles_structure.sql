@@ -4,9 +4,10 @@
 -- 1. CHECK TABLE STRUCTURE
 -- ===============================================
 
-DO $$
+DO $
 DECLARE
     column_record RECORD;
+    policy_record RECORD;
     table_exists BOOLEAN;
 BEGIN
     -- Check if table exists

@@ -68,6 +68,15 @@ export const DonationForm: React.FC<DonationFormProps> = ({
     }
   };
 
+  // Safe event handler for form inputs
+  const safeEventHandler = <K extends keyof DonationFormData>(field: K) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    if (e && e.target) {
+      handleInputChange(field, e.target.value as DonationFormData[K]);
+    }
+  };
+
+  // Safe checkbox handler - removed as it's not being used
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -176,7 +185,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               label="Custom Amount"
               type="number"
               value={formData.amount}
-              onChange={(value) => handleInputChange('amount', parseFloat(value) || 0)}
+              onChange={(value) => handleInputChange('amount', typeof value === 'number' ? value : parseFloat(String(value)) || 0)}
               placeholder="Enter custom amount"
               error={errors.amount}
               min="100"
@@ -222,7 +231,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
                   label="Full Name"
                   type="text"
                   value={formData.donorName}
-                  onChange={(value) => handleInputChange('donorName', value)}
+                  onChange={(value) => handleInputChange('donorName', String(value))}
                   placeholder="Enter your full name"
                   error={errors.donorName}
                   required
@@ -232,7 +241,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
                   label="Email Address"
                   type="email"
                   value={formData.donorEmail}
-                  onChange={(value) => handleInputChange('donorEmail', value)}
+                  onChange={(value) => handleInputChange('donorEmail', String(value))}
                   placeholder="Enter your email address"
                   error={errors.donorEmail}
                   required
@@ -251,7 +260,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
                   name="paymentMethod"
                   value="mobile-money"
                   checked={formData.paymentMethod === 'mobile-money'}
-                  onChange={(e) => handleInputChange('paymentMethod', e.target.value as PaymentMethod)}
+                  onChange={safeEventHandler('paymentMethod')}
                   className="text-blue-600"
                 />
                 <div>
@@ -266,7 +275,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
                   name="paymentMethod"
                   value="card"
                   checked={formData.paymentMethod === 'card'}
-                  onChange={(e) => handleInputChange('paymentMethod', e.target.value as PaymentMethod)}
+                  onChange={safeEventHandler('paymentMethod')}
                   className="text-blue-600"
                 />
                 <div>
@@ -281,7 +290,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
                   name="paymentMethod"
                   value="bank-transfer"
                   checked={formData.paymentMethod === 'bank-transfer'}
-                  onChange={(e) => handleInputChange('paymentMethod', e.target.value as PaymentMethod)}
+                  onChange={safeEventHandler('paymentMethod')}
                   className="text-blue-600"
                 />
                 <div>
@@ -298,7 +307,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               label="Phone Number"
               type="tel"
               value={formData.donorPhone}
-              onChange={(value) => handleInputChange('donorPhone', value)}
+              onChange={(value) => handleInputChange('donorPhone', String(value))}
               placeholder="Enter your MTN phone number (e.g., +2507xxxxxxxx)"
               error={errors.donorPhone}
               required
@@ -309,8 +318,8 @@ export const DonationForm: React.FC<DonationFormProps> = ({
           <FormField
             label="Message (Optional)"
             type="textarea"
-            value={formData.message}
-            onChange={(value) => handleInputChange('message', value)}
+            value={formData.message || ''}
+            onChange={(value) => handleInputChange('message', String(value || ''))}
             placeholder="Add a message with your donation"
             rows={3}
           />
@@ -331,7 +340,7 @@ export const DonationForm: React.FC<DonationFormProps> = ({
               className="flex-1"
               disabled={isProcessing}
             >
-              {isProcessing ? 'Processing...' : `Donate {formData.amount.toLocaleString()} ${getCurrentCurrency().symbol}`}
+              {isProcessing ? 'Processing...' : `Donate ${formData.amount.toLocaleString()} ${getCurrentCurrency().symbol}`}
             </Button>
           </div>
 

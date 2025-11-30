@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { signInWithEmail } from '../../lib/supabase';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import { warnInsecurePasswordFields, validateFormSecurity } from '../../utils/securityUtils';
 
 interface LoginFormProps {
   onLogin: (user: User) => void;
@@ -13,8 +14,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Warn about insecure password fields in development
+  useEffect(() => {
+    warnInsecurePasswordFields('LoginForm');
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate security before proceeding
+    if (!validateFormSecurity('Login Form')) {
+      setError('Cannot submit login form on insecure connection. Please use HTTPS.');
+      return;
+    }
+    
     setIsLoggingIn(true);
     setError(null);
 

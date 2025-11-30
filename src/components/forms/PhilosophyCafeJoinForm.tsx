@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import FormField from '../ui/FormField';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { useToast } from '../../hooks/useToast';
 import { submitPhilosophyCafeApplication } from '../../lib/supabase';
+import { directValueHandler } from '../../utils/safeEventHandlers';
 
 interface PhilosophyCafeFormData {
   firstName: string;
@@ -48,6 +49,10 @@ const PhilosophyCafeJoinForm = () => {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
+
+  // Create safe change handlers for each field using utilities
+  const createFieldHandler = (field: keyof PhilosophyCafeFormData) => 
+    directValueHandler(handleInputChange, field);
 
   const handleCheckboxChange = (field: string, value: string, checked: boolean) => {
     setFormData(prev => {
@@ -197,7 +202,7 @@ const PhilosophyCafeJoinForm = () => {
             label="First Name"
             type="text"
             value={formData.firstName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('firstName', e.target.value)}
+            onChange={createFieldHandler('firstName')}
             placeholder="Your first name"
             required
             error={errors.firstName}
@@ -206,7 +211,7 @@ const PhilosophyCafeJoinForm = () => {
             label="Last Name"
             type="text"
             value={formData.lastName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('lastName', e.target.value)}
+            onChange={createFieldHandler('lastName')}
             placeholder="Your last name"
             required
             error={errors.lastName}
@@ -218,7 +223,7 @@ const PhilosophyCafeJoinForm = () => {
             label="Email Address"
             type="email"
             value={formData.email}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
+            onChange={createFieldHandler('email')}
             placeholder="your.email@example.com"
             required
             error={errors.email}
@@ -227,7 +232,7 @@ const PhilosophyCafeJoinForm = () => {
             label="Phone/WhatsApp"
             type="tel"
             value={formData.phone}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('phone', e.target.value)}
+            onChange={createFieldHandler('phone')}
             placeholder="+250 ... or your country code"
             required
             error={errors.phone}
@@ -239,7 +244,7 @@ const PhilosophyCafeJoinForm = () => {
             label="Age"
             type="number"
             value={formData.age}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('age', e.target.value)}
+            onChange={createFieldHandler('age')}
             placeholder="Your age"
             min="13"
             max="25"
@@ -250,7 +255,7 @@ const PhilosophyCafeJoinForm = () => {
             label="School Grade/Class"
             type="text"
             value={formData.schoolGrade}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('schoolGrade', e.target.value)}
+            onChange={createFieldHandler('schoolGrade')}
             placeholder="e.g., S6, University Year 1"
           />
         </div>
@@ -260,7 +265,7 @@ const PhilosophyCafeJoinForm = () => {
           label="Previous Philosophy Experience"
           type="textarea"
           value={formData.previousExperience}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange('previousExperience', e.target.value)}
+          onChange={createFieldHandler('previousExperience')}
           placeholder="Have you participated in philosophy discussions before? Any background in philosophy or related subjects?"
           rows={3}
         />
@@ -270,7 +275,7 @@ const PhilosophyCafeJoinForm = () => {
           label="Why do you want to join Philosophy Cafe?"
           type="textarea"
           value={formData.whyJoin}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange('whyJoin', e.target.value)}
+          onChange={createFieldHandler('whyJoin')}
           placeholder="What interests you about philosophical discussions? What do you hope to gain from participating?"
           required
           rows={4}
@@ -302,7 +307,7 @@ const PhilosophyCafeJoinForm = () => {
           label="Questions or Comments"
           type="textarea"
           value={formData.questions}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange('questions', e.target.value)}
+          onChange={createFieldHandler('questions')}
           placeholder="Any questions about the Philosophy Cafe or special accommodations needed?"
           rows={3}
         />
@@ -313,7 +318,7 @@ const PhilosophyCafeJoinForm = () => {
             label="I consent to BENIRAGE collecting and processing my personal information for Philosophy Cafe participation."
             type="checkbox"
             value={formData.dataConsent}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('dataConsent', e.target.checked)}
+            onChange={createFieldHandler('dataConsent')}
             required
             error={errors.dataConsent}
           />
@@ -322,7 +327,7 @@ const PhilosophyCafeJoinForm = () => {
             label="I agree to follow BENIRAGE's community guidelines and participate respectfully in philosophical discussions."
             type="checkbox"
             value={formData.termsAccepted}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('termsAccepted', e.target.checked)}
+            onChange={createFieldHandler('termsAccepted')}
             required
             error={errors.termsAccepted}
           />

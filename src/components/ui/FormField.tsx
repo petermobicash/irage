@@ -1,5 +1,6 @@
 import React from 'react';
 
+// Enhanced FormField with better error handling for event.target issues
 interface FormFieldProps {
   label: string;
   type: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'number' | 'password' | 'color';
@@ -36,15 +37,45 @@ const FormField: React.FC<FormFieldProps> = ({
   } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`;
 
   const renderInput = () => {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-      if (e && e.target) {
-        onChange(e.target.value as string | number | boolean);
+    // Enhanced handleChange with robust error checking
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | any) => {
+      try {
+        // More comprehensive check for event object
+        if (!e || !e.target || typeof e.target !== 'object') {
+          console.warn('FormField: Invalid event object in handleChange', e);
+          return;
+        }
+
+        let newValue: string | number | boolean = e.target.value;
+        
+        // Handle number inputs safely
+        if (type === 'number' && e.target.value) {
+          const parsed = parseFloat(e.target.value);
+          newValue = isNaN(parsed) ? 0 : parsed;
+        }
+        
+        // Call onChange with safe value
+        if (typeof onChange === 'function') {
+          onChange(newValue);
+        }
+      } catch (err) {
+        console.error('FormField: Error in handleChange:', err);
       }
     };
 
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e && e.target) {
-        onChange(e.target.checked);
+    // Enhanced handleCheckboxChange with better error handling
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
+      try {
+        if (!e || !e.target || typeof e.target !== 'object') {
+          console.warn('FormField: Invalid event object in handleCheckboxChange', e);
+          return;
+        }
+        
+        if (typeof onChange === 'function') {
+          onChange(e.target.checked);
+        }
+      } catch (err) {
+        console.error('FormField: Error in handleCheckboxChange:', err);
       }
     };
 

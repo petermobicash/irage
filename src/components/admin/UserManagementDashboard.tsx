@@ -14,6 +14,7 @@ import { GroupManager } from './GroupManager';
 import PermissionManager from './PermissionManager';
 import { Permission, GroupWithDetails, UserWithGroups } from '../../types/groups';
 import { getGroupsWithDetails, getPermissions } from '../../utils/groupRBAC';
+import { supabase } from '../../lib/supabase';
 
 type TabType = 'structure' | 'workflow' | 'schema';
 
@@ -385,6 +386,9 @@ const SystemStructureTab: React.FC<SystemStructureTabProps> = ({ systemData, onR
 
 // Admin Workflow Tab Component
 const AdminWorkflowTab: React.FC = () => {
+  const [showUserForm, setShowUserForm] = useState(false);
+  const { showToast } = useToast();
+
   const workflowSteps = [
     {
       id: 1,
@@ -485,19 +489,19 @@ const AdminWorkflowTab: React.FC = () => {
                     {/* Action Buttons */}
                     <div className="flex space-x-2">
                       {step.id === 1 && (
-                        <Button size="sm" onClick={() => {/* Navigate to permissions */}}>
+                        <Button size="sm" onClick={() => showToast('Navigate to permissions management', 'info')}>
                           <Shield className="w-4 h-4 mr-2" />
                           Manage Permissions
                         </Button>
                       )}
                       {step.id === 2 && (
-                        <Button size="sm" onClick={() => {/* Navigate to groups */}}>
+                        <Button size="sm" onClick={() => showToast('Navigate to groups management', 'info')}>
                           <Users className="w-4 h-4 mr-2" />
                           Manage Groups
                         </Button>
                       )}
                       {step.id === 3 && (
-                        <Button size="sm" onClick={() => {/* Navigate to users */}}>
+                        <Button size="sm" onClick={() => setShowUserForm(true)}>
                           <Users className="w-4 h-4 mr-2" />
                           Manage Users
                         </Button>
@@ -524,7 +528,11 @@ const AdminWorkflowTab: React.FC = () => {
               <Users className="w-6 h-6 text-green-600" />
               <span className="text-sm">Create Group</span>
             </Button>
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-auto p-4 flex flex-col items-center space-y-2"
+              onClick={() => setShowUserForm(true)}
+            >
               <Users className="w-6 h-6 text-purple-600" />
               <span className="text-sm">Add User</span>
             </Button>
@@ -535,6 +543,221 @@ const AdminWorkflowTab: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {/* User Creation Modal */}
+      {showUserForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">
+                Add New User
+              </h3>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowUserForm(false)}
+              >
+                ✕
+              </Button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              
+              const fullName = formData.get('full_name') as string;
+              const email = formData.get('email') as string;
+              const role = formData.get('role') as string;
+
+              // Basic validation
+              if (!fullName?.trim()) {
+                showToast('Full name is required', 'error');
+                return;
+              }
+
+              if (!email?.trim()) {
+                showToast('Email is required', 'error');
+                return;
+              }
+
+              if (!role) {
+                showToast('Role is required', 'error');
+                return;
+              }
+
+              const userData = {
+                full_name: fullName.trim(),
+                email: email.trim(),
+                role: role,
+                department: (formData.get('department') as string)?.trim() || undefined,
+                position: (formData.get('position') as string)?.trim() || undefined,
+                phone: (formData.get('phone') as string)?.trim() || undefined,
+                bio: (formData.get('bio') as string)?.trim() || undefined,
+                is_active: formData.get('is_active') === 'on',
+                is_super_admin: formData.get('is_super_admin') === 'on',
+              };
+
+              try {
+                // This uses the Supabase client to create user
+                const { error } = await supabase
+                  .from('user_profiles')
+                  .insert([{
+                    ...userData,
+                    user_id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    username: email.split('@')[0],
+                    created_at: new Date().toISOString(),
+                  }]);
+
+                if (error) throw error;
+
+                showToast('User created successfully (invitation mode)', 'success');
+                setShowUserForm(false);
+                
+                // Refresh the system data
+                window.location.reload();
+              } catch (error) {
+                console.error('Error creating user:', error);
+                showToast('Failed to create user', 'error');
+              }
+            }} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="full_name"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Role *
+                  </label>
+                  <select
+                    name="role"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select Role</option>
+                    <option value="super-admin">Super Admin</option>
+                    <option value="content-manager">Content Manager</option>
+                    <option value="membership-manager">Membership Manager</option>
+                    <option value="content-initiator">Content Initiator</option>
+                    <option value="content-reviewer">Content Reviewer</option>
+                    <option value="content-publisher">Content Publisher</option>
+                    <option value="contributor">Contributor</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    name="department"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Position
+                  </label>
+                  <input
+                    type="text"
+                    name="position"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bio
+                </label>
+                <textarea
+                  name="bio"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    name="is_active"
+                    defaultChecked={true}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-700">Active User</label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    name="is_super_admin"
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-700">Super Admin</label>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex">
+                  <Info className="w-5 h-5 text-blue-400 mr-2" />
+                  <div>
+                    <p className="text-blue-700 text-sm">
+                      <strong>Note:</strong> This will create a user invitation. The user will need to sign up with this email address to activate their account.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowUserForm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Create User
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

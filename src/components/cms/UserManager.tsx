@@ -385,11 +385,15 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 Form submitted with data:', formData);
 
     if (!formData.name || !formData.email) {
+      console.error('❌ Validation failed: missing name or email');
       showToast('Name and email are required', 'error');
       return;
     }
+
+    console.log('✅ Validation passed, starting user creation...');
 
     try {
       if (editingId) {
@@ -1216,18 +1220,35 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600 mt-1">
-            {activeTab === 'users'
-              ? `Manage users, groups, and permissions (${filteredUsers.length} users)`
-              : 'Manage groups, permissions, and access control'
-            }
-          </p>
-        </div>
+    <div className="relative">
+      {/* Background Image Overlay - Home Page Style */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{
+          backgroundImage: 'url(/benirage.jpeg)',
+          backgroundPosition: 'center'
+        }}
+      ></div>
+      
+      {/* Gradient Overlay - Home Page Colors */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[#0A3D5C]/95 via-[#0D4A6B]/95 to-[#0A3D5C]/95"></div>
+      
+      {/* Additional Gradient Overlay for Better Readability */}
+      <div className="fixed inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+      {/* Content Container */}
+      <div className="relative z-10 space-y-6">
+        {/* Enhanced Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">User Management</h1>
+            <p className="text-gray-300 mt-1">
+              {activeTab === 'users'
+                ? `Manage users, groups, and permissions (${filteredUsers.length} users)`
+                : 'Manage groups, permissions, and access control'
+              }
+            </p>
+          </div>
         <div className="flex items-center gap-2">
           {selectedUsers.length > 0 && (
             <div className="flex items-center gap-2 mr-4">
@@ -1985,6 +2006,7 @@ const UserManager: React.FC<UserManagerProps> = ({ currentUser }) => {
           }}
         />
       )}
+      </div>
     </div>
   );
 };

@@ -387,12 +387,12 @@ const Stories = () => {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="content-container text-center">
             <div className="text-4xl lg:text-5xl mb-4 lg:mb-6 animate-fade-in-up">📖</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-4 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Storytelling & <span className="text-yellow-400">Oral History</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-gray-200 mb-8 animate-fade-in-up animation-delay-200">
               Share and discover the rich tapestry of stories that connect us to our heritage,
               wisdom, and shared human experience. Every voice matters in preserving our cultural legacy.
             </p>
@@ -436,7 +436,7 @@ const Stories = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="content-container py-8">
 
         {/* Browse Stories Tab */}
         {activeTab === 'browse' && (
@@ -629,8 +629,8 @@ const Stories = () => {
         {activeTab === 'featured' && (
           <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">⭐ Featured Stories</h2>
-              <p className="text-xs lg:text-sm text-gray-600">
+              <h2 className="content-section-header">⭐ Featured Stories</h2>
+              <p className="content-body-text text-gray-600">
                 Discover our community's most inspiring and cherished stories
               </p>
             </div>
@@ -716,7 +716,7 @@ const Stories = () => {
         {activeTab === 'submit' && (
           <Card className="max-w-4xl mx-auto bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500">
             <div className="p-4 lg:p-6">
-              <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6 text-center">
+              <h2 className="content-section-header text-center">
                 🌟 Share Your Story
               </h2>
               <p className="text-xs lg:text-sm text-gray-600 text-center mb-8">

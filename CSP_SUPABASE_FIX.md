@@ -19,7 +19,7 @@ Content-Security-Policy: The page's settings blocked the loading of a resource (
 #### 1. Updated `public/_headers` (Line 9)
 **Before:**
 ```
-Content-Security-Policy: ... connect-src 'self' https://sshguczouozvsdwzfcbx.supabase.co wss://sshguczouozvsdwzfcbx.supabase.co https://fjhqjsbnumcxkbirlrxj.supabase.co wss://fjhqjsbnumcxkbirlrxj.supabase.co https://dummy.supabase.co; ...
+Content-Security-Policy: ... connect-src 'self' https://sshguczouozvsdwzfcbx.supabase.co wss://sshguczouozvsdwzfcbx.supabase.co; ...
 ```
 
 **After:**

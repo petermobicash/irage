@@ -9,6 +9,7 @@ import {
   MtnPaymentData
 } from '../types/payment';
 import mtnPaymentService from './mtnPaymentService';
+import flutterwavePaymentService from './flutterwavePaymentService';
 
 // Payment provider configurations
 const PAYMENT_PROVIDERS = {
@@ -124,41 +125,51 @@ class PaymentService {
    */
   async processMobileMoneyPayment(paymentData: PaymentData, donationId: string): Promise<PaymentResponse> {
     try {
+      if (!paymentData.mobileMoneyData?.phoneNumber) {
+        return {
+          success: false,
+          status: 'failed' as PaymentStatus,
+          error: 'Phone number is required for mobile money payments'
+        };
+      }
+
+      // Default network is MTN for Rwanda
+      const network = paymentData.mobileMoneyData.provider?.toUpperCase() || 'MTN';
+      
+      // Check if we're in sandbox mode and should simulate
       if (this.providers.flutterwave.sandbox) {
         return this.simulateMobileMoneyPayment(paymentData, donationId);
       }
 
-      const response = await fetch('/api/payments/flutterwave/mobile-money', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.providers.flutterwave.secretKey}`
+      // Use real Flutterwave integration
+      const customerEmail = 'donor@example.com'; // This should come from donation data
+      const customerName = 'Anonymous Donor';
+      
+      const result = await flutterwavePaymentService.processMobileMoneyPayment(
+        paymentData.amount,
+        paymentData.currency,
+        paymentData.mobileMoneyData.phoneNumber,
+        network,
+        {
+          email: customerEmail,
+          fullname: customerName
         },
-        body: JSON.stringify({
-          amount: paymentData.amount,
-          currency: paymentData.currency,
-          phone_number: paymentData.mobileMoneyData?.phoneNumber,
-          network: paymentData.mobileMoneyData?.provider,
-          email: paymentData.cardData?.holderName || 'donor@example.com',
-          tx_ref: donationId
-        })
-      });
+        donationId
+      );
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (result.success && result.response) {
         return {
           success: true,
-          paymentId: result.data.id,
-          status: result.data.status === 'successful' ? 'completed' : 'processing',
-          redirectUrl: result.data.link,
-          metadata: result.data
+          paymentId: result.response.data.id.toString(),
+          status: result.response.data.status === 'successful' ? 'completed' : 'processing',
+          redirectUrl: result.response.data.redirect_url,
+          metadata: result.response.data as unknown as Record<string, string | number | boolean | null | undefined>
         };
       } else {
         return {
           success: false,
           status: 'failed' as PaymentStatus,
-          error: result.message
+          error: result.error || 'Mobile money payment failed'
         };
       }
     } catch (error) {
@@ -272,48 +283,73 @@ class PaymentService {
     * Simulate card payment for sandbox testing
     */
    private simulateCardPayment(paymentData: PaymentData): PaymentResponse {
-    // Simulate different card scenarios for testing
-    const cardNumber = paymentData.cardData?.cardNumber || '';
+     // Simulate different card scenarios for testing
+     const cardNumber = paymentData.cardData?.cardNumber || '';
 
-    if (cardNumber.endsWith('0000')) {
-      // Simulate failure
-      return {
-        success: false,
-        status: 'failed',
-        error: 'Card declined - insufficient funds'
-      };
-    }
+     if (cardNumber.endsWith('0000')) {
+       // Simulate failure
+       return {
+         success: false,
+         status: 'failed',
+         error: 'Card declined - insufficient funds'
+       };
+     }
 
-    return {
-      success: true,
-      paymentId: `sim_card_${Date.now()}`,
-      status: 'completed',
-      metadata: {
-        provider: 'stripe',
-        sandbox: true,
-        amount: paymentData.amount,
-        currency: paymentData.currency
-      }
-    };
-  }
+     return {
+       success: true,
+       paymentId: `sim_card_${Date.now()}`,
+       status: 'completed',
+       metadata: {
+         provider: 'stripe',
+         sandbox: true,
+         amount: paymentData.amount,
+         currency: paymentData.currency
+       }
+     };
+   }
 
   /**
     * Simulate mobile money payment for sandbox testing
     */
    private simulateMobileMoneyPayment(paymentData: PaymentData, donationId: string): PaymentResponse {
-    return {
-      success: true,
-      paymentId: `sim_mm_${Date.now()}`,
-      status: 'processing',
-      redirectUrl: `https://sandbox.flutterwave.com/pay/${donationId}`,
-      metadata: {
-        provider: 'flutterwave',
-        sandbox: true,
-        phoneNumber: paymentData.mobileMoneyData?.phoneNumber,
-        mobileProvider: paymentData.mobileMoneyData?.provider
-      }
-    };
-  }
+     // Simulate different scenarios for testing
+     const phoneNumber = paymentData.mobileMoneyData?.phoneNumber || '';
+
+     // Simulate failure for specific test numbers
+     if (phoneNumber.endsWith('0000')) {
+       return {
+         success: false,
+         status: 'failed',
+         error: 'Insufficient funds (sandbox simulation)'
+       };
+     }
+
+     // Simulate timeout for specific test numbers
+     if (phoneNumber.endsWith('9999')) {
+       return {
+         success: false,
+         status: 'cancelled',
+         error: 'Payment timeout (sandbox simulation)'
+       };
+     }
+
+     return {
+       success: true,
+       paymentId: `sim_mm_${Date.now()}`,
+       status: 'processing',
+       redirectUrl: `https://sandbox.flutterwave.com/pay/${donationId}`,
+       metadata: {
+         provider: 'flutterwave',
+         sandbox: true,
+         phoneNumber: phoneNumber,
+         mobileProvider: paymentData.mobileMoneyData?.provider,
+         amount: paymentData.amount,
+         currency: paymentData.currency,
+         donationId: donationId,
+         message: 'Mobile money payment initiated successfully (sandbox mode)'
+       }
+     };
+   }
 
   /**
     * Simulate MTN payment for sandbox testing
@@ -360,18 +396,18 @@ class PaymentService {
     * Simulate bank transfer payment for sandbox testing
     */
    private simulateBankTransferPayment(paymentData: PaymentData): PaymentResponse {
-    return {
-      success: true,
-      paymentId: `sim_bt_${Date.now()}`,
-      status: 'processing',
-      metadata: {
-        provider: 'flutterwave',
-        sandbox: true,
-        bankName: paymentData.bankTransferData?.bankName,
-        accountNumber: paymentData.bankTransferData?.accountNumber
-      }
-    };
-  }
+     return {
+       success: true,
+       paymentId: `sim_bt_${Date.now()}`,
+       status: 'processing',
+       metadata: {
+         provider: 'flutterwave',
+         sandbox: true,
+         bankName: paymentData.bankTransferData?.bankName,
+         accountNumber: paymentData.bankTransferData?.accountNumber
+       }
+     };
+   }
 
   /**
    * Verify payment status

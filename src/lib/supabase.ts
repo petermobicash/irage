@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { websocketManager, isWebSocketAvailable, getConnectionStatus } from '../utils/websocketManager';
 
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -13,18 +14,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create Supabase client with improved error handling and CORS support
-export const supabase = createClient(supabaseUrl || 'https://dummy.supabase.co', supabaseAnonKey || 'dummy-key', {
+export const supabase = createClient(supabaseUrl || 'https://sshguczouozvsdwzfcbx.supabase.co', supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzaGd1Y3pvdW96dnNkd3pmY2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0Nzk2ODEsImV4cCI6MjA3OTA1NTY4MX0.ooh5NGBqv6U0MLcwvURzcf-DVx_qvpYobdjy-ukpKbw', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'pkce' // Enhanced security flow
   },
   db: {
     schema: 'public'
   },
   global: {
     headers: {
-      'X-Client-Info': 'benirage-website'
+      'X-Client-Info': 'benirage-website',
+      'X-WebSocket-Version': '1.0.0'
     }
   },
   // Enhanced configuration for better CORS and network handling
@@ -34,11 +37,106 @@ export const supabase = createClient(supabaseUrl || 'https://dummy.supabase.co',
     },
     realtime: {
       params: {
-        eventsPerSecond: 10
+        eventsPerSecond: 5, // Reduced from 10 to prevent overload
+        heartbeatIntervalMs: 10000,
+        reconnectAfterMs: 1000
       }
     }
   } : {})
 });
+
+// Enhanced connection check with WebSocket status
+export const checkSupabaseConnectionWithWebSocket = async () => {
+  try {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return {
+        connected: false,
+        websocketConnected: false,
+        message: 'Supabase credentials not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.'
+      };
+    }
+
+    // Test database connection
+    const { error: dbError } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+
+    // Test WebSocket connection
+    const websocketConnected = isWebSocketAvailable();
+    
+    if (dbError) {
+      return {
+        connected: false,
+        websocketConnected,
+        message: `Database connection failed: ${dbError.message}. Make sure you've run the migration script.`
+      };
+    }
+
+    return {
+      connected: true,
+      websocketConnected,
+      message: websocketConnected 
+        ? 'Successfully connected to Supabase database and realtime!'
+        : 'Successfully connected to Supabase database, but realtime is unavailable.'
+    };
+  } catch (error: unknown) {
+    return {
+      connected: false,
+      websocketConnected: false,
+      message: `Connection error: ${error && typeof error === 'object' && 'message' in error ? error.message : error}`
+    };
+  }
+};
+
+// Get comprehensive connection status
+export const getFullConnectionStatus = () => {
+  const stats = getConnectionStatus();
+  return {
+    ...stats,
+    isConnected: websocketManager.isConnected(),
+    isConnecting: websocketManager.isConnecting(),
+    lastChecked: new Date().toISOString()
+  };
+};
+
+// Enhanced real-time subscription with robust error handling
+export const subscribeToTableWithRetry = (
+  table: string,
+  callback: (payload: unknown) => void,
+  filter?: string
+) => {
+  const channel = supabase.channel(`table-${table}-${Date.now()}`);
+  
+  channel.on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: table,
+      ...(filter ? { filter } : {})
+    },
+    callback
+  ).subscribe(async (status) => {
+    console.log(`📡 WebSocket subscription status for ${table}:`, status);
+    
+    if (status === 'CHANNEL_ERROR') {
+      console.error(`❌ WebSocket subscription error for ${table}`);
+      // Attempt to resubscribe with retry logic
+      try {
+        await websocketManager.reconnect();
+      } catch (error) {
+        console.error(`❌ Failed to reconnect to ${table}:`, error);
+      }
+    } else if (status === 'SUBSCRIBED') {
+      console.log(`✅ Successfully subscribed to ${table} changes`);
+    } else if (status === 'TIMED_OUT') {
+      console.warn(`⏰ WebSocket subscription timed out for ${table}`);
+    }
+  });
+  
+  return {
+    unsubscribe: () => supabase.removeChannel(channel),
+    channel
+  };
+};
 
 // Database types for TypeScript
 export interface Database {

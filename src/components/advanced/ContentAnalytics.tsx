@@ -96,28 +96,45 @@ const ContentAnalytics: React.FC<ContentAnalyticsProps> = ({ contentId }) => {
     loadAnalytics();
   }, [loadAnalytics]);
 
-  const recordView = async () => {
+  const recordView = useCallback(async () => {
     try {
-      // Temporarily disable analytics tracking to prevent errors
-      // Uncomment the lines below if you want to enable analytics for admin/editor users
-      /*
-      await supabase.rpc('update_content_analytics', {
-        p_content_id: contentId,
-        p_views_increment: 1,
-        p_engagement_increment: 0
-      });
-      */
-      console.log('Analytics tracking disabled to prevent permission errors');
-    } catch (error: unknown) {
-      console.error('Error recording view:', error);
-      // Don't show error to user for analytics failures
+      // Try to record analytics with proper error handling
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Insert analytics record directly to avoid RPC permission issues
+        await supabase
+          .from('content_analytics')
+          .insert([{
+            content_id: contentId,
+            user_id: user.id,
+            metric_type: 'view',
+            metric_value: 1,
+            recorded_at: new Date().toISOString()
+          }]);
+      } else {
+        // Record anonymous view
+        await supabase
+          .from('content_analytics')
+          .insert([{
+            content_id: contentId,
+            metric_type: 'view',
+            metric_value: 1,
+            recorded_at: new Date().toISOString()
+          }]);
+      }
+      
+      console.log('Analytics view recorded successfully');
+    } catch {
+      console.log('Analytics tracking unavailable (likely due to permissions)');
+      // Silently fail - don't disrupt user experience for analytics issues
     }
-  };
+  }, [contentId]);
 
   useEffect(() => {
     // Record view when component mounts
     recordView();
-  }, [contentId]);
+  }, [contentId, recordView]);
 
   if (loading) {
     return (

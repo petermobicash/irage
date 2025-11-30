@@ -22,7 +22,8 @@ import { useToast } from './hooks/useToast';
 
 // Configuration
 import { BREAKPOINTS, TIMING } from './config/app.config';
-import { publicRoutes, cmsRoute, LoadingFallback } from './config/routes.config';
+import { publicRoutes, cmsRoute } from './config/routes.config.constants';
+import { LoadingFallback } from './config/routes.config';
 
 /**
  * Main App Component

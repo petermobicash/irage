@@ -60,39 +60,6 @@ const impactStats = [
   { number: "95%", label: "Program Success Rate", icon: TrendingUp }
 ];
 
-const donationImpactExamples = [
-  {
-    amount: 25,
-    impact: "Provides school supplies for one child for a month",
-    icon: "📚"
-  },
-  {
-    amount: 50,
-    impact: "Supports a family with clean water access for one week",
-    icon: "💧"
-  },
-  {
-    amount: 100,
-    impact: "Funds a complete traditional craft training workshop",
-    icon: "🎨"
-  },
-  {
-    amount: 250,
-    impact: "Sponsors a child's education for one semester",
-    icon: "🎓"
-  },
-  {
-    amount: 500,
-    impact: "Establishes a community health education program",
-    icon: "🏥"
-  },
-  {
-    amount: 1000,
-    impact: "Builds infrastructure for cultural preservation center",
-    icon: "🏛️"
-  }
-];
-
 const Donate = () => {
   const [formData, setFormData] = useState({
     // Donor Information
@@ -512,32 +479,13 @@ const Donate = () => {
               />
             </div>
 
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-blue-900">Choose Your Impact</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[25, 50, 100, 250, 500, 1000, 2500, 5000].map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    onClick={() => handleInputChange('amount', amount.toString())}
-                    className={`p-4 border-2 rounded-xl font-semibold transition-all duration-300 hover:scale-105 ${
-                      formData.amount === amount.toString()
-                        ? 'border-yellow-500 bg-yellow-50 text-yellow-600 shadow-md'
-                        : 'border-gray-300 hover:border-yellow-500 hover:bg-yellow-50 text-blue-900'
-                    }`}
-                  >
-                    ${amount}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             <div>
               <label htmlFor="customAmount" className="block text-sm font-medium text-blue-900 mb-2">
                 Custom Amount *
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                 <input
                   type="number"
                   id="customAmount"
@@ -1063,7 +1011,7 @@ const Donate = () => {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-5xl mx-auto">
+          <div className="content-container text-center">
             <div className="flex justify-center mb-6 animate-fade-in-up">
               <div className="relative">
                 <Heart
@@ -1077,12 +1025,12 @@ const Donate = () => {
               </div>
             </div>
             
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 leading-tight animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Transform Lives in
               <span className="block text-yellow-400">Rwanda Today</span>
             </h1>
             
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-gray-200 mb-8 animate-fade-in-up animation-delay-200">
               Every donation creates lasting change. Support education, preserve culture, and build stronger communities.
               <span className="block mt-2 text-xs lg:text-sm text-yellow-200">95% of your gift goes directly to programs that matter.</span>
             </p>
@@ -1223,39 +1171,7 @@ const Donate = () => {
         </div>
       </Section>
 
-      {/* Donation Impact Examples */}
-      <Section className="py-20 bg-white" data-section="impact">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
-              Your Donation in Action
-            </h2>
-            <p className="text-xs lg:text-sm text-gray-700 max-w-3xl mx-auto">
-              See exactly how your contribution makes a real difference in people's lives
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Donation impact examples">
-            {donationImpactExamples.map((example, index) => (
-              <Card
-                key={index}
-                className="p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-yellow-400"
-                
-              >
-                <div className="text-center">
-                  <div className="text-4xl mb-4" role="img" aria-label={`Impact icon for $${example.amount} donation`}>
-                    {example.icon}
-                  </div>
-                  <h3 className="text-2xl font-bold text-dark-blue mb-2" aria-label={`$${example.amount} donation`}>
-                    ${example.amount}
-                  </h3>
-                  <p className="text-xs lg:text-sm text-gray-700 font-medium">{example.impact}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Section>
 
       {/* Enhanced Donation Form */}
       <Section id="donation-form" className="py-20 bg-gradient-to-b from-blue-50 to-white">

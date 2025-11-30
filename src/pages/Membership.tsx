@@ -1,63 +1,119 @@
 import React, { useState } from 'react';
 import { submitMembershipApplication } from '../lib/supabase';
 import { Users, Heart, Shield } from 'lucide-react';
-import Section from '../components/ui/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ImageUpload from '../components/ui/ImageUpload';
 import { NATIONALITIES } from '../utils/nationalities';
 
+// Define proper type for submission data (matching database schema)
+interface MembershipSubmissionData {
+  first_name: string;
+  last_name: string;
+  father_name?: string | null;
+  mother_name?: string | null;
+  email: string;
+  phone: string;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  nationality?: string | null;
+  marital_status?: string | null;
+  country?: string | null;
+  district?: string | null;
+  sector?: string | null;
+  cell?: string | null;
+  village?: string | null;
+  postal_code?: string | null;
+  occupation?: string | null;
+  education?: string | null;
+  organization?: string | null;
+  work_experience?: string | null;
+  languages?: Record<string, unknown>;
+  english_level?: string | null;
+  french_level?: string | null;
+  kinyarwanda_level?: string | null;
+  other_languages?: string | null;
+  interests?: Record<string, unknown>;
+  other_interests?: string | null;
+  why_join?: string | null;
+  skills?: Record<string, unknown>;
+  other_skills?: string | null;
+  financial_support?: Record<string, unknown>;
+  time_commitment?: string | null;
+  membership_category?: string | null;
+  reference1_name?: string | null;
+  reference1_contact?: string | null;
+  reference1_relationship?: string | null;
+  reference2_name?: string | null;
+  reference2_contact?: string | null;
+  reference2_relationship?: string | null;
+  data_consent?: boolean;
+  terms_accepted?: boolean;
+  code_of_conduct_accepted?: boolean;
+  communication_consent?: boolean;
+  status?: string;
+}
+
+// Helper function to create empty form data
+const createEmptyFormData = () => ({
+  firstName: '',
+  lastName: '',
+  fatherName: '',
+  motherName: '',
+  email: '',
+  phone: '',
+  gender: '',
+  dateOfBirth: '',
+  nationality: '',
+  maritalStatus: '',
+  country: '',
+  district: '',
+  sector: '',
+  cell: '',
+  village: '',
+  postalCode: '',
+  occupation: '',
+  education: '',
+  organization: '',
+  workExperience: '',
+  languages: [] as string[],
+  englishLevel: '',
+  frenchLevel: '',
+  kinyarwandaLevel: '',
+  otherLanguages: '',
+  interests: [] as string[],
+  otherInterests: '',
+  whyJoin: '',
+  skills: [] as string[],
+  otherSkills: '',
+  financialSupport: [] as string[],
+  timeCommitment: '',
+  membershipCategory: '',
+  reference1Name: '',
+  reference1Contact: '',
+  reference1Relationship: '',
+  reference2Name: '',
+  reference2Contact: '',
+  reference2Relationship: '',
+  dataConsent: false,
+  termsAccepted: false,
+  codeOfConductAccepted: false,
+  communicationConsent: false,
+  profilePhoto: ''
+});
+
 const Membership = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    fatherName: '',
-    motherName: '',
-    email: '',
-    phone: '',
-    gender: '',
-    dateOfBirth: '',
-    nationality: '',
-    maritalStatus: '',
-    country: '',
-    district: '',
-    sector: '',
-    cell: '',
-    village: '',
-    postalCode: '',
-    occupation: '',
-    education: '',
-    organization: '',
-    workExperience: '',
-    languages: [] as string[],
-    englishLevel: '',
-    frenchLevel: '',
-    kinyarwandaLevel: '',
-    otherLanguages: '',
-    interests: [] as string[],
-    otherInterests: '',
-    whyJoin: '',
-    skills: [] as string[],
-    otherSkills: '',
-    financialSupport: [] as string[],
-    timeCommitment: '',
-    membershipCategory: '',
-    reference1Name: '',
-    reference1Contact: '',
-    reference1Relationship: '',
-    reference2Name: '',
-    reference2Contact: '',
-    reference2Relationship: '',
-    dataConsent: false,
-    termsAccepted: false,
-    codeOfConductAccepted: false,
-    communicationConsent: false,
-    profilePhoto: ''
-  });
+  const [formData, setFormData] = useState(createEmptyFormData());
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
+
+  // Helper function to reset form
+  const resetForm = () => {
+    setFormData(createEmptyFormData());
+    setCurrentStep(1);
+  };
 
   const handleInputChange = (field: string, value: string | string[] | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -126,77 +182,74 @@ const Membership = () => {
     setIsSubmitting(true);
 
     try {
-      const result = await submitMembershipApplication({
+      // Helper function to convert string array to Record format for database
+      const arrayToRecord = (arr: string[]): Record<string, unknown> => {
+        return arr.reduce((acc, item, index) => {
+          acc[index.toString()] = item;
+          return acc;
+        }, {} as Record<string, unknown>);
+      };
+
+      const submissionData: MembershipSubmissionData = {
         first_name: formData.firstName,
         last_name: formData.lastName,
-        father_name: formData.fatherName,
-        mother_name: formData.motherName,
+        father_name: formData.fatherName || null,
+        mother_name: formData.motherName || null,
         email: formData.email,
         phone: formData.phone,
-        gender: formData.gender,
-        date_of_birth: formData.dateOfBirth,
-        nationality: formData.nationality,
-        marital_status: formData.maritalStatus,
-        country: formData.country,
-        district: formData.district,
-        sector: formData.sector,
-        cell: formData.cell,
-        village: formData.village,
-        postal_code: formData.postalCode,
-        occupation: formData.occupation,
-        education: formData.education,
-        organization: formData.organization,
-        work_experience: formData.workExperience,
-        languages: formData.languages,
-        english_level: formData.englishLevel,
-        french_level: formData.frenchLevel,
-        kinyarwanda_level: formData.kinyarwandaLevel,
-        other_languages: formData.otherLanguages,
-        interests: formData.interests,
-        other_interests: formData.otherInterests,
-        why_join: formData.whyJoin,
-        skills: formData.skills,
-        other_skills: formData.otherSkills,
-        financial_support: formData.financialSupport,
-        time_commitment: formData.timeCommitment,
-        membership_category: formData.membershipCategory,
-        reference1_name: formData.reference1Name,
-        reference1_contact: formData.reference1Contact,
-        reference1_relationship: formData.reference1Relationship,
-        reference2_name: formData.reference2Name,
-        reference2_contact: formData.reference2Contact,
-        reference2_relationship: formData.reference2Relationship,
+        gender: formData.gender || null,
+        date_of_birth: formData.dateOfBirth || null,
+        nationality: formData.nationality || null,
+        marital_status: formData.maritalStatus || null,
+        country: formData.country || null,
+        district: formData.district || null,
+        sector: formData.sector || null,
+        cell: formData.cell || null,
+        village: formData.village || null,
+        postal_code: formData.postalCode || null,
+        occupation: formData.occupation || null,
+        education: formData.education || null,
+        organization: formData.organization || null,
+        work_experience: formData.workExperience || null,
+        languages: arrayToRecord(formData.languages),
+        english_level: formData.englishLevel || null,
+        french_level: formData.frenchLevel || null,
+        kinyarwanda_level: formData.kinyarwandaLevel || null,
+        other_languages: formData.otherLanguages || null,
+        interests: arrayToRecord(formData.interests),
+        other_interests: formData.otherInterests || null,
+        why_join: formData.whyJoin || null,
+        skills: arrayToRecord(formData.skills),
+        other_skills: formData.otherSkills || null,
+        financial_support: arrayToRecord(formData.financialSupport),
+        time_commitment: formData.timeCommitment || null,
+        membership_category: formData.membershipCategory || null,
+        reference1_name: formData.reference1Name || null,
+        reference1_contact: formData.reference1Contact || null,
+        reference1_relationship: formData.reference1Relationship || null,
+        reference2_name: formData.reference2Name || null,
+        reference2_contact: formData.reference2Contact || null,
+        reference2_relationship: formData.reference2Relationship || null,
         data_consent: formData.dataConsent,
         terms_accepted: formData.termsAccepted,
         code_of_conduct_accepted: formData.codeOfConductAccepted,
         communication_consent: formData.communicationConsent,
         status: 'pending'
-        
-      } as any);
+      };
+
+      const result = await submitMembershipApplication(submissionData);
 
       if (result.success) {
         alert('Thank you for joining BENIRAGE! Your membership application has been submitted successfully. We will review your application and contact you within 5-7 business days.');
 
         // Reset form
-        setFormData({
-          firstName: '', lastName: '', fatherName: '', motherName: '', email: '', phone: '', gender: '', dateOfBirth: '',
-          nationality: '', maritalStatus: '', country: '', district: '', sector: '', cell: '',
-          village: '', postalCode: '', occupation: '', education: '', organization: '',
-          workExperience: '', languages: [], englishLevel: '', frenchLevel: '', kinyarwandaLevel: '',
-          otherLanguages: '', interests: [], otherInterests: '', whyJoin: '', skills: [],
-          otherSkills: '', financialSupport: [], timeCommitment: '', membershipCategory: '',
-          reference1Name: '', reference1Contact: '', reference1Relationship: '', reference2Name: '',
-          reference2Contact: '', reference2Relationship: '', dataConsent: false, termsAccepted: false,
-          codeOfConductAccepted: false, communicationConsent: false, profilePhoto: ''
-        });
-        setCurrentStep(1);
+        resetForm();
       } else {
         throw new Error('Submission failed');
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Submission error:', error);
-      console.error('Full error details:', error);
 
       // Type guard to safely handle unknown error type
       const getErrorMessage = (err: unknown): string => {
@@ -213,13 +266,6 @@ const Membership = () => {
       };
 
       const errorMessage = getErrorMessage(error);
-      console.error('Detailed error information:', {
-        error,
-        errorType: typeof error,
-        errorMessage,
-        stack: error instanceof Error ? error.stack : 'No stack trace available'
-      });
-
       alert(`There was an error submitting your application: ${errorMessage}. Please try again or contact support.`);
     } finally {
       setIsSubmitting(false);
@@ -1181,12 +1227,12 @@ const Membership = () => {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="content-container text-center">
             <Users className="w-12 lg:w-16 h-12 lg:h-16 text-yellow-400 mx-auto mb-6 animate-fade-in-up" />
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Join <span className="text-yellow-400">BENIRAGE</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-gray-200 mb-8 animate-fade-in-up animation-delay-200">
               Become part of our transformative spiritual and cultural movement
             </p>
           </div>
@@ -1194,54 +1240,56 @@ const Membership = () => {
       </section>
 
       {/* Membership Benefits */}
-      <Section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-8">
+      <section className="content-section bg-white">
+        <div className="content-container text-center">
+          <h2 className="content-section-header">
             Membership Benefits
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center hover:scale-105 transition-transform">
-              <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3">
-                Spiritual Growth
-              </h3>
-              <p className="text-gray-600">
-                Access to exclusive spiritual programs, meditation sessions, and personal development resources
-              </p>
-            </Card>
+          <div className="content-card-content">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="text-center hover:scale-105 transition-transform">
+                <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="content-subsection">
+                  Spiritual Growth
+                </h3>
+                <p className="content-body-text text-gray-600">
+                  Access to exclusive spiritual programs, meditation sessions, and personal development resources
+                </p>
+              </Card>
 
-            <Card className="text-center hover:scale-105 transition-transform">
-              <Users className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3">
-                Community Connection
-              </h3>
-              <p className="text-gray-600">
-                Connect with like-minded individuals and build meaningful relationships within our community
-              </p>
-            </Card>
+              <Card className="text-center hover:scale-105 transition-transform">
+                <Users className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                <h3 className="content-subsection">
+                  Community Connection
+                </h3>
+                <p className="content-body-text text-gray-600">
+                  Connect with like-minded individuals and build meaningful relationships within our community
+                </p>
+              </Card>
 
-            <Card className="text-center hover:scale-105 transition-transform">
-              <Shield className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3">
-                Cultural Preservation
-              </h3>
-              <p className="text-gray-600">
-                Participate in preserving and celebrating Rwandan heritage and cultural traditions
-              </p>
-            </Card>
+              <Card className="text-center hover:scale-105 transition-transform">
+                <Shield className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                <h3 className="content-subsection">
+                  Cultural Preservation
+                </h3>
+                <p className="content-body-text text-gray-600">
+                  Participate in preserving and celebrating Rwandan heritage and cultural traditions
+                </p>
+              </Card>
+            </div>
           </div>
         </div>
-      </Section>
+      </section>
 
       {/* Membership Application Form */}
-      <Section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
+      <section className="content-section bg-gray-50">
+        <div className="content-container">
           <div className="text-center mb-12">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h2 className="content-section-header">
               Membership Application
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Join our community of spiritual seekers and cultural preservers
             </p>
           </div>
@@ -1294,13 +1342,13 @@ const Membership = () => {
                 <Shield className="w-5 h-5 text-green-600" />
                 <span className="font-medium text-green-800">Secure Application Process</span>
               </div>
-              <p className="text-sm text-green-700">
+              <p className="content-small-text text-green-700">
                 Your personal information is encrypted and securely stored. We respect your privacy and will only use your information for membership management and community communication.
               </p>
             </div>
           </Card>
         </div>
-      </Section>
+      </section>
     </div>
   );
 };

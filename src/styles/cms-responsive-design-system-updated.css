@@ -1,0 +1,1042 @@
+/* CMS Responsive Design System - Updated 2025
+ * Complete implementation of responsive design requirements
+ * Matches exact specifications for border radius, shadows, padding, colors, typography, and spacing
+ */
+
+/* ========================================
+   1. RESPONSIVE BREAKPOINTS & CONTAINERS
+   ======================================== */
+
+/* Container System with Fluid Width and Max-Constraints */
+.container-responsive {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  
+  /* Mobile: 320px - 767px */
+  @media (min-width: 320px) and (max-width: 767px) {
+    padding: 16px;
+    max-width: 100%;
+  }
+  
+  /* Tablet: 768px - 1023px */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    padding: 24px;
+    max-width: 768px;
+  }
+  
+  /* Desktop: 1024px+ */
+  @media (min-width: 1024px) {
+    padding: 32px;
+    max-width: 1200px;
+  }
+}
+
+/* Fluid Container for Full-Width Content */
+.container-fluid {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  
+  @media (min-width: 768px) {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  @media (min-width: 1024px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ========================================
+   2. CARD COMPONENT STANDARDIZATION
+   ======================================== */
+
+/* Base Card Styles - Exact specifications */
+.card-base {
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Modern Card with 12px Border Radius */
+.card-modern {
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Responsive Card Padding - Exact specifications */
+.card-padding {
+  /* Mobile: 320px - 767px */
+  @media (min-width: 320px) and (max-width: 767px) {
+    padding: 20px;
+  }
+  
+  /* Tablet: 768px - 1023px */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    padding: 24px;
+  }
+  
+  /* Desktop: 1024px+ */
+  @media (min-width: 1024px) {
+    padding: 32px;
+  }
+}
+
+/* Card Grid Responsive Layouts - Exact specifications */
+.card-grid {
+  display: grid;
+  gap: 16px;
+  
+  /* Mobile: Stack vertically, full width */
+  @media (min-width: 320px) and (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* Tablet: 2 columns */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  /* Desktop: 3-4 columns based on content */
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  
+  /* Large Desktop: 4 columns */
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card Hover States */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+  border-color: #CEB43C;
+}
+
+/* ========================================
+   3. TYPOGRAPHY STANDARDS - EXACT SPECIFICATIONS
+   ======================================== */
+
+/* Page Headers (H1) - Exact specifications */
+.page-header {
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a1d20;
+  
+  /* Mobile: 28px - 32px */
+  @media (min-width: 320px) and (max-width: 767px) {
+    font-size: 28px;
+  }
+  
+  /* Desktop: 36px - 48px */
+  @media (min-width: 1024px) {
+    font-size: clamp(36px, 4vw, 48px);
+  }
+}
+
+/* Section Headers (H2) - Exact specifications */
+.section-header {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #343a40;
+  
+  /* Mobile: 24px */
+  @media (min-width: 320px) and (max-width: 767px) {
+    font-size: 24px;
+  }
+  
+  /* Desktop: 32px */
+  @media (min-width: 1024px) {
+    font-size: 32px;
+  }
+}
+
+/* Card Titles (H3) - Exact specifications */
+.card-title {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #212529;
+  
+  /* Mobile: 18px - 20px */
+  @media (min-width: 320px) and (max-width: 767px) {
+    font-size: 18px;
+  }
+  
+  /* Desktop: 20px - 24px */
+  @media (min-width: 1024px) {
+    font-size: clamp(20px, 2.5vw, 24px);
+  }
+}
+
+/* Body Text - Exact specifications */
+.body-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6c757d;
+  font-weight: 400;
+  
+  @media (min-width: 1024px) {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+}
+
+/* Body Text Large */
+.body-text-lg {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #495057;
+  font-weight: 400;
+  
+  @media (min-width: 1024px) {
+    font-size: 18px;
+  }
+}
+
+/* ========================================
+   4. COLOR CONSISTENCY SYSTEM - EXACT SPECIFICATIONS
+   ======================================== */
+
+/* Primary Colors - Based on Tailwind config */
+.text-primary {
+  color: #05294B;
+}
+
+.text-secondary {
+  color: #6c757d;
+}
+
+.text-muted {
+  color: #adb5bd;
+}
+
+/* High contrast text for accessibility */
+.text-high-contrast {
+  color: #1a1d20; /* 15.3:1 contrast ratio on white */
+}
+
+.text-medium-contrast {
+  color: #495057; /* 7.3:1 contrast ratio on white */
+}
+
+/* Background Colors */
+.bg-primary {
+  background-color: #05294B;
+}
+
+.bg-secondary {
+  background-color: #CEB43C;
+}
+
+.bg-light {
+  background-color: #f8f9fa;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+/* Border Colors */
+.border-primary {
+  border-color: #05294B;
+}
+
+.border-secondary {
+  border-color: #CEB43C;
+}
+
+.border-light {
+  border-color: #e9ecef;
+}
+
+.border-muted {
+  border-color: #dee2e6;
+}
+
+/* Hover States - Consistent */
+.hover-primary:hover {
+  color: #04203a;
+  background-color: rgba(5, 41, 75, 0.05);
+}
+
+.hover-secondary:hover {
+  color: #a69230;
+  background-color: rgba(206, 180, 60, 0.1);
+}
+
+/* ========================================
+   5. SPACING SYSTEM - EXACT SCALE
+   ======================================== */
+
+/* Consistent Spacing Scale: 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px */
+.space-xs { margin: 4px; }
+.space-sm { margin: 8px; }
+.space-md { margin: 12px; }
+.space-lg { margin: 16px; }
+.space-xl { margin: 24px; }
+.space-2xl { margin: 32px; }
+.space-3xl { margin: 48px; }
+.space-4xl { margin: 64px; }
+
+/* Padding Utilities */
+.p-xs { padding: 4px; }
+.p-sm { padding: 8px; }
+.p-md { padding: 12px; }
+.p-lg { padding: 16px; }
+.p-xl { padding: 24px; }
+.p-2xl { padding: 32px; }
+.p-3xl { padding: 48px; }
+.p-4xl { padding: 64px; }
+
+/* Margin Utilities */
+.m-xs { margin: 4px; }
+.m-sm { margin: 8px; }
+.m-md { margin: 12px; }
+.m-lg { margin: 16px; }
+.m-xl { margin: 24px; }
+.m-2xl { margin: 32px; }
+.m-3xl { margin: 48px; }
+.m-4xl { margin: 64px; }
+
+/* Responsive Padding - Exact specifications */
+.p-responsive {
+  padding: 16px;
+  
+  @media (min-width: 768px) {
+    padding: 24px;
+  }
+  
+  @media (min-width: 1024px) {
+    padding: 32px;
+  }
+}
+
+/* Responsive Margin - Exact specifications */
+.m-responsive {
+  margin: 16px;
+  
+  @media (min-width: 768px) {
+    margin: 24px;
+  }
+  
+  @media (min-width: 1024px) {
+    margin: 32px;
+  }
+}
+
+/* Vertical Rhythm */
+.vertical-rhythm > * + * {
+  margin-top: 24px;
+}
+
+.vertical-rhythm-sm > * + * {
+  margin-top: 16px;
+}
+
+.vertical-rhythm-lg > * + * {
+  margin-top: 32px;
+}
+
+/* ========================================
+   6. RESPONSIVE IMAGES & MEDIA
+   ======================================== */
+
+.responsive-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+}
+
+.responsive-image-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Media Container */
+.media-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.media-container::before {
+  content: '';
+  display: block;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.media-container > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ========================================
+   7. RESPONSIVE GRID UTILITIES - EXACT SPECIFICATIONS
+   ======================================== */
+
+/* Responsive Grid - Exact specifications */
+.grid-responsive {
+  display: grid;
+  gap: 16px;
+  
+  /* Mobile: Single column */
+  @media (min-width: 320px) {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Tablet: 2 columns */
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  /* Desktop: 3-4 columns */
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  
+  /* Large Desktop: 4 columns */
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Flexbox Responsive Utilities */
+.flex-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.flex-responsive > * {
+  flex: 1 1 100%;
+  
+  @media (min-width: 768px) {
+    flex: 1 1 calc(50% - 8px);
+  }
+  
+  @media (min-width: 1024px) {
+    flex: 1 1 calc(33.333% - 16px);
+  }
+}
+
+/* ========================================
+   8. TOUCH TARGETS (MOBILE ACCESSIBILITY) - EXACT SPECIFICATIONS
+   ======================================== */
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.touch-target-sm {
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* ========================================
+   9. RESPONSIVE HIDING/SHOWING
+   ======================================== */
+
+.hide-mobile {
+  @media (max-width: 767px) {
+    display: none !important;
+  }
+}
+
+.hide-tablet {
+  @media (min-width: 768px) and (max-width: 1023px) {
+    display: none !important;
+  }
+}
+
+.hide-desktop {
+  @media (min-width: 1024px) {
+    display: none !important;
+  }
+}
+
+.show-mobile {
+  display: none;
+  @media (max-width: 767px) {
+    display: block !important;
+  }
+}
+
+.show-tablet {
+  display: none;
+  @media (min-width: 768px) and (max-width: 1023px) {
+    display: block !important;
+  }
+}
+
+.show-desktop {
+  display: none;
+  @media (min-width: 1024px) {
+    display: block !important;
+  }
+}
+
+/* ========================================
+   10. RESPONSIVE UTILITIES
+   ======================================== */
+
+/* Width Utilities */
+.w-full-mobile {
+  @media (max-width: 767px) {
+    width: 100% !important;
+  }
+}
+
+.w-full-tablet {
+  @media (min-width: 768px) and (max-width: 1023px) {
+    width: 100% !important;
+  }
+}
+
+/* Text Alignment */
+.text-center-mobile {
+  @media (max-width: 767px) {
+    text-align: center !important;
+  }
+}
+
+.text-left-tablet {
+  @media (min-width: 768px) {
+    text-align: left !important;
+  }
+}
+
+/* ========================================
+   11. FOCUS STATES (ACCESSIBILITY) - WCAG AA COMPLIANCE
+   ======================================== */
+
+.focus-ring {
+  transition: all 0.2s ease;
+}
+
+.focus-ring:focus {
+  outline: 3px solid #CEB43C;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.focus-ring:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ========================================
+   12. ANIMATIONS & TRANSITIONS
+   ======================================== */
+
+.transition-responsive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   13. CONTRAST RATIOS (WCAG AA COMPLIANCE)
+   ======================================== */
+
+/* High Contrast Text for Accessibility */
+.text-accessible {
+  color: #1a1d20; /* 15.3:1 contrast ratio on white */
+}
+
+.text-accessible-secondary {
+  color: #495057; /* 7.3:1 contrast ratio on white */
+}
+
+/* ========================================
+   14. HORIZONTAL SCROLLING PREVENTION
+   ======================================== */
+
+/* Prevent horizontal scrolling on mobile */
+.no-horizontal-scroll {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Ensure all containers respect viewport width */
+.viewport-safe {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   15. PRINT STYLES
+   ======================================== */
+
+@media print {
+  .container-responsive {
+    padding: 0;
+    max-width: none;
+  }
+  
+  .card-modern {
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+  
+  .hide-mobile,
+  .hide-tablet {
+    display: block !important;
+  }
+  
+  .show-mobile,
+  .show-tablet {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   16. RESPONSIVE UTILITIES FOR CMS COMPONENTS
+   ======================================== */
+
+/* Mobile-first responsive utilities */
+.mobile-flex { 
+  display: flex; 
+}
+
+.mobile-flex-col { 
+  flex-direction: column; 
+}
+
+.mobile-items-center { 
+  align-items: center; 
+}
+
+.mobile-justify-between { 
+  justify-content: space-between; 
+}
+
+.mobile-space-x-2 > * + * {
+  margin-left: 8px;
+}
+
+.mobile-space-y-3 > * + * {
+  margin-top: 12px;
+}
+
+.mobile-space-y-6 > * + * {
+  margin-top: 24px;
+}
+
+.mobile-p-3 { 
+  padding: 12px; 
+}
+
+.mobile-p-4 { 
+  padding: 16px; 
+}
+
+.mobile-p-6 { 
+  padding: 24px; 
+}
+
+.mobile-w-full { 
+  width: 100%; 
+}
+
+.mobile-w-auto { 
+  width: auto; 
+}
+
+.mobile-w-4 { 
+  width: 16px; 
+}
+
+.mobile-w-5 { 
+  width: 20px; 
+}
+
+.mobile-w-8 { 
+  width: 32px; 
+}
+
+.mobile-w-10 { 
+  width: 40px; 
+}
+
+.mobile-w-12 { 
+  width: 48px; 
+}
+
+.mobile-w-16 { 
+  width: 64px; 
+}
+
+.mobile-h-4 { 
+  height: 16px; 
+}
+
+.mobile-h-5 { 
+  height: 20px; 
+}
+
+.mobile-h-8 { 
+  height: 32px; 
+}
+
+.mobile-h-10 { 
+  height: 40px; 
+}
+
+.mobile-h-12 { 
+  height: 48px; 
+}
+
+.mobile-h-16 { 
+  height: 64px; 
+}
+
+.mobile-text-xs { 
+  font-size: 12px; 
+}
+
+.mobile-text-sm { 
+  font-size: 14px; 
+}
+
+.mobile-text-base { 
+  font-size: 16px; 
+}
+
+.mobile-text-lg { 
+  font-size: 18px; 
+}
+
+.mobile-text-xl { 
+  font-size: 20px; 
+}
+
+.mobile-text-2xl { 
+  font-size: 24px; 
+}
+
+.mobile-text-center { 
+  text-align: center; 
+}
+
+.mobile-text-left { 
+  text-align: left; 
+}
+
+.mobile-gap-2 { 
+  gap: 8px; 
+}
+
+.mobile-gap-4 { 
+  gap: 16px; 
+}
+
+.mobile-min-h-\[44px\] { 
+  min-height: 44px; 
+}
+
+.mobile-flex-1 { 
+  flex: 1 1 0%; 
+}
+
+.mobile-hidden { 
+  display: none; 
+}
+
+.mobile-inline { 
+  display: inline; 
+}
+
+.mobile-block { 
+  display: block; 
+}
+
+.mobile-flex-none { 
+  flex: none; 
+}
+
+.mobile-flex-wrap { 
+  flex-wrap: wrap; 
+}
+
+.mobile-mt-2 { 
+  margin-top: 8px; 
+}
+
+.mobile-mt-0 { 
+  margin-top: 0; 
+}
+
+.mobile-space-y-0 > * + * {
+  margin-top: 0;
+}
+
+.mobile-space-x-4 > * + * {
+  margin-left: 16px;
+}
+
+/* Tablet responsive utilities */
+@media (min-width: 768px) {
+  .tablet-flex { 
+    display: flex; 
+  }
+  
+  .tablet-flex-row { 
+    flex-direction: row; 
+  }
+  
+  .tablet-items-start { 
+    align-items: flex-start; 
+  }
+  
+  .tablet-items-center { 
+    align-items: center; 
+  }
+  
+  .tablet-justify-between { 
+    justify-content: space-between; 
+  }
+  
+  .tablet-space-x-2 > * + * {
+    margin-left: 8px;
+  }
+  
+  .tablet-space-x-4 > * + * {
+    margin-left: 16px;
+  }
+  
+  .tablet-space-y-0 > * + * {
+    margin-top: 0;
+  }
+  
+  .tablet-space-y-4 > * + * {
+    margin-top: 16px;
+  }
+  
+  .tablet-p-4 { 
+    padding: 16px; 
+  }
+  
+  .tablet-p-6 { 
+    padding: 24px; 
+  }
+  
+  .tablet-w-auto { 
+    width: auto; 
+  }
+  
+  .tablet-w-5 { 
+    width: 20px; 
+  }
+  
+  .tablet-w-6 { 
+    width: 24px; 
+  }
+  
+  .tablet-w-10 { 
+    width: 40px; 
+  }
+  
+  .tablet-w-12 { 
+    width: 48px; 
+  }
+  
+  .tablet-w-16 { 
+    width: 64px; 
+  }
+  
+  .tablet-w-20 { 
+    width: 80px; 
+  }
+  
+  .tablet-h-5 { 
+    height: 20px; 
+  }
+  
+  .tablet-h-6 { 
+    height: 24px; 
+  }
+  
+  .tablet-h-10 { 
+    height: 40px; 
+  }
+  
+  .tablet-h-12 { 
+    height: 48px; 
+  }
+  
+  .tablet-h-16 { 
+    height: 64px; 
+  }
+  
+  .tablet-h-20 { 
+    height: 80px; 
+  }
+  
+  .tablet-text-xs { 
+    font-size: 12px; 
+  }
+  
+  .tablet-text-sm { 
+    font-size: 14px; 
+  }
+  
+  .tablet-text-base { 
+    font-size: 16px; 
+  }
+  
+  .tablet-text-lg { 
+    font-size: 18px; 
+  }
+  
+  .tablet-text-xl { 
+    font-size: 20px; 
+  }
+  
+  .tablet-text-2xl { 
+    font-size: 24px; 
+  }
+  
+  .tablet-text-3xl { 
+    font-size: 30px; 
+  }
+  
+  .tablet-text-left { 
+    text-align: left; 
+  }
+  
+  .tablet-gap-4 { 
+    gap: 16px; 
+  }
+  
+  .tablet-mt-0 { 
+    margin-top: 0; 
+  }
+  
+  .tablet-flex-none { 
+    flex: none; 
+  }
+  
+  .tablet-inline { 
+    display: inline; 
+  }
+  
+  .tablet-hidden { 
+    display: none; 
+  }
+  
+  .tablet-block { 
+    display: block; 
+  }
+}
+
+/* Desktop responsive utilities */
+@media (min-width: 1024px) {
+  .desktop-flex { 
+    display: flex; 
+  }
+  
+  .desktop-w-12 { 
+    width: 48px; 
+  }
+  
+  .desktop-w-16 { 
+    width: 64px; 
+  }
+  
+  .desktop-w-24 { 
+    width: 96px; 
+  }
+  
+  .desktop-h-12 { 
+    height: 48px; 
+  }
+  
+  .desktop-h-16 { 
+    height: 64px; 
+  }
+  
+  .desktop-h-24 { 
+    height: 96px; 
+  }
+  
+  .desktop-text-lg { 
+    font-size: 18px; 
+  }
+  
+  .desktop-text-xl { 
+    font-size: 20px; 
+  }
+  
+  .desktop-text-2xl { 
+    font-size: 24px; 
+  }
+  
+  .desktop-text-3xl { 
+    font-size: 30px; 
+  }
+  
+  .desktop-text-4xl { 
+    font-size: 36px; 
+  }
+}

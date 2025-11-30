@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
 import { ChevronRight, Star, Award, Heart, Quote, Play, ArrowUpRight, Sparkles, TrendingUp, Landmark, Mail, Facebook, Twitter, Instagram, Linkedin, MapPin, Phone } from 'lucide-react';
 import ModernCard from '../components/ui/ModernCard';
 
 const Home = () => {
-  const { } = useTranslation();
+  // Translation hook - initialized for future use
+  // const { t } = useTranslation();
+  // const { } = useTranslation();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   
 
@@ -82,7 +83,7 @@ const Home = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-center lg:justify-start space-x-2">
                     <Sparkles className="w-6 h-6 text-yellow-400" />
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                    <h1 className="content-hero-title">
                       BENIRAGE
                     </h1>
                     <Sparkles className="w-6 h-6 text-yellow-400" />
@@ -176,54 +177,78 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Our Pillars Section - Light background like PDF */}
-      <section className="py-12 lg:py-20 bg-gray-50">
+      {/* Our Pillars Section - Matching Community Says Style */}
+      <section className="py-12 lg:py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 lg:mb-16">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h2 className="content-section-header">
               Our <span className="text-yellow-400">Pillars</span>
             </h2>
-            <p className="text-base lg:text-lg text-gray-700 font-semibold mt-2">
+            <p className="content-body-text">
               Empowering Unity, Growth, and Wellness through National Legacy
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* The Legacy of Rwanda */}
             <ModernCard className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
-              <div className="p-3 lg:p-4 text-center">
-                <div className="w-10 lg:w-12 h-10 lg:h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg transform transition-transform hover:rotate-6">
-                  <Landmark className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
+              <div className="p-6 lg:p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg transform transition-transform hover:rotate-6">
+                  <Landmark className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-sm lg:text-base font-bold text-gray-900 mb-2 leading-tight">The Legacy of Rwanda</h3>
-                <div className="bg-gradient-to-r from-[#0A3D5C] to-[#0D4A6B] text-white py-1.5 px-2 rounded text-[10px] lg:text-xs font-medium shadow-md">
-                  Promote unity through Rwanda's Legacy
+                <h3 className="content-subsection mb-4">The Legacy of Rwanda</h3>
+                <div className="space-y-3 text-gray-700 leading-relaxed">
+                  <p className="text-sm lg:text-base">
+                    Preserving and celebrating Rwanda's rich cultural heritage while fostering unity across communities and generations.
+                  </p>
+                  <p className="text-sm lg:text-base">
+                    Building bridges between traditional wisdom and modern innovation through collaborative partnerships and sustainable practices.
+                  </p>
+                  <p className="text-sm lg:text-base font-semibold text-yellow-600">
+                    Creating a lasting foundation for future generations to build upon our shared legacy and cultural identity.
+                  </p>
                 </div>
               </div>
             </ModernCard>
 
             {/* The Well-being */}
-            <ModernCard className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
-              <div className="p-3 lg:p-4 text-center">
-                <div className="w-10 lg:w-12 h-10 lg:h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg transform transition-transform hover:rotate-6">
-                  <Heart className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
+            <ModernCard className="bg-gradient-to-br from-white to-gray-50 border-2 border-blue-400 hover:border-blue-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+              <div className="p-6 lg:p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg transform transition-transform hover:rotate-6">
+                  <Heart className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-sm lg:text-base font-bold text-gray-900 mb-2 leading-tight">The well-being</h3>
-                <div className="bg-gradient-to-r from-[#0A3D5C] to-[#0D4A6B] text-white py-1.5 px-2 rounded text-[10px] lg:text-xs font-medium shadow-md">
-                  Promote strong families and better health
+                <h3 className="content-subsection mb-4">The Well-being</h3>
+                <div className="space-y-3 text-gray-700 leading-relaxed">
+                  <p className="text-sm lg:text-base">
+                    Promoting holistic health and wellness across physical, mental, and social dimensions within our communities.
+                  </p>
+                  <p className="text-sm lg:text-base">
+                    Fostering inclusive environments where every individual can thrive through evidence-based practices and cultural sensitivity.
+                  </p>
+                  <p className="text-sm lg:text-base font-semibold text-blue-600">
+                    Empowering communities to achieve balanced, meaningful lives where prosperity includes quality of well-being.
+                  </p>
                 </div>
               </div>
             </ModernCard>
 
             {/* The Economic Development */}
-            <ModernCard className="bg-gradient-to-br from-white to-gray-50 border-2 border-yellow-400 hover:border-yellow-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
-              <div className="p-3 lg:p-4 text-center">
-                <div className="w-10 lg:w-12 h-10 lg:h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg transform transition-transform hover:rotate-6">
-                  <TrendingUp className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
+            <ModernCard className="bg-gradient-to-br from-white to-gray-50 border-2 border-green-400 hover:border-green-500 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+              <div className="p-6 lg:p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg transform transition-transform hover:rotate-6">
+                  <TrendingUp className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-sm lg:text-base font-bold text-gray-900 mb-2 leading-tight">The Economic Development</h3>
-                <div className="bg-gradient-to-r from-[#0A3D5C] to-[#0D4A6B] text-white py-1.5 px-2 rounded text-[10px] lg:text-xs font-medium shadow-md">
-                  Advance development and empower youth/women
+                <h3 className="content-subsection mb-4">The Economic Development</h3>
+                <div className="space-y-3 text-gray-700 leading-relaxed">
+                  <p className="text-sm lg:text-base">
+                    Driving sustainable economic growth through strategic investments, capacity building, and entrepreneurial ecosystem development.
+                  </p>
+                  <p className="text-sm lg:text-base">
+                    Creating inclusive opportunities that transform potential into prosperity while ensuring environmental and social responsibility.
+                  </p>
+                  <p className="text-sm lg:text-base font-semibold text-green-600">
+                    Building resilient economies that advance human dignity and create lasting wealth for current and future generations.
+                  </p>
                 </div>
               </div>
             </ModernCard>
@@ -238,14 +263,14 @@ const Home = () => {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6 lg:space-y-8">
               <div className="space-y-4 lg:space-y-6">
-                <h2 className="text-lg lg:text-xl font-bold text-white text-center lg:text-left">
+                <h2 className="content-section-header">
                   About <span className="text-yellow-400">BENIRAGE</span>
                 </h2>
                 <div className="space-y-4">
-                  <p className="text-xs lg:text-sm text-gray-200 leading-relaxed">
+                  <p className="content-body-text" style={{color: 'var(--color-white)'}}>
                     BENIRAGE is a non-governmental organization founded in <span className="font-bold text-yellow-400">May 2024</span>, officially registered under legal personality <span className="font-bold text-yellow-400">000070|RGB|NGO|LP|01|2025</span> by the Rwanda Governance Board.
                   </p>
-                  <p className="text-xs lg:text-sm text-gray-200 leading-relaxed">
+                  <p className="content-body-text" style={{color: 'var(--color-white)'}}>
                     We promote the well-being of the population based on Rwandan heritage and culture through the preservation of cultural values, support for education and research, knowledge enhancement, and protection of historical sites.
                   </p>
                 </div>
@@ -267,8 +292,8 @@ const Home = () => {
                 <div className="w-10 lg:w-12 h-10 lg:h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-lg">
                   <Heart className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
                 </div>
-                <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2">Our Vision</h3>
-                <p className="text-gray-700 leading-relaxed text-xs lg:text-sm font-medium">
+                <h3 className="content-subsection">Our Vision</h3>
+                <p className="content-body-text" style={{color: 'var(--color-medium-gray)'}}>
                   A world where heritage, culture, wisdom, and spirituality form the foundation of peace and development.
                 </p>
               </ModernCard>
@@ -277,8 +302,8 @@ const Home = () => {
                 <div className="w-10 lg:w-12 h-10 lg:h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-lg">
                   <Award className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
                 </div>
-                <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2">Our Mission</h3>
-                <p className="text-gray-700 leading-relaxed text-xs lg:text-sm font-medium">
+                <h3 className="content-subsection">Our Mission</h3>
+                <p className="content-body-text" style={{color: 'var(--color-medium-gray)'}}>
                   To promote well-being through Rwandan heritage and culture, education, and historical preservation.
                 </p>
               </ModernCard>
@@ -296,7 +321,7 @@ const Home = () => {
               <div className="p-4 lg:p-6">
                 <div className="flex items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3"><span className="bg-[#0A3D5C] text-yellow-400 px-2 py-1 rounded text-base sm:text-lg lg:text-xl inline-block">Our Events</span></h3>
+                    <h3 className="content-subsection"><span className="bg-[#0A3D5C] text-yellow-400 px-2 py-1 rounded text-base sm:text-lg lg:text-xl inline-block">Our Events</span></h3>
                     <p className="text-gray-700 leading-relaxed mb-4 text-xs lg:text-sm font-medium">
                       Discover our latest programs and gatherings.
                     </p>
@@ -313,7 +338,7 @@ const Home = () => {
               <div className="p-4 lg:p-6">
                 <div className="flex items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3"><span className="bg-[#0A3D5C] text-yellow-400 px-2 py-1 rounded text-base sm:text-lg lg:text-xl inline-block">Our Programs</span></h3>
+                    <h3 className="content-subsection"><span className="bg-[#0A3D5C] text-yellow-400 px-2 py-1 rounded text-base sm:text-lg lg:text-xl inline-block">Our Programs</span></h3>
                     <p className="text-gray-700 leading-relaxed mb-4 text-xs lg:text-sm font-medium">
                       Explore our training and learning programs.
                     </p>
@@ -330,7 +355,7 @@ const Home = () => {
               <div className="p-4 lg:p-6">
                 <div className="flex items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3"><span className="bg-[#0A3D5C] text-yellow-400 px-2 py-1 rounded text-base sm:text-lg lg:text-xl inline-block">Our Archives</span></h3>
+                    <h3 className="content-subsection"><span className="bg-[#0A3D5C] text-yellow-400 px-2 py-1 rounded text-base sm:text-lg lg:text-xl inline-block">Our Archives</span></h3>
                     <p className="text-gray-700 leading-relaxed mb-4 text-xs lg:text-sm font-medium">
                       Discover our preserved materials.
                     </p>
@@ -350,7 +375,7 @@ const Home = () => {
       <section className="py-12 lg:py-20 bg-[#0A3D5C]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 lg:mb-12">
-            <h2 className="text-lg lg:text-xl font-bold text-white mb-4">
+            <h2 className="content-section-header">
               Connect <span className="text-yellow-400">With Us</span>
             </h2>
             <p className="text-xs lg:text-sm text-gray-200 leading-relaxed max-w-3xl mx-auto">
@@ -428,7 +453,7 @@ const Home = () => {
       <section className="py-12 lg:py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 lg:mb-16">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h2 className="content-section-header">
               What Our <span className="text-gray-900">Community</span> Says
             </h2>
             <p className="text-xs lg:text-sm text-gray-600 px-4">Real stories from real people whose lives have been transformed</p>
@@ -492,10 +517,10 @@ const Home = () => {
           <div className="max-w-4xl mx-auto bg-white border-8 border-[#0A3D5C] rounded-2xl p-8 lg:p-12 shadow-2xl">
             <div className="text-center">
               <div className="mb-6 lg:mb-8">
-                <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-3 lg:mb-4">
+                <h2 className="content-section-header">
                   Ready to transform our community?
                 </h2>
-                <p className="text-xs lg:text-sm text-gray-800 leading-relaxed max-w-3xl mx-auto px-4">
+                <p className="content-body-text" style={{color: 'var(--color-dark-gray)'}}>
                   Your support helps us preserve culture, empower communities, and build prosperity
                 </p>
               </div>

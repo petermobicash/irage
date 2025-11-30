@@ -146,19 +146,29 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
         console.log('Realtime subscription status:', status);
         if (status === 'SUBSCRIBED') {
           setRealtimeStatus('connected');
-          // Track presence
-          await channel.track({
-            user_id: currentUser?.id || 'anonymous',
-            user_name: currentUser?.email?.split('@')[0] || 'User',
-            user_avatar: currentUser?.avatar_url,
-            last_seen: new Date().toISOString()
-          });
+          try {
+            // Track presence with error handling
+            await channel.track({
+              user_id: currentUser?.id || 'anonymous',
+              user_name: currentUser?.email?.split('@')[0] || 'User',
+              user_avatar: currentUser?.avatar_url,
+              last_seen: new Date().toISOString()
+            });
+          } catch (trackError) {
+            console.warn('Presence tracking failed, continuing without realtime features:', trackError);
+            setRealtimeStatus('error');
+          }
         } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
           console.warn('Realtime connection failed, falling back to manual mode');
           setRealtimeStatus('error');
-          // Show toast notification about realtime being unavailable
-          showToast('Real-time collaboration unavailable, using manual mode', 'warning');
-          // Don't return here - let the component work in manual mode
+          // Only show warning once to avoid spam
+          if (realtimeStatus !== 'error') {
+            showToast('Real-time collaboration unavailable, using manual mode', 'warning');
+          }
+        } else if (status === 'TIMED_OUT') {
+          console.warn('Realtime connection timed out');
+          setRealtimeStatus('error');
+          showToast('Connection timeout, using manual mode', 'warning');
         } else {
           setRealtimeStatus('disconnected');
         }
@@ -173,7 +183,7 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
         channelRef.current = null;
       }
     };
-  }, [contentId, currentUser, checkContentLock, onContentChange, showToast]);
+  }, [contentId, currentUser, checkContentLock, onContentChange, showToast, realtimeStatus]);
 
   const acquireLock = async () => {
     try {
@@ -268,7 +278,7 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
     onContentChange(newContent);
 
     // Broadcast content change to other users (only if realtime is available)
-    if (channelRef.current && currentUser?.id) {
+    if (channelRef.current && realtimeStatus === 'connected' && currentUser?.id) {
       try {
         (channelRef.current as RealtimeChannel).send({
           type: 'broadcast',
@@ -279,9 +289,9 @@ const RealTimeCollaboration: React.FC<CollaborationProps> = ({
             timestamp: new Date().toISOString()
           }
         });
-      } catch {
-        // Silently fail if realtime isn't available - component works in manual mode
-        console.log('Realtime broadcast failed, continuing in manual mode');
+      } catch (broadcastError) {
+        // Silently fail if realtime broadcast fails - component works in manual mode
+        console.log('Realtime broadcast failed, continuing in manual mode:', broadcastError);
       }
     }
 

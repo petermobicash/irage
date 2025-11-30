@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { submitVolunteerApplication } from '../lib/supabase';
 import { Users, Heart, Shield } from 'lucide-react';
-import Section from '../components/ui/Section';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { NATIONALITIES } from '../utils/nationalities';
@@ -956,12 +955,12 @@ const Volunteer = () => {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="content-container text-center">
             <div className="text-5xl lg:text-6xl mb-6 animate-fade-in-up">🤝</div>
-            <h1 className="text-lg lg:text-xl font-bold text-white mb-6 animate-fade-in-up animation-delay-100">
+            <h1 className="content-hero-title animate-fade-in-up animation-delay-100">
               Volunteer <span className="text-yellow-400">With Us</span>
             </h1>
-            <p className="text-xs lg:text-sm text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200">
+            <p className="content-body-text text-gray-200 mb-8 animate-fade-in-up animation-delay-200">
               Share your skills and passion to make a meaningful impact in our community
             </p>
           </div>
@@ -969,54 +968,56 @@ const Volunteer = () => {
       </section>
 
       {/* Volunteer Benefits */}
-      <Section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-8">
+      <section className="content-section bg-white">
+        <div className="content-container text-center">
+          <h2 className="content-section-header">
             Why Volunteer with BENIRAGE?
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center hover:scale-105 transition-transform">
-              <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3">
-                Make Real Impact
-              </h3>
-              <p className="text-gray-600">
-                Directly contribute to spiritual growth, cultural preservation, and community development
-              </p>
-            </Card>
+          <div className="content-card-content">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="text-center hover:scale-105 transition-transform">
+                <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="content-subsection">
+                  Make Real Impact
+                </h3>
+                <p className="content-body-text text-gray-600">
+                  Directly contribute to spiritual growth, cultural preservation, and community development
+                </p>
+              </Card>
 
-            <Card className="text-center hover:scale-105 transition-transform">
-              <Users className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3">
-                Build Community
-              </h3>
-              <p className="text-gray-600">
-                Connect with like-minded individuals and build meaningful relationships within our movement
-              </p>
-            </Card>
+              <Card className="text-center hover:scale-105 transition-transform">
+                <Users className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                <h3 className="content-subsection">
+                  Build Community
+                </h3>
+                <p className="content-body-text text-gray-600">
+                  Connect with like-minded individuals and build meaningful relationships within our movement
+                </p>
+              </Card>
 
-            <Card className="text-center hover:scale-105 transition-transform">
-              <Shield className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3">
-                Develop Skills
-              </h3>
-              <p className="text-gray-600">
-                Gain new skills, leadership experience, and personal growth through meaningful service
-              </p>
-            </Card>
+              <Card className="text-center hover:scale-105 transition-transform">
+                <Shield className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                <h3 className="content-subsection">
+                  Develop Skills
+                </h3>
+                <p className="content-body-text text-gray-600">
+                  Gain new skills, leadership experience, and personal growth through meaningful service
+                </p>
+              </Card>
+            </div>
           </div>
         </div>
-      </Section>
+      </section>
 
       {/* Volunteer Opportunities */}
-      <Section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
+      <section className="content-section bg-gray-50">
+        <div className="content-container">
           <div className="text-center mb-16">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-6">
+            <h2 className="content-section-header">
               Volunteer Opportunities
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Choose from various ways to contribute your time and talents
             </p>
           </div>
@@ -1024,7 +1025,7 @@ const Volunteer = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="text-center hover:scale-105 transition-transform">
               <div className="text-5xl mb-6">✨</div>
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+              <h3 className="content-subsection">
                 Spiritual Programs
               </h3>
               <p className="text-gray-600 leading-relaxed mb-4">
@@ -1119,16 +1120,16 @@ const Volunteer = () => {
             </Card>
           </div>
         </div>
-      </Section>
+      </section>
 
       {/* Volunteer Application Form */}
-      <Section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
+      <section className="content-section bg-gray-50">
+        <div className="content-container">
           <div className="text-center mb-12">
-            <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">
+            <h2 className="content-section-header">
               Volunteer Application
             </h2>
-            <p className="text-xs lg:text-sm text-gray-700">
+            <p className="content-body-text">
               Join our team of dedicated volunteers making a difference
             </p>
           </div>
@@ -1180,21 +1181,21 @@ const Volunteer = () => {
                 <Shield className="w-5 h-5 text-green-600" />
                 <span className="font-medium text-green-800">Secure Application Process</span>
               </div>
-              <p className="text-sm text-green-700">
+              <p className="content-small-text text-green-700">
                 Your personal information is encrypted and securely stored. We respect your privacy and will only use your information for volunteer management and program coordination.
               </p>
             </div>
           </Card>
         </div>
-      </Section>
+      </section>
 
       {/* Volunteer Impact */}
-      <Section className="py-20 bg-blue-900 text-blue-900">
-        <div className="text-center max-w-4xl mx-auto">
-          <h2 className="text-lg lg:text-xl font-bold text-white mb-8">
+      <section className="content-section bg-blue-900 text-blue-900">
+        <div className="content-container text-center">
+          <h2 className="content-section-header text-white">
             Your Volunteer Impact
           </h2>
-          <p className="text-xs lg:text-sm text-gray-200 mb-12">
+          <p className="content-body-text text-gray-200 mb-12">
             Join hundreds of volunteers who are already making a difference
           </p>
 
@@ -1222,7 +1223,7 @@ const Volunteer = () => {
             </Button>
           </div>
         </div>
-      </Section>
+      </section>
     </div>
   );
 };

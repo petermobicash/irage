@@ -7,6 +7,10 @@ export default {
   theme: {
     extend: {
       screens: {
+        'mobile': {'min': '320px', 'max': '767px'},
+        'tablet': {'min': '768px', 'max': '1023px'},
+        'desktop': '1024px',
+        // Legacy support
         'xs': '475px',
         'sm': '640px',
         'md': '768px',
